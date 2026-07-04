@@ -49,10 +49,10 @@ jobs:
           name: starx-paper
           path: starx-paper/build/libs/starx-paper-*-all.jar
 
-      - name: Test Report
-        uses: dorny/test-reporter@v1
+      - name: Test Summary
         if: always()
-        with:
-          name: JUnit Tests
-          path: '**/build/test-results*/**/TEST-*.xml'
-          reporter: java-junit
+        run: |
+          echo '## Test Results' >> $GITHUB_STEP_SUMMARY
+          find . -path '*/build/test-results*/**/TEST-*.xml' -exec sh -c 'grep -oP "tests=\"\K[^\"]+" "$1" | head -1' _ {} \; | while read -r line; do
+            echo "- $line tests" >> $GITHUB_STEP_SUMMARY
+          done || echo 'No test results found' >> $GITHUB_STEP_SUMMARY
