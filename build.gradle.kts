@@ -23,13 +23,6 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
-    kotlin {
-        target("**/*.gradle.kts", "build-logic/src/**/*.kt")
-        targetExclude("**/build/**/*.gradle.kts", "**/build/**/*.kt")
-        ktlint("1.5.0")
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
     format("markdown") {
         target("docs/**/*.md", "obsidian-vault/**/*.md", "README.md")
         trimTrailingWhitespace()

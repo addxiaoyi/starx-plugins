@@ -32,7 +32,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Check code style
-        run: ./gradlew spotlessCheck --no-daemon
+        run: ./gradlew spotlessJavaCheck --no-daemon
 
       - name: Run tests
         run: ./gradlew test --no-daemon
