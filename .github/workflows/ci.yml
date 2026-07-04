@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Spotless check
+        run: ./gradlew spotlessCheck
+
+      - name: Generate Jacoco report
+        run: ./gradlew jacocoTestReport testCodeCoverageReport
+
+      - name: Upload Velocity ShadowJar
+        uses: actions/upload-artifact@v4
+        with:
+          name: starx-velocity-shadowjar
+          path: starx-velocity/build/libs/starx-velocity-*-all.jar
+          if-no-files-found: warn
+
+      - name: Upload Paper ShadowJar
+        uses: actions/upload-artifact@v4
+        with:
+          name: starx-paper-shadowjar
+          path: starx-paper/build/libs/starx-paper-*-all.jar
+          if-no-files-found: warn
+
+      - name: Upload Jacoco aggregate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/testCodeCoverageReport/html/**
+          if-no-files-found: warn

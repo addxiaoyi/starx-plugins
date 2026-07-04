@@ -1,0 +1,85 @@
+[versions]
+java = "21"
+
+# Platforms
+velocity = "3.5.0-SNAPSHOT"
+limboapi = "1.1.26"
+paper = "1.21.4-R0.1-SNAPSHOT"
+skinsrestorer = "15.12.4"
+
+# HTTP & Serialization
+javalin = "6.6.0"
+gson = "2.12.1"
+configurate = "4.1.2"
+
+# Database
+hikaricp = "6.2.1"
+jdbi = "3.49.3"
+flyway = "11.7.2"
+h2 = "2.3.232"
+mysql = "9.2.0"
+postgresql = "42.7.5"
+
+# Security
+bcrypt = "0.10.2"
+totp = "0.4.0"
+
+# Metrics
+micrometer = "1.14.5"
+
+# Testing
+junit = "5.12.1"
+mockito = "5.16.1"
+assertj = "3.27.3"
+testcontainers = "1.20.6"
+
+# Build plugins
+shadow = "8.3.6"
+spotless = "7.0.2"
+jacoco = "0.8.13"
+
+[libraries]
+velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
+limboapi-api = { module = "net.elytrium.limboapi:limboapi-api", version.ref = "limboapi" }
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+skinsrestorer-api = { module = "net.skinsrestorer:skinsrestorer-api", version.ref = "skinsrestorer" }
+
+javalin = { module = "io.javalin:javalin", version.ref = "javalin" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
+configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate" }
+
+hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
+jdbi-core = { module = "org.jdbi:jdbi3-core", version.ref = "jdbi" }
+jdbi-sqlobject = { module = "org.jdbi:jdbi3-sqlobject", version.ref = "jdbi" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql", version.ref = "flyway" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
+mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
+totp = { module = "com.eatthepath:java-otp", version.ref = "totp" }
+
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+testcontainers-core = { module = "org.testcontainers:testcontainers" }
+testcontainers-junit = { module = "org.testcontainers:junit-jupiter" }
+testcontainers-mysql = { module = "org.testcontainers:mysql" }
+testcontainers-postgres = { module = "org.testcontainers:postgresql" }
+
+[bundles]
+database = ["hikaricp", "jdbi-core", "jdbi-sqlobject", "flyway-core"]
+test = ["junit-jupiter", "mockito-core", "mockito-junit", "assertj"]
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
