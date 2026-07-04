@@ -6,6 +6,7 @@
 
 | 目录 | 说明 |
 |------|------|
+| [features](features.md) | **完整功能列表**（Velocity 28 模块 + Paper 10 模块 + API 端点） |
 | [architecture/overview](architecture/overview.md) | 模块架构总览与分层说明 |
 | [architecture/module-loader](architecture/module-loader.md) | 模块加载器设计 |
 | [architecture/auth-flow](architecture/auth-flow.md) | 认证流程：Limbo、正版/离线路由 |

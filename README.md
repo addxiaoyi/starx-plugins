@@ -1,6 +1,6 @@
 # StarX Plugins
 
-Minecraft 代理 + 子服 All-in-One 插件套件。将 38 个 Velocity/Paper 插件的功能整合为统一的多模块 Gradle 项目。
+Minecraft 代理 + 子服 All-in-One 插件套件。统一的多模块 Gradle 项目，Velocity 代理端 28 个模块 + Paper 子服端 10 个模块。
 
 ## 架构
 
@@ -9,7 +9,7 @@ starx-plugins/
 ├── starx-api/          # API 契约层 (DTO, 事件, 消息, 仓库接口)
 ├── starx-common/       # 跨平台实现 (HikariCP + JDBI + Flyway, BCrypt, TOTP)
 ├── starx-velocity/     # Velocity 代理端 (28 个模块)
-├── starx-paper/        # Paper 子服端 (11 个模块)
+├── starx-paper/        # Paper 子服端 (10 个模块)
 └── starx-testfixtures/ # 测试辅助 (内存实现, Mock)
 ```
 
@@ -70,7 +70,7 @@ starx-plugins/
 | 集成 | MapModIntegrationModule | `integrations.mapmod` |
 | 集成 | SocialIntegrationModule | `integrations.social` |
 
-### Paper 端 (11 个)
+### Paper 端 (10 个)
 
 | 类别 | 模块 | 配置键 |
 |------|------|--------|
@@ -99,7 +99,7 @@ modules:
     enabled: false
 ```
 
-详细信息见 [功能列表文档](docs/starx-features/starx-features.html)。
+详细信息见 [功能列表](docs/features.md)。
 
 ## 开发
 
