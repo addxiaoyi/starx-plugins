@@ -2,60 +2,55 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main]
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [main]
 
 jobs:
-  build:
+  test:
+    name: Test & Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [21]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup JDK 21
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
+          java-version: ${{ matrix.java }}
           distribution: temurin
-          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Check code style
+        run: ./gradlew spotlessCheck --no-daemon
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon
 
-      - name: Spotless check
-        run: ./gradlew spotlessCheck
+      - name: Build shadow JARs
+        run: ./gradlew :starx-velocity:shadowJar :starx-paper:shadowJar --no-daemon
 
-      - name: Generate Jacoco report
-        run: ./gradlew jacocoTestReport testCodeCoverageReport
-
-      - name: Upload Velocity ShadowJar
+      - name: Upload Velocity JAR
         uses: actions/upload-artifact@v4
         with:
-          name: starx-velocity-shadowjar
+          name: starx-velocity
           path: starx-velocity/build/libs/starx-velocity-*-all.jar
-          if-no-files-found: warn
 
-      - name: Upload Paper ShadowJar
+      - name: Upload Paper JAR
         uses: actions/upload-artifact@v4
         with:
-          name: starx-paper-shadowjar
+          name: starx-paper
           path: starx-paper/build/libs/starx-paper-*-all.jar
-          if-no-files-found: warn
 
-      - name: Upload Jacoco aggregate report
-        uses: actions/upload-artifact@v4
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
         with:
-          name: jacoco-report
-          path: build/reports/jacoco/testCodeCoverageReport/html/**
-          if-no-files-found: warn
+          name: JUnit Tests
+          path: '**/build/test-results/test/TEST-*.xml'
+          reporter: java-junit
