@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
 
@@ -59,3 +60,29 @@ jobs:
           find . -path '*/build/test-results*/**/TEST-*.xml' -exec sh -c 'grep -oP "tests=\"\K[^\"]+" "$1" | head -1' _ {} \; | while read -r line; do
             echo "- $line tests" >> $GITHUB_STEP_SUMMARY
           done || echo 'No test results found' >> $GITHUB_STEP_SUMMARY
+
+  release:
+    name: Create Release
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Velocity JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: starx-velocity
+
+      - name: Download Paper JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: starx-paper
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            starx-velocity-*-all.jar
+            starx-paper-*-all.jar
+          generate_release_notes: true
