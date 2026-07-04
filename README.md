@@ -2,6 +2,8 @@
 
 Minecraft 代理 + 子服 All-in-One 插件套件。统一的多模块 Gradle 项目，Velocity 代理端 28 个模块 + Paper 子服端 10 个模块。
 
+📖 **[用户使用指南 →](docs/user-guide.md)**
+
 ## 架构
 
 ```
@@ -99,7 +101,7 @@ modules:
     enabled: false
 ```
 
-详细信息见 [功能列表](docs/features.md)。
+详细信息见 [使用指南](docs/user-guide.md)。
 
 ## 开发
 
