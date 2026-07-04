@@ -47,7 +47,9 @@ public class StarxPaperPlugin extends JavaPlugin {
   }
 
   private void handlePluginMessage(PluginMessage message) {
-    getLogger().info("Received plugin message: " + message.command());
+    if (moduleManager != null) {
+      moduleManager.handlePluginMessage(message);
+    }
   }
 
   public SchedulerAdapter getSchedulerAdapter() {

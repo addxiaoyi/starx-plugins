@@ -14,9 +14,16 @@ import io.github.addxiaoyi.starx.velocity.database.DatabaseManager;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
 import io.github.addxiaoyi.starx.velocity.http.HttpApiServer;
 import io.github.addxiaoyi.starx.velocity.http.WebhookClient;
+import io.github.addxiaoyi.starx.velocity.http.WebhookEventPublisher;
 import io.github.addxiaoyi.starx.velocity.messaging.VelocityMessageBridge;
 import io.github.addxiaoyi.starx.velocity.module.ModuleManager;
 import io.github.addxiaoyi.starx.velocity.module.auth.AuthModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.ChatModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.MaintenanceModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.MotdModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.QueueModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.RedirectModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.queue.QueueService;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
 import io.github.addxiaoyi.starx.velocity.security.HmacWebhookSigner;
 import java.nio.file.Path;
@@ -93,14 +100,26 @@ public class StarxVelocityPlugin {
     databaseManager.initialize();
 
     moduleManager = new ModuleManager(config);
-    SkinBridgeModule skinBridge = new SkinBridgeModule(proxy, null, eventBus);
-    moduleManager.register(new AuthModule(this, eventBus));
+    SkinBridgeModule skinBridge = new SkinBridgeModule(proxy, eventBus);
+    AuthModule authModule = new AuthModule(this, eventBus);
+    VelocityMessageBridge messageBridge = new VelocityMessageBridge(this, proxy, eventBus);
+    moduleManager.register(authModule);
     moduleManager.register(skinBridge);
-    moduleManager.register(new VelocityMessageBridge(this, proxy, eventBus));
+    moduleManager.register(messageBridge);
+    moduleManager.register(
+        new MaintenanceModule(
+            this, eventBus, messageBridge, MaintenanceModule.Config.defaultConfig()));
+    moduleManager.register(new MotdModule(this, eventBus, MotdModule.Config.defaultConfig()));
+    moduleManager.register(new ChatModule(this, messageBridge, ChatModule.Config.defaultConfig()));
+    moduleManager.register(new RedirectModule(this, RedirectModule.Config.defaultConfig()));
+    moduleManager.register(
+        new QueueModule(this, QueueModule.Config.defaultConfig(), new QueueService()));
 
-    httpApiServer = new HttpApiServer(config, skinBridge);
+    httpApiServer =
+        new HttpApiServer(config, eventBus, proxy, authModule.userRepository(), skinBridge);
     webhookClient =
         new WebhookClient(config.webhook(), new HmacWebhookSigner(config.webhook().secret()));
+    new WebhookEventPublisher(eventBus, webhookClient).register();
 
     moduleManager.enableAll();
     httpApiServer.start();

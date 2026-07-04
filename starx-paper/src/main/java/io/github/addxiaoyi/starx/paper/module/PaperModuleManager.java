@@ -1,5 +1,6 @@
 package io.github.addxiaoyi.starx.paper.module;
 
+import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.chat.ChatModule;
@@ -52,6 +53,21 @@ public final class PaperModuleManager {
 
   public List<PaperModule> getModules() {
     return List.copyOf(modules);
+  }
+
+  public void handlePluginMessage(PluginMessage message) {
+    for (PaperModule module : modules) {
+      try {
+        module.onPluginMessage(message);
+      } catch (Exception e) {
+        plugin
+            .getLogger()
+            .log(
+                Level.SEVERE,
+                "Failed to dispatch plugin message to module: " + module.getName(),
+                e);
+      }
+    }
   }
 
   private boolean isSkinModuleLoadable() {

@@ -15,7 +15,8 @@ sourceSets {
 dependencies {
     api(project(":starx-common"))
     compileOnly(libs.velocity.api)
-    compileOnly(sourceSets["stubs"].output.classesDirs)
+    compileOnly(libs.jdbi.core)
+    compileOnly(libs.jdbi.sqlobject)
     "stubsCompileOnly"(libs.velocity.api)
     implementation(libs.javalin)
     implementation(libs.micrometer.prometheus)
@@ -27,10 +28,15 @@ dependencies {
     testRuntimeOnly(libs.junit.launcher)
 }
 
+sourceSets["main"].compileClasspath += sourceSets["stubs"].output.classesDirs
+
 tasks.test {
     val workerTmp = File("C:/tmp")
     workerTmp.mkdirs()
     systemProperty("java.io.tmpdir", workerTmp.absolutePath)
+    val ts = System.currentTimeMillis()
+    binaryResultsDirectory.set(layout.buildDirectory.dir("test-results-$ts/binary"))
+    reports.junitXml.outputLocation.set(layout.buildDirectory.dir("test-results-$ts/xml"))
 }
 
 tasks.withType<ShadowJar>().configureEach {

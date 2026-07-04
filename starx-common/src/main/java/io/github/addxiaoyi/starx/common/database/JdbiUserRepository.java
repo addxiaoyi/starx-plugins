@@ -1,8 +1,11 @@
 package io.github.addxiaoyi.starx.common.database;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.github.addxiaoyi.starx.api.dto.UserDto;
 import io.github.addxiaoyi.starx.api.repository.UserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
+import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -16,17 +19,20 @@ import org.jdbi.v3.core.Jdbi;
 /** 基于 JDBI 的 {@link UserRepository} 实现，内部使用 {@link StarxUser} 实体持久化。 */
 public class JdbiUserRepository implements UserRepository {
 
+  private static final String SELECT_COLUMNS =
+      "uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices";
   private static final String SELECT_BY_UUID =
-      "SELECT uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id FROM starx_users WHERE uuid = ?";
+      "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE uuid = ?";
   private static final String SELECT_BY_USERNAME =
-      "SELECT uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id FROM starx_users WHERE username = ?";
+      "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE username = ?";
   private static final String SELECT_BY_EMAIL =
-      "SELECT uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id FROM starx_users WHERE email = ?";
-  private static final String SELECT_ALL =
-      "SELECT uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id FROM starx_users";
+      "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE email = ?";
+  private static final String SELECT_ALL = "SELECT " + SELECT_COLUMNS + " FROM starx_users";
   private static final String DELETE_BY_UUID = "DELETE FROM starx_users WHERE uuid = ?";
+  private static final Type TRUSTED_DEVICES_TYPE = new TypeToken<List<String>>() {}.getType();
 
   private final Jdbi jdbi;
+  private final Gson gson = new Gson();
 
   public JdbiUserRepository(Jdbi jdbi) {
     this.jdbi = jdbi;
@@ -82,7 +88,12 @@ public class JdbiUserRepository implements UserRepository {
         handle -> {
           Optional<StarxUser> existing = findFullByUuid(handle, user.uuid());
           if (existing.isPresent()) {
-            updateFromDto(handle, user, existing.get().passwordHash(), existing.get().totpSecret());
+            updateFromDto(
+                handle,
+                user,
+                existing.get().passwordHash(),
+                existing.get().totpSecret(),
+                existing.get().trustedDevices());
           } else {
             insertFromDto(handle, user);
           }
@@ -123,7 +134,7 @@ public class JdbiUserRepository implements UserRepository {
     Instant now = user.createdAt() != null ? user.createdAt() : Instant.now();
     handle
         .createUpdate(
-            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(0, user.uuid())
         .bind(1, user.username())
         .bind(2, user.email())
@@ -133,14 +144,19 @@ public class JdbiUserRepository implements UserRepository {
         .bind(6, Timestamp.from(now))
         .bind(7, user.lastLoginAt() != null ? Timestamp.from(user.lastLoginAt()) : null)
         .bind(8, user.externalUserId())
+        .bind(9, (Object) null)
         .execute();
   }
 
   private void updateFromDto(
-      Handle handle, UserDto user, String existingPasswordHash, String existingTotpSecret) {
+      Handle handle,
+      UserDto user,
+      String existingPasswordHash,
+      String existingTotpSecret,
+      List<String> existingTrustedDevices) {
     handle
         .createUpdate(
-            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ? WHERE uuid = ?")
+            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ?, trusted_devices = ? WHERE uuid = ?")
         .bind(0, user.username())
         .bind(1, user.email())
         .bind(2, existingPasswordHash)
@@ -153,14 +169,15 @@ public class JdbiUserRepository implements UserRepository {
                 : Timestamp.from(Instant.now()))
         .bind(6, user.lastLoginAt() != null ? Timestamp.from(user.lastLoginAt()) : null)
         .bind(7, user.externalUserId())
-        .bind(8, user.uuid())
+        .bind(8, toJson(existingTrustedDevices))
+        .bind(9, user.uuid())
         .execute();
   }
 
   private void insert(Handle handle, StarxUser user) {
     handle
         .createUpdate(
-            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(0, user.uuid())
         .bind(1, user.username())
         .bind(2, user.email())
@@ -170,13 +187,14 @@ public class JdbiUserRepository implements UserRepository {
         .bind(6, Timestamp.from(user.createdAt()))
         .bind(7, user.lastLoginAt() != null ? Timestamp.from(user.lastLoginAt()) : null)
         .bind(8, user.externalUserId())
+        .bind(9, toJson(user.trustedDevices()))
         .execute();
   }
 
   private void update(Handle handle, StarxUser user) {
     handle
         .createUpdate(
-            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ? WHERE uuid = ?")
+            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ?, trusted_devices = ? WHERE uuid = ?")
         .bind(0, user.username())
         .bind(1, user.email())
         .bind(2, user.passwordHash())
@@ -185,7 +203,8 @@ public class JdbiUserRepository implements UserRepository {
         .bind(5, Timestamp.from(user.createdAt()))
         .bind(6, user.lastLoginAt() != null ? Timestamp.from(user.lastLoginAt()) : null)
         .bind(7, user.externalUserId())
-        .bind(8, user.uuid())
+        .bind(8, toJson(user.trustedDevices()))
+        .bind(9, user.uuid())
         .execute();
   }
 
@@ -201,7 +220,7 @@ public class JdbiUserRepository implements UserRepository {
         .build();
   }
 
-  private static StarxUser mapUser(ResultSet rs) throws SQLException {
+  private StarxUser mapUser(ResultSet rs) throws SQLException {
     Timestamp createdAt = rs.getTimestamp("created_at");
     Timestamp lastLoginAt = rs.getTimestamp("last_login_at");
     return new StarxUser(
@@ -213,6 +232,22 @@ public class JdbiUserRepository implements UserRepository {
         rs.getBoolean("premium"),
         createdAt != null ? createdAt.toInstant() : null,
         lastLoginAt != null ? lastLoginAt.toInstant() : null,
-        rs.getString("external_user_id"));
+        rs.getString("external_user_id"),
+        parseTrustedDevices(rs.getString("trusted_devices")));
+  }
+
+  private String toJson(List<String> trustedDevices) {
+    if (trustedDevices == null || trustedDevices.isEmpty()) {
+      return null;
+    }
+    return gson.toJson(trustedDevices);
+  }
+
+  private List<String> parseTrustedDevices(String json) {
+    if (json == null || json.isBlank()) {
+      return List.of();
+    }
+    List<String> parsed = gson.fromJson(json, TRUSTED_DEVICES_TYPE);
+    return parsed == null ? List.of() : List.copyOf(parsed);
   }
 }

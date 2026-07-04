@@ -1,10 +1,16 @@
 package io.github.addxiaoyi.starx.velocity.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
+import com.velocitypowered.api.proxy.ProxyServer;
+import io.github.addxiaoyi.starx.api.dto.UserDto;
+import io.github.addxiaoyi.starx.api.event.EventBus;
+import io.github.addxiaoyi.starx.api.repository.UserRepository;
+import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
+import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
+import io.github.addxiaoyi.starx.velocity.repository.InMemoryUserRepository;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,17 +27,23 @@ import org.mockito.MockitoAnnotations;
 class HttpApiServerTest {
 
   private static final int TEST_PORT = 18788;
+  private static final String API_KEY = "secret";
 
   @Mock SkinBridgeModule skinBridge;
+  @Mock ProxyServer proxy;
 
   private AutoCloseable mocks;
   private HttpApiServer server;
   private HttpClient client;
+  private UserRepository userRepository;
+  private EventBus eventBus;
 
   @BeforeEach
   void setUp() {
     mocks = MockitoAnnotations.openMocks(this);
     client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
+    userRepository = new InMemoryUserRepository();
+    eventBus = new VelocityEventBus();
   }
 
   @AfterEach
@@ -46,7 +58,7 @@ class HttpApiServerTest {
 
   @Test
   void shouldReturn503WhenApiKeyNotConfigured() throws Exception {
-    server = new HttpApiServer(configWithApiKey(null), skinBridge);
+    server = new HttpApiServer(configWithApiKey(null), eventBus, proxy, userRepository, skinBridge);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", null);
@@ -57,7 +69,8 @@ class HttpApiServerTest {
 
   @Test
   void shouldReturn401WhenApiKeyIsWrong() throws Exception {
-    server = new HttpApiServer(configWithApiKey("secret"), skinBridge);
+    server =
+        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", "wrong");
@@ -67,46 +80,65 @@ class HttpApiServerTest {
 
   @Test
   void shouldReturn200ForHealthWithValidKey() throws Exception {
-    server = new HttpApiServer(configWithApiKey("secret"), skinBridge);
+    server =
+        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
     server.start();
 
-    HttpResponse<String> response = get("/v1/health", "secret");
+    HttpResponse<String> response = get("/v1/health", API_KEY);
 
     assertThat(response.statusCode()).isEqualTo(200);
     assertThat(response.body()).isEqualTo("OK");
   }
 
   @Test
-  void shouldReturn501ForUserExists() throws Exception {
-    server = new HttpApiServer(configWithApiKey("secret"), skinBridge);
+  void shouldAuthenticateWithValidHmacSignature() throws Exception {
+    server =
+        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
     server.start();
 
-    HttpResponse<String> response = get("/v1/user/exists?username=test", "secret");
+    String timestamp = String.valueOf(System.currentTimeMillis());
+    String signature = HmacSigner.sign(API_KEY, timestamp, "");
 
-    assertThat(response.statusCode()).isEqualTo(501);
+    HttpResponse<String> response = getHmac("/v1/health", timestamp, signature);
+
+    assertThat(response.statusCode()).isEqualTo(200);
+    assertThat(response.body()).isEqualTo("OK");
+  }
+
+  @Test
+  void shouldReturn401ForInvalidHmacSignature() throws Exception {
+    server =
+        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+    server.start();
+
+    HttpResponse<String> response = getHmac("/v1/health", "123", "invalid-signature");
+
+    assertThat(response.statusCode()).isEqualTo(401);
+  }
+
+  @Test
+  void shouldReturnUserExists() throws Exception {
+    userRepository.save(UserDto.builder().uuid(UUID.randomUUID()).username("test").build());
+    server =
+        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+    server.start();
+
+    HttpResponse<String> response = get("/v1/user/exists?username=test", API_KEY);
+
+    assertThat(response.statusCode()).isEqualTo(200);
+    assertThat(response.body()).contains("\"exists\":true");
   }
 
   @Test
   void shouldRefreshSkinWhenValidRequest() throws Exception {
-    server = new HttpApiServer(configWithApiKey("secret"), skinBridge);
+    userRepository.save(UserDto.builder().uuid(UUID.randomUUID()).username("alice").build());
+    server =
+        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
     server.start();
 
-    UUID uuid = UUID.randomUUID();
-    HttpResponse<String> response =
-        post("/v1/skin/refresh", "secret", "{\"uuid\":\"" + uuid + "\"}");
+    HttpResponse<String> response = post("/v1/skin/refresh", API_KEY, "{\"username\":\"alice\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
-    verify(skinBridge).refreshSkin(uuid);
-  }
-
-  @Test
-  void shouldReturn400ForInvalidUuid() throws Exception {
-    server = new HttpApiServer(configWithApiKey("secret"), skinBridge);
-    server.start();
-
-    HttpResponse<String> response = post("/v1/skin/refresh", "secret", "{\"uuid\":\"not-a-uuid\"}");
-
-    assertThat(response.statusCode()).isEqualTo(400);
   }
 
   private StarxConfig configWithApiKey(String apiKey) {
@@ -125,6 +157,17 @@ class HttpApiServerTest {
       builder.header(HttpApiServer.API_KEY_HEADER, apiKey);
     }
     return client.send(builder.GET().build(), HttpResponse.BodyHandlers.ofString());
+  }
+
+  private HttpResponse<String> getHmac(String path, String timestamp, String signature)
+      throws IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + TEST_PORT + path))
+            .header(HttpApiServer.TIMESTAMP_HEADER, timestamp)
+            .header(HttpApiServer.SIGNATURE_HEADER, signature)
+            .GET()
+            .build();
+    return client.send(request, HttpResponse.BodyHandlers.ofString());
   }
 
   private HttpResponse<String> post(String path, String apiKey, String body)

@@ -1,5 +1,8 @@
 package io.github.addxiaoyi.starx.velocity.messaging;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
@@ -43,12 +46,16 @@ public final class VelocityMessageBridge implements VelocityModule {
     proxy.getEventManager().register(plugin, new MessageListener());
   }
 
-  /** 向指定玩家发送 PluginMessage。 */
+  /** 向指定玩家发送 PluginMessage（Paper 兼容格式：UTF 命令 + 长度 + JSON payload）。 */
   public void sendMessage(Player player, PluginMessage message) {
     Objects.requireNonNull(player, "player");
     Objects.requireNonNull(message, "message");
-    byte[] data = gson.toJson(message).getBytes(StandardCharsets.UTF_8);
-    player.sendPluginMessage(channel, data);
+    byte[] payload = gson.toJson(message.payload()).getBytes(StandardCharsets.UTF_8);
+    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+    out.writeUTF(message.command());
+    out.writeInt(payload.length);
+    out.write(payload);
+    player.sendPluginMessage(channel, out.toByteArray());
   }
 
   public ChannelIdentifier channel() {
@@ -62,8 +69,15 @@ public final class VelocityMessageBridge implements VelocityModule {
       if (!event.getIdentifier().equals(channel)) {
         return;
       }
-      String json = new String(event.getData(), StandardCharsets.UTF_8);
-      PluginMessage message = gson.fromJson(json, PluginMessage.class);
+      ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
+      String command = in.readUTF();
+      int length = in.readInt();
+      byte[] payloadBytes = new byte[length];
+      in.readFully(payloadBytes);
+      @SuppressWarnings("unchecked")
+      Map<String, Object> payload =
+          gson.fromJson(new String(payloadBytes, StandardCharsets.UTF_8), Map.class);
+      PluginMessage message = new PluginMessage(command, payload);
       eventBus.publish(
           EventTypes.SYNC_PLAYER_STATE,
           Map.of(

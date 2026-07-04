@@ -6,6 +6,7 @@ import io.github.addxiaoyi.starx.api.dto.UserDto;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -46,7 +47,16 @@ class JdbiUserRepositoryTest {
     Instant now = Instant.now();
     StarxUser user =
         new StarxUser(
-            uuid, "alice", "alice@example.com", "hash", "secret", true, now, now, "ext-1");
+            uuid,
+            "alice",
+            "alice@example.com",
+            "hash",
+            "secret",
+            true,
+            now,
+            now,
+            "ext-1",
+            List.of());
 
     repository.saveUser(user);
 
@@ -90,7 +100,8 @@ class JdbiUserRepositoryTest {
             false,
             Instant.now(),
             null,
-            null);
+            null,
+            List.of());
     repository.saveUser(full);
 
     UserDto update =
@@ -130,6 +141,15 @@ class JdbiUserRepositoryTest {
 
   private StarxUser sampleUser(String username, String email) {
     return new StarxUser(
-        UUID.randomUUID(), username, email, "hash", "secret", false, Instant.now(), null, null);
+        UUID.randomUUID(),
+        username,
+        email,
+        "hash",
+        "secret",
+        false,
+        Instant.now(),
+        null,
+        null,
+        List.of());
   }
 }

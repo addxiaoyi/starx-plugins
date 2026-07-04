@@ -1,6 +1,9 @@
 package io.github.addxiaoyi.starx.common.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /** 用户数据库实体。 */
@@ -15,6 +18,7 @@ public final class StarxUser {
   private final Instant createdAt;
   private final Instant lastLoginAt;
   private final String externalUserId;
+  private final List<String> trustedDevices;
 
   public StarxUser(
       UUID uuid,
@@ -25,7 +29,8 @@ public final class StarxUser {
       boolean premium,
       Instant createdAt,
       Instant lastLoginAt,
-      String externalUserId) {
+      String externalUserId,
+      List<String> trustedDevices) {
     this.uuid = uuid;
     this.username = username;
     this.email = email;
@@ -35,6 +40,10 @@ public final class StarxUser {
     this.createdAt = createdAt;
     this.lastLoginAt = lastLoginAt;
     this.externalUserId = externalUserId;
+    this.trustedDevices =
+        trustedDevices == null
+            ? List.of()
+            : Collections.unmodifiableList(new ArrayList<>(trustedDevices));
   }
 
   public UUID uuid() {
@@ -71,5 +80,9 @@ public final class StarxUser {
 
   public String externalUserId() {
     return externalUserId;
+  }
+
+  public List<String> trustedDevices() {
+    return trustedDevices;
   }
 }
