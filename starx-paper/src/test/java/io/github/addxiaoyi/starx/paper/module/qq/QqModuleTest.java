@@ -1,17 +1,15 @@
 package io.github.addxiaoyi.starx.paper.module.qq;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import java.util.logging.Logger;
-import org.bukkit.advancement.Advancement;
 import org.bukkit.Server;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;

@@ -65,12 +65,28 @@ class RiskModuleTest {
 
   @Test
   void shouldDetectHighRiskIp() {
-    RiskModule.Config strictConfig = new RiskModule.Config() {
-      @Override public int highRiskThreshold() { return 50; }
-      @Override public boolean requireTotpForHighRisk() { return true; }
-      @Override public boolean checkNewDevice() { return true; }
-      @Override public boolean checkAsn() { return true; }
-    };
+    RiskModule.Config strictConfig =
+        new RiskModule.Config() {
+          @Override
+          public int highRiskThreshold() {
+            return 50;
+          }
+
+          @Override
+          public boolean requireTotpForHighRisk() {
+            return true;
+          }
+
+          @Override
+          public boolean checkNewDevice() {
+            return true;
+          }
+
+          @Override
+          public boolean checkAsn() {
+            return true;
+          }
+        };
 
     RiskModule module = new RiskModule(plugin, eventBus, strictConfig);
     module.onEnable();
@@ -88,12 +104,28 @@ class RiskModuleTest {
 
   @Test
   void shouldPublishHighRiskAlertOnLogin() {
-    RiskModule.Config strictConfig = new RiskModule.Config() {
-      @Override public int highRiskThreshold() { return 5; }
-      @Override public boolean requireTotpForHighRisk() { return true; }
-      @Override public boolean checkNewDevice() { return true; }
-      @Override public boolean checkAsn() { return true; }
-    };
+    RiskModule.Config strictConfig =
+        new RiskModule.Config() {
+          @Override
+          public int highRiskThreshold() {
+            return 5;
+          }
+
+          @Override
+          public boolean requireTotpForHighRisk() {
+            return true;
+          }
+
+          @Override
+          public boolean checkNewDevice() {
+            return true;
+          }
+
+          @Override
+          public boolean checkAsn() {
+            return true;
+          }
+        };
 
     RiskModule module = new RiskModule(plugin, eventBus, strictConfig);
     module.onEnable();
@@ -125,12 +157,28 @@ class RiskModuleTest {
 
   @Test
   void shouldRequireTotpForHighRiskWhenConfigured() {
-    RiskModule.Config strictConfig = new RiskModule.Config() {
-      @Override public int highRiskThreshold() { return 50; }
-      @Override public boolean requireTotpForHighRisk() { return true; }
-      @Override public boolean checkNewDevice() { return true; }
-      @Override public boolean checkAsn() { return true; }
-    };
+    RiskModule.Config strictConfig =
+        new RiskModule.Config() {
+          @Override
+          public int highRiskThreshold() {
+            return 50;
+          }
+
+          @Override
+          public boolean requireTotpForHighRisk() {
+            return true;
+          }
+
+          @Override
+          public boolean checkNewDevice() {
+            return true;
+          }
+
+          @Override
+          public boolean checkAsn() {
+            return true;
+          }
+        };
 
     RiskModule module = new RiskModule(plugin, eventBus, strictConfig);
     module.onEnable();

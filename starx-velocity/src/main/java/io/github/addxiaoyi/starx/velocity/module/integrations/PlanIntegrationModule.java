@@ -1,11 +1,11 @@
 package io.github.addxiaoyi.starx.velocity.module.integrations;
 
+import com.velocitypowered.api.scheduler.ScheduledTask;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.messaging.VelocityMessageBridge;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.time.Instant;
-import com.velocitypowered.api.scheduler.ScheduledTask;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;

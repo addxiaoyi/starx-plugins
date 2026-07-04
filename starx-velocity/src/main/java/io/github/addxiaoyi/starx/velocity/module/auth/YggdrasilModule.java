@@ -28,9 +28,7 @@ public final class YggdrasilModule implements VelocityModule {
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     this.config = Objects.requireNonNull(config, "config");
     this.httpClient =
-        HttpClient.newBuilder()
-            .connectTimeout(Duration.ofMillis(config.timeout()))
-            .build();
+        HttpClient.newBuilder().connectTimeout(Duration.ofMillis(config.timeout())).build();
   }
 
   @Override
@@ -40,9 +38,7 @@ public final class YggdrasilModule implements VelocityModule {
 
   @Override
   public void onEnable() {
-    plugin
-        .logger()
-        .log(Level.INFO, "YggdrasilModule 已启用，加载 {0} 个认证服务器", config.servers().size());
+    plugin.logger().log(Level.INFO, "YggdrasilModule 已启用，加载 {0} 个认证服务器", config.servers().size());
   }
 
   @Override
@@ -77,16 +73,14 @@ public final class YggdrasilModule implements VelocityModule {
    * @param serverName 认证服务器名称
    * @return 用户存在的 future
    */
-  public CompletableFuture<Boolean> checkUserExists(
-      String username, UUID uuid, String serverName) {
+  public CompletableFuture<Boolean> checkUserExists(String username, UUID uuid, String serverName) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
     String baseUrl = config.servers().get(serverName);
     if (baseUrl == null) {
       future.complete(false);
       return future;
     }
-    String url =
-        baseUrl + "session/minecraft/profile/" + uuid.toString().replace("-", "");
+    String url = baseUrl + "session/minecraft/profile/" + uuid.toString().replace("-", "");
     httpClient
         .sendAsync(
             HttpRequest.newBuilder().uri(URI.create(url)).GET().build(),
@@ -106,7 +100,9 @@ public final class YggdrasilModule implements VelocityModule {
             ex -> {
               plugin
                   .logger()
-                  .log(Level.WARNING, "检查用户 " + username + " 在 " + serverName + " 上失败: " + ex.getMessage());
+                  .log(
+                      Level.WARNING,
+                      "检查用户 " + username + " 在 " + serverName + " 上失败: " + ex.getMessage());
               future.complete(false);
               return null;
             });

@@ -133,16 +133,13 @@ public final class MigrationModule implements VelocityModule {
             imported++;
           } catch (Exception e) {
             errors++;
-            plugin
-                .logger()
-                .log(Level.WARNING, "迁移用户 " + username + " 失败: " + e.getMessage());
+            plugin.logger().log(Level.WARNING, "迁移用户 " + username + " 失败: " + e.getMessage());
           }
         }
       }
     }
 
-    return new MigrationResult(
-        total, imported, skippedExisting, skippedInvalid, errors, 0, dryRun);
+    return new MigrationResult(total, imported, skippedExisting, skippedInvalid, errors, 0, dryRun);
   }
 
   private Connection getSourceConnection() throws Exception {
@@ -155,8 +152,7 @@ public final class MigrationModule implements VelocityModule {
         String database = (String) conn.getOrDefault("database", "multilogin");
         String username = (String) conn.getOrDefault("username", "root");
         String password = (String) conn.getOrDefault("password", "");
-        String jdbcUrl =
-            "jdbc:mysql://" + host + ":" + port + "/" + database;
+        String jdbcUrl = "jdbc:mysql://" + host + ":" + port + "/" + database;
         yield DriverManager.getConnection(jdbcUrl, username, password);
       }
       case "sqlite" -> {

@@ -1,7 +1,5 @@
 package io.github.addxiaoyi.starx.paper.module.qq;
 
-import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
-import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
@@ -10,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -63,9 +61,12 @@ public final class QqModule implements PaperModule, Listener {
     String deathMessage = event.getDeathMessage();
     pendingNotifications.add(
         Map.of(
-            "type", "death",
-            "player", event.getEntity().getName(),
-            "message", deathMessage != null ? deathMessage : event.getEntity().getName() + " died"));
+            "type",
+            "death",
+            "player",
+            event.getEntity().getName(),
+            "message",
+            deathMessage != null ? deathMessage : event.getEntity().getName() + " died"));
     // TODO: 通过 Plugin Messaging 向 Velocity 发送 QQ 通知事件
   }
 
@@ -87,8 +88,7 @@ public final class QqModule implements PaperModule, Listener {
     if (!enabled) {
       return;
     }
-    pendingNotifications.add(
-        Map.of("type", "join", "player", event.getPlayer().getName()));
+    pendingNotifications.add(Map.of("type", "join", "player", event.getPlayer().getName()));
   }
 
   @EventHandler
@@ -96,7 +96,6 @@ public final class QqModule implements PaperModule, Listener {
     if (!enabled) {
       return;
     }
-    pendingNotifications.add(
-        Map.of("type", "quit", "player", event.getPlayer().getName()));
+    pendingNotifications.add(Map.of("type", "quit", "player", event.getPlayer().getName()));
   }
 }

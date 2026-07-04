@@ -42,7 +42,9 @@ class PlanIntegrationModuleTest {
     Scheduler.TaskBuilder taskBuilder = mock(Scheduler.TaskBuilder.class);
     ScheduledTask scheduledTask = mock(ScheduledTask.class);
     lenient().when(scheduler.buildTask(any(), any(Runnable.class))).thenReturn(taskBuilder);
-    lenient().when(taskBuilder.repeat(any(Long.class), any(TimeUnit.class))).thenReturn(taskBuilder);
+    lenient()
+        .when(taskBuilder.repeat(any(Long.class), any(TimeUnit.class)))
+        .thenReturn(taskBuilder);
     lenient().when(taskBuilder.schedule()).thenReturn(scheduledTask);
     enabledConfig =
         new PlanIntegrationModule.Config() {

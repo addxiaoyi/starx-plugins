@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
 import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
@@ -14,7 +13,6 @@ import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.bukkit.Server;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.messaging.Messenger;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,9 +67,7 @@ class NetworkingModuleTest {
     module.onEnable();
 
     PluginMessage msg =
-        new PluginMessage(
-            PluginMessageChannels.CMD_NETWORKING_SYNC,
-            Map.of("type", "config_sync"));
+        new PluginMessage(PluginMessageChannels.CMD_NETWORKING_SYNC, Map.of("type", "config_sync"));
 
     assertThat(module.isEnabled()).isTrue();
   }

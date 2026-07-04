@@ -42,8 +42,10 @@ public final class CrashFixModule implements VelocityModule {
   /** 检查数据包大小是否超过限制。 */
   boolean checkPacketSize(int size) {
     if (size > config.maxPacketSize()) {
-      eventBus.publish(new StarxEvent(SecurityEvents.CRASH_ATTEMPT,
-          Map.of("reason", "oversized_packet", "size", size, "limit", config.maxPacketSize())));
+      eventBus.publish(
+          new StarxEvent(
+              SecurityEvents.CRASH_ATTEMPT,
+              Map.of("reason", "oversized_packet", "size", size, "limit", config.maxPacketSize())));
       return true;
     }
     return false;
@@ -52,8 +54,10 @@ public final class CrashFixModule implements VelocityModule {
   /** 检查 NBT 嵌套深度是否溢出。 */
   boolean checkNbtDepth(int depth) {
     if (depth > config.maxNbtDepth()) {
-      eventBus.publish(new StarxEvent(SecurityEvents.CRASH_ATTEMPT,
-          Map.of("reason", "nbt_overflow", "depth", depth, "limit", config.maxNbtDepth())));
+      eventBus.publish(
+          new StarxEvent(
+              SecurityEvents.CRASH_ATTEMPT,
+              Map.of("reason", "nbt_overflow", "depth", depth, "limit", config.maxNbtDepth())));
       return true;
     }
     return false;
@@ -62,8 +66,11 @@ public final class CrashFixModule implements VelocityModule {
   /** 检查数组大小是否合法（防止负数或过大）。 */
   boolean checkArraySize(int size) {
     if (size < 0 || size > config.maxArraySize()) {
-      eventBus.publish(new StarxEvent(SecurityEvents.SUSPICIOUS_PACKET,
-          Map.of("reason", "invalid_array_size", "size", size, "limit", config.maxArraySize())));
+      eventBus.publish(
+          new StarxEvent(
+              SecurityEvents.SUSPICIOUS_PACKET,
+              Map.of(
+                  "reason", "invalid_array_size", "size", size, "limit", config.maxArraySize())));
       return true;
     }
     return false;
@@ -71,14 +78,27 @@ public final class CrashFixModule implements VelocityModule {
 
   public interface Config {
     int maxPacketSize();
+
     int maxNbtDepth();
+
     int maxArraySize();
 
     static Config defaultConfig() {
       return new Config() {
-        @Override public int maxPacketSize() { return 1024 * 1024 * 5; }
-        @Override public int maxNbtDepth() { return 128; }
-        @Override public int maxArraySize() { return 256; }
+        @Override
+        public int maxPacketSize() {
+          return 1024 * 1024 * 5;
+        }
+
+        @Override
+        public int maxNbtDepth() {
+          return 128;
+        }
+
+        @Override
+        public int maxArraySize() {
+          return 256;
+        }
       };
     }
   }

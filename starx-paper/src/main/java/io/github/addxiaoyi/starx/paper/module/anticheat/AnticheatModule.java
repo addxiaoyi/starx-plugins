@@ -1,7 +1,5 @@
 package io.github.addxiaoyi.starx.paper.module.anticheat;
 
-import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
-import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
@@ -10,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;

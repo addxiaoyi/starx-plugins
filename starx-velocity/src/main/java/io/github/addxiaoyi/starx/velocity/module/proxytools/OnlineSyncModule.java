@@ -19,8 +19,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 /**
  * 在线同步模块：保持玩家在代理端显示为在线状态，处理全局玩家列表。
  *
- * <p>参考 ProxyOnlineLinker 和 AlwaysOnline 插件逻辑。维护玩家在线状态映射，
- * 提供 /list 命令显示全局玩家（包括不同子服的玩家）。
+ * <p>参考 ProxyOnlineLinker 和 AlwaysOnline 插件逻辑。维护玩家在线状态映射， 提供 /list 命令显示全局玩家（包括不同子服的玩家）。
  */
 public final class OnlineSyncModule implements VelocityModule {
 
@@ -71,16 +70,22 @@ public final class OnlineSyncModule implements VelocityModule {
     public void execute(Invocation invocation) {
       ProxyServer proxy = plugin.proxy();
       int total = proxy.getPlayerCount();
-      invocation.source().sendMessage(
-          Component.text("==== Online Players (" + total + ") ====", NamedTextColor.GOLD).decoration(TextDecoration.BOLD, true));
+      invocation
+          .source()
+          .sendMessage(
+              Component.text("==== Online Players (" + total + ") ====", NamedTextColor.GOLD)
+                  .decoration(TextDecoration.BOLD, true));
       for (Player player : proxy.getAllPlayers()) {
         String serverName =
-            player.getCurrentServer()
+            player
+                .getCurrentServer()
                 .map(conn -> conn.getServer().getServerInfo().getName())
                 .orElse("connecting");
-        invocation.source().sendMessage(
-            Component.text("  " + player.getUsername() + " ", NamedTextColor.WHITE)
-                .append(Component.text("[" + serverName + "]", NamedTextColor.GRAY)));
+        invocation
+            .source()
+            .sendMessage(
+                Component.text("  " + player.getUsername() + " ", NamedTextColor.WHITE)
+                    .append(Component.text("[" + serverName + "]", NamedTextColor.GRAY)));
       }
     }
   }

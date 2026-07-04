@@ -20,14 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class OnlineSyncModuleTest {
 
-  @Mock
-  StarxVelocityPlugin plugin;
-  @Mock
-  ProxyServer proxy;
-  @Mock
-  EventManager eventManager;
-  @Mock
-  CommandManager commandManager;
+  @Mock StarxVelocityPlugin plugin;
+  @Mock ProxyServer proxy;
+  @Mock EventManager eventManager;
+  @Mock CommandManager commandManager;
 
   OnlineSyncModule.Config enabledConfig;
   OnlineSyncModule.Config disabledConfig;
@@ -37,18 +33,20 @@ class OnlineSyncModuleTest {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
     lenient().when(proxy.getCommandManager()).thenReturn(commandManager);
-    enabledConfig = new OnlineSyncModule.Config() {
-      @Override
-      public boolean enabled() {
-        return true;
-      }
-    };
-    disabledConfig = new OnlineSyncModule.Config() {
-      @Override
-      public boolean enabled() {
-        return false;
-      }
-    };
+    enabledConfig =
+        new OnlineSyncModule.Config() {
+          @Override
+          public boolean enabled() {
+            return true;
+          }
+        };
+    disabledConfig =
+        new OnlineSyncModule.Config() {
+          @Override
+          public boolean enabled() {
+            return false;
+          }
+        };
   }
 
   @Test

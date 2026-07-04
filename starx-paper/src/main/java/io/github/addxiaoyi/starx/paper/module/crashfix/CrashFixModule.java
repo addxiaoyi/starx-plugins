@@ -1,12 +1,9 @@
 package io.github.addxiaoyi.starx.paper.module.crashfix;
 
-import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
-import io.github.addxiaoyi.starx.paper.scheduler.SchedulerAdapter;
 import java.util.Set;
-import java.util.regex.Pattern;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -95,7 +92,9 @@ public final class CrashFixModule implements PaperModule, Listener {
       plugin
           .getLogger()
           .warning(
-              "Blocked oversized book (" + meta.getPageCount() + " pages) from "
+              "Blocked oversized book ("
+                  + meta.getPageCount()
+                  + " pages) from "
                   + event.getPlayer().getName());
       return;
     }
@@ -105,8 +104,7 @@ public final class CrashFixModule implements PaperModule, Listener {
         event.setCancelled(true);
         plugin
             .getLogger()
-            .warning(
-                "Blocked oversized book page from " + event.getPlayer().getName());
+            .warning("Blocked oversized book page from " + event.getPlayer().getName());
         return;
       }
     }

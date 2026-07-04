@@ -34,8 +34,9 @@ public final class TabIntegrationModule implements VelocityModule {
     if (tabAvailable) {
       // TODO: 注册 TAB 占位符（参考 StarVC TABHandler.registerPlaceholder）
       // 使用 TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(...)
-      plugin.logger().log(Level.INFO, "TabIntegrationModule 已启用，注册 {0} 个占位符",
-          config.placeholders().size());
+      plugin
+          .logger()
+          .log(Level.INFO, "TabIntegrationModule 已启用，注册 {0} 个占位符", config.placeholders().size());
     } else {
       plugin.logger().log(Level.WARNING, "TabIntegrationModule 已启用但未检测到 TAB 插件");
     }

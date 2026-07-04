@@ -92,12 +92,16 @@ public final class RiskModule implements VelocityModule {
     }
 
     if (isHighRisk(riskScore)) {
-      eventBus.publish(new StarxEvent(SecurityEvents.RISK_HIGH,
-          Map.of("uuid", playerId, "username", username, "ip", ip, "score", riskScore)));
+      eventBus.publish(
+          new StarxEvent(
+              SecurityEvents.RISK_HIGH,
+              Map.of("uuid", playerId, "username", username, "ip", ip, "score", riskScore)));
 
       if (requiresTotp(riskScore)) {
-        eventBus.publish(new StarxEvent(SecurityEvents.RISK_VERIFY_REQUIRED,
-            Map.of("uuid", playerId, "username", username, "ip", ip)));
+        eventBus.publish(
+            new StarxEvent(
+                SecurityEvents.RISK_VERIFY_REQUIRED,
+                Map.of("uuid", playerId, "username", username, "ip", ip)));
       }
     }
 
@@ -106,16 +110,34 @@ public final class RiskModule implements VelocityModule {
 
   public interface Config {
     int highRiskThreshold();
+
     boolean requireTotpForHighRisk();
+
     boolean checkNewDevice();
+
     boolean checkAsn();
 
     static Config defaultConfig() {
       return new Config() {
-        @Override public int highRiskThreshold() { return 70; }
-        @Override public boolean requireTotpForHighRisk() { return false; }
-        @Override public boolean checkNewDevice() { return true; }
-        @Override public boolean checkAsn() { return false; }
+        @Override
+        public int highRiskThreshold() {
+          return 70;
+        }
+
+        @Override
+        public boolean requireTotpForHighRisk() {
+          return false;
+        }
+
+        @Override
+        public boolean checkNewDevice() {
+          return true;
+        }
+
+        @Override
+        public boolean checkAsn() {
+          return false;
+        }
       };
     }
   }

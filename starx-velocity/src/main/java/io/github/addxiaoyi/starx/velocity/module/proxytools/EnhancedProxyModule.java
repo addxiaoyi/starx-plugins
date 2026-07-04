@@ -100,7 +100,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                Component.text(
+                    "You do not have permission to use this command.", NamedTextColor.RED));
         return;
       }
 
@@ -129,9 +130,7 @@ public final class EnhancedProxyModule implements VelocityModule {
         String playerList =
             players.isEmpty()
                 ? "No players"
-                : players.stream()
-                    .map(Player::getUsername)
-                    .collect(Collectors.joining(", "));
+                : players.stream().map(Player::getUsername).collect(Collectors.joining(", "));
 
         invocation
             .source()
@@ -151,7 +150,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                Component.text(
+                    "You do not have permission to use this command.", NamedTextColor.RED));
         return;
       }
 
@@ -186,7 +186,8 @@ public final class EnhancedProxyModule implements VelocityModule {
             .sendMessage(
                 Component.text("Player ", NamedTextColor.YELLOW)
                     .append(Component.text(target.getUsername(), NamedTextColor.GREEN))
-                    .append(Component.text(" is not connected to any server.", NamedTextColor.YELLOW)));
+                    .append(
+                        Component.text(" is not connected to any server.", NamedTextColor.YELLOW)));
         return;
       }
 
@@ -202,7 +203,10 @@ public final class EnhancedProxyModule implements VelocityModule {
 
     @Override
     public List<String> suggest(Invocation invocation) {
-      String lastArg = invocation.arguments().length > 0 ? invocation.arguments()[invocation.arguments().length - 1] : "";
+      String lastArg =
+          invocation.arguments().length > 0
+              ? invocation.arguments()[invocation.arguments().length - 1]
+              : "";
       return plugin.proxy().getAllPlayers().stream()
           .map(Player::getUsername)
           .filter(name -> name.toLowerCase().startsWith(lastArg.toLowerCase()))
@@ -219,7 +223,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                Component.text(
+                    "You do not have permission to use this command.", NamedTextColor.RED));
         return;
       }
 
@@ -295,7 +300,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                Component.text(
+                    "You do not have permission to use this command.", NamedTextColor.RED));
         return;
       }
 
@@ -329,7 +335,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                Component.text(
+                    "You do not have permission to use this command.", NamedTextColor.RED));
         return;
       }
 
@@ -363,7 +370,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("Only players can use this command without arguments.", NamedTextColor.RED));
+                Component.text(
+                    "Only players can use this command without arguments.", NamedTextColor.RED));
         return;
       }
 
@@ -397,7 +405,8 @@ public final class EnhancedProxyModule implements VelocityModule {
         invocation
             .source()
             .sendMessage(
-                Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                Component.text(
+                    "You do not have permission to use this command.", NamedTextColor.RED));
         return;
       }
 
@@ -405,7 +414,8 @@ public final class EnhancedProxyModule implements VelocityModule {
       if (args.length == 0) {
         invocation
             .source()
-            .sendMessage(Component.text("Usage: /kickall <server> [reason]", NamedTextColor.YELLOW));
+            .sendMessage(
+                Component.text("Usage: /kickall <server> [reason]", NamedTextColor.YELLOW));
         return;
       }
 
@@ -426,7 +436,8 @@ public final class EnhancedProxyModule implements VelocityModule {
       Collection<RegisteredServer> allServers = proxy.getAllServers();
       RegisteredServer fallback =
           allServers.stream()
-              .filter(s -> !s.getServerInfo().getName().equals(targetServer.getServerInfo().getName()))
+              .filter(
+                  s -> !s.getServerInfo().getName().equals(targetServer.getServerInfo().getName()))
               .findFirst()
               .orElse(targetServer);
 
@@ -447,8 +458,7 @@ public final class EnhancedProxyModule implements VelocityModule {
                   .append(Component.text(kicked, NamedTextColor.AQUA))
                   .append(Component.text(" players from ", NamedTextColor.GREEN))
                   .append(
-                      Component.text(
-                          targetServer.getServerInfo().getName(), NamedTextColor.AQUA)));
+                      Component.text(targetServer.getServerInfo().getName(), NamedTextColor.AQUA)));
     }
 
     @Override

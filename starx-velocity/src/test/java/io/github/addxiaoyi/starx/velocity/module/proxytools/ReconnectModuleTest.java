@@ -12,8 +12,8 @@ import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.DisconnectEvent.LoginStatus;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.scheduler.ScheduledTask;
@@ -31,14 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ReconnectModuleTest {
 
-  @Mock
-  StarxVelocityPlugin plugin;
-  @Mock
-  ProxyServer proxy;
-  @Mock
-  EventManager eventManager;
-  @Mock
-  Scheduler scheduler;
+  @Mock StarxVelocityPlugin plugin;
+  @Mock ProxyServer proxy;
+  @Mock EventManager eventManager;
+  @Mock Scheduler scheduler;
 
   ReconnectModule.Config enabledConfig;
   ReconnectModule.Config disabledConfig;
@@ -53,18 +49,20 @@ class ReconnectModuleTest {
     lenient().when(scheduler.buildTask(any(), any(Runnable.class))).thenReturn(taskBuilder);
     lenient().when(taskBuilder.delay(any(Long.class), any(TimeUnit.class))).thenReturn(taskBuilder);
     lenient().when(taskBuilder.schedule()).thenReturn(mockTask);
-    enabledConfig = new ReconnectModule.Config() {
-      @Override
-      public boolean enabled() {
-        return true;
-      }
-    };
-    disabledConfig = new ReconnectModule.Config() {
-      @Override
-      public boolean enabled() {
-        return false;
-      }
-    };
+    enabledConfig =
+        new ReconnectModule.Config() {
+          @Override
+          public boolean enabled() {
+            return true;
+          }
+        };
+    disabledConfig =
+        new ReconnectModule.Config() {
+          @Override
+          public boolean enabled() {
+            return false;
+          }
+        };
   }
 
   @Test

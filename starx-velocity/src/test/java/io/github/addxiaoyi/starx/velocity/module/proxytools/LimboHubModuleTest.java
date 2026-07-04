@@ -20,14 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class LimboHubModuleTest {
 
-  @Mock
-  StarxVelocityPlugin plugin;
-  @Mock
-  ProxyServer proxy;
-  @Mock
-  EventManager eventManager;
-  @Mock
-  CommandManager commandManager;
+  @Mock StarxVelocityPlugin plugin;
+  @Mock ProxyServer proxy;
+  @Mock EventManager eventManager;
+  @Mock CommandManager commandManager;
 
   LimboHubModule.Config enabledConfig;
   LimboHubModule.Config disabledConfig;
@@ -37,28 +33,30 @@ class LimboHubModuleTest {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
     lenient().when(proxy.getCommandManager()).thenReturn(commandManager);
-    enabledConfig = new LimboHubModule.Config() {
-      @Override
-      public boolean enabled() {
-        return true;
-      }
+    enabledConfig =
+        new LimboHubModule.Config() {
+          @Override
+          public boolean enabled() {
+            return true;
+          }
 
-      @Override
-      public String hubServerName() {
-        return "lobby";
-      }
-    };
-    disabledConfig = new LimboHubModule.Config() {
-      @Override
-      public boolean enabled() {
-        return false;
-      }
+          @Override
+          public String hubServerName() {
+            return "lobby";
+          }
+        };
+    disabledConfig =
+        new LimboHubModule.Config() {
+          @Override
+          public boolean enabled() {
+            return false;
+          }
 
-      @Override
-      public String hubServerName() {
-        return "lobby";
-      }
-    };
+          @Override
+          public String hubServerName() {
+            return "lobby";
+          }
+        };
   }
 
   @Test

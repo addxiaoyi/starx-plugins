@@ -73,9 +73,18 @@ public final class BotFilterModule implements VelocityModule {
     entry.count++;
 
     if (entry.count > config.maxPingsPerSecond()) {
-      eventBus.publish(new StarxEvent(SecurityEvents.BOT_DETECTED,
-          Map.of("ip", ip, "reason", "ping_flood", "count", entry.count, "limit",
-              config.maxPingsPerSecond())));
+      eventBus.publish(
+          new StarxEvent(
+              SecurityEvents.BOT_DETECTED,
+              Map.of(
+                  "ip",
+                  ip,
+                  "reason",
+                  "ping_flood",
+                  "count",
+                  entry.count,
+                  "limit",
+                  config.maxPingsPerSecond())));
     }
   }
 
@@ -91,34 +100,64 @@ public final class BotFilterModule implements VelocityModule {
     entry.count++;
 
     if (entry.count > config.maxConnectionsPerSecond()) {
-      eventBus.publish(new StarxEvent(SecurityEvents.RATE_LIMIT_EXCEEDED,
-          Map.of("ip", ip, "username", event.getPlayer().getUsername(), "limit",
-              config.maxConnectionsPerSecond())));
+      eventBus.publish(
+          new StarxEvent(
+              SecurityEvents.RATE_LIMIT_EXCEEDED,
+              Map.of(
+                  "ip",
+                  ip,
+                  "username",
+                  event.getPlayer().getUsername(),
+                  "limit",
+                  config.maxConnectionsPerSecond())));
     }
   }
 
   void purgeExpired() {
     long now = System.currentTimeMillis();
-    pingTracker.entrySet().removeIf(
-        e -> now - e.getValue().timestamp > config.cachePurgeMillis());
-    connectionTracker.entrySet().removeIf(
-        e -> now - e.getValue().timestamp > config.cachePurgeMillis());
+    pingTracker.entrySet().removeIf(e -> now - e.getValue().timestamp > config.cachePurgeMillis());
+    connectionTracker
+        .entrySet()
+        .removeIf(e -> now - e.getValue().timestamp > config.cachePurgeMillis());
   }
 
   public interface Config {
     int maxPingsPerSecond();
+
     int maxConnectionsPerSecond();
+
     boolean checkClientBrand();
+
     boolean checkClientSettings();
+
     long cachePurgeMillis();
 
     static Config defaultConfig() {
       return new Config() {
-        @Override public int maxPingsPerSecond() { return 20; }
-        @Override public int maxConnectionsPerSecond() { return 10; }
-        @Override public boolean checkClientBrand() { return true; }
-        @Override public boolean checkClientSettings() { return true; }
-        @Override public long cachePurgeMillis() { return 60000; }
+        @Override
+        public int maxPingsPerSecond() {
+          return 20;
+        }
+
+        @Override
+        public int maxConnectionsPerSecond() {
+          return 10;
+        }
+
+        @Override
+        public boolean checkClientBrand() {
+          return true;
+        }
+
+        @Override
+        public boolean checkClientSettings() {
+          return true;
+        }
+
+        @Override
+        public long cachePurgeMillis() {
+          return 60000;
+        }
       };
     }
   }

@@ -51,8 +51,7 @@ public final class LimboHubModule implements VelocityModule {
     if (hubServer.isPresent()) {
       player.createConnectionRequest(hubServer.get()).connect();
     } else {
-      player.sendMessage(
-          Component.text("Hub server not available.", NamedTextColor.RED));
+      player.sendMessage(Component.text("Hub server not available.", NamedTextColor.RED));
     }
   }
 

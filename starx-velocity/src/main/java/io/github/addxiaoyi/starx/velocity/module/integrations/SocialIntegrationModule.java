@@ -11,9 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * 社交平台集成模块：Discord/Telegram 机器人，玩家账号关联/解绑，参考 Elytrium/LimboAuth-SocialAddon。
- */
+/** 社交平台集成模块：Discord/Telegram 机器人，玩家账号关联/解绑，参考 Elytrium/LimboAuth-SocialAddon。 */
 public final class SocialIntegrationModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;
@@ -22,7 +20,8 @@ public final class SocialIntegrationModule implements VelocityModule {
   private final AtomicBoolean initialized = new AtomicBoolean(false);
   private final Map<String, Map<String, String>> linkedAccounts = new ConcurrentHashMap<>();
 
-  public SocialIntegrationModule(StarxVelocityPlugin plugin, VelocityEventBus eventBus, Config config) {
+  public SocialIntegrationModule(
+      StarxVelocityPlugin plugin, VelocityEventBus eventBus, Config config) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     this.config = Objects.requireNonNull(config, "config");
@@ -65,7 +64,9 @@ public final class SocialIntegrationModule implements VelocityModule {
   }
 
   public void linkPlayer(String playerName, String platform, String platformId) {
-    linkedAccounts.computeIfAbsent(playerName, k -> new ConcurrentHashMap<>()).put(platform, platformId);
+    linkedAccounts
+        .computeIfAbsent(playerName, k -> new ConcurrentHashMap<>())
+        .put(platform, platformId);
 
     Map<String, Object> payload = new HashMap<>();
     payload.put("player", playerName);
@@ -73,7 +74,9 @@ public final class SocialIntegrationModule implements VelocityModule {
     payload.put("platformId", platformId);
     eventBus.publish(new StarxEvent("social.player.linked", payload));
 
-    plugin.logger().info("Player " + playerName + " linked " + platform + " account: " + platformId);
+    plugin
+        .logger()
+        .info("Player " + playerName + " linked " + platform + " account: " + platformId);
   }
 
   public void unlinkPlayer(String playerName, String platform) {

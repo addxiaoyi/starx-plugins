@@ -127,11 +127,15 @@ public class StarxVelocityPlugin {
     moduleManager.register(authModule);
     moduleManager.register(skinBridge);
     moduleManager.register(messageBridge);
-    moduleManager.register(new YggdrasilModule(this, eventBus, YggdrasilModule.Config.defaultConfig()));
+    moduleManager.register(
+        new YggdrasilModule(this, eventBus, YggdrasilModule.Config.defaultConfig()));
     moduleManager.register(new UniAuthModule(this, eventBus, UniAuthModule.Config.defaultConfig()));
-    moduleManager.register(new FloodgateModule(this, eventBus, FloodgateModule.Config.defaultConfig()));
-    moduleManager.register(new TabIntegrationModule(this, eventBus, TabIntegrationModule.Config.defaultConfig()));
-    moduleManager.register(new MigrationModule(this, eventBus, MigrationModule.Config.defaultConfig()));
+    moduleManager.register(
+        new FloodgateModule(this, eventBus, FloodgateModule.Config.defaultConfig()));
+    moduleManager.register(
+        new TabIntegrationModule(this, eventBus, TabIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(
+        new MigrationModule(this, eventBus, MigrationModule.Config.defaultConfig()));
     moduleManager.register(
         new MaintenanceModule(
             this, eventBus, messageBridge, MaintenanceModule.Config.defaultConfig()));
@@ -145,17 +149,27 @@ public class StarxVelocityPlugin {
     moduleManager.register(new ProxyInfoModule(this, ProxyInfoModule.Config.defaultConfig()));
     moduleManager.register(new ForgeCompatModule(this, ForgeCompatModule.Config.defaultConfig()));
     moduleManager.register(new OnlineSyncModule(this, OnlineSyncModule.Config.defaultConfig()));
-    moduleManager.register(new EnhancedProxyModule(this, EnhancedProxyModule.Config.simpleDefault()));
+    moduleManager.register(
+        new EnhancedProxyModule(this, EnhancedProxyModule.Config.simpleDefault()));
     moduleManager.register(new FileCleanerModule(this, FileCleanerModule.Config.defaultConfig()));
     moduleManager.register(new RakNetModule(this, RakNetModule.Config.defaultConfig()));
-    moduleManager.register(new BotFilterModule(this, eventBus, BotFilterModule.Config.defaultConfig()));
-    moduleManager.register(new CrashFixModule(this, eventBus, CrashFixModule.Config.defaultConfig()));
+    moduleManager.register(
+        new BotFilterModule(this, eventBus, BotFilterModule.Config.defaultConfig()));
+    moduleManager.register(
+        new CrashFixModule(this, eventBus, CrashFixModule.Config.defaultConfig()));
     moduleManager.register(new RiskModule(this, eventBus, RiskModule.Config.defaultConfig()));
-    moduleManager.register(new AnticheatModule(this, eventBus, AnticheatModule.Config.defaultConfig()));
-    moduleManager.register(new QqIntegrationModule(this, webhookClient, QqIntegrationModule.Config.defaultConfig()));
-    moduleManager.register(new PlanIntegrationModule(this, eventBus, messageBridge, PlanIntegrationModule.Config.defaultConfig()));
-    moduleManager.register(new MapModIntegrationModule(this, MapModIntegrationModule.Config.defaultConfig()));
-    moduleManager.register(new SocialIntegrationModule(this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(
+        new AnticheatModule(this, eventBus, AnticheatModule.Config.defaultConfig()));
+    moduleManager.register(
+        new QqIntegrationModule(this, webhookClient, QqIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(
+        new PlanIntegrationModule(
+            this, eventBus, messageBridge, PlanIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(
+        new MapModIntegrationModule(this, MapModIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(
+        new SocialIntegrationModule(
+            this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
 
     httpApiServer =
         new HttpApiServer(config, eventBus, proxy, databaseManager.getUserRepository(), skinBridge);

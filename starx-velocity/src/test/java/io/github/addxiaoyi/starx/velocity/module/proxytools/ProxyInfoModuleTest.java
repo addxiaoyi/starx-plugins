@@ -20,14 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ProxyInfoModuleTest {
 
-  @Mock
-  StarxVelocityPlugin plugin;
-  @Mock
-  ProxyServer proxy;
-  @Mock
-  EventManager eventManager;
-  @Mock
-  CommandManager commandManager;
+  @Mock StarxVelocityPlugin plugin;
+  @Mock ProxyServer proxy;
+  @Mock EventManager eventManager;
+  @Mock CommandManager commandManager;
 
   ProxyInfoModule.Config config;
 

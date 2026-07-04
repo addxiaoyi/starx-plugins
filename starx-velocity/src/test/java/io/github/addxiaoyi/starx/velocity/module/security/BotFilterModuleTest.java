@@ -23,7 +23,6 @@ import java.net.InetSocketAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -73,13 +72,33 @@ class BotFilterModuleTest {
 
   @Test
   void shouldDetectPingFlood() {
-    BotFilterModule.Config strictConfig = new BotFilterModule.Config() {
-      @Override public int maxPingsPerSecond() { return 5; }
-      @Override public int maxConnectionsPerSecond() { return 10; }
-      @Override public boolean checkClientBrand() { return true; }
-      @Override public boolean checkClientSettings() { return true; }
-      @Override public long cachePurgeMillis() { return 60000; }
-    };
+    BotFilterModule.Config strictConfig =
+        new BotFilterModule.Config() {
+          @Override
+          public int maxPingsPerSecond() {
+            return 5;
+          }
+
+          @Override
+          public int maxConnectionsPerSecond() {
+            return 10;
+          }
+
+          @Override
+          public boolean checkClientBrand() {
+            return true;
+          }
+
+          @Override
+          public boolean checkClientSettings() {
+            return true;
+          }
+
+          @Override
+          public long cachePurgeMillis() {
+            return 60000;
+          }
+        };
 
     BotFilterModule module = new BotFilterModule(plugin, eventBus, strictConfig);
     module.onEnable();
@@ -116,13 +135,33 @@ class BotFilterModuleTest {
 
   @Test
   void shouldPurgeExpiredCacheEntries() {
-    BotFilterModule.Config shortCacheConfig = new BotFilterModule.Config() {
-      @Override public int maxPingsPerSecond() { return 20; }
-      @Override public int maxConnectionsPerSecond() { return 20; }
-      @Override public boolean checkClientBrand() { return true; }
-      @Override public boolean checkClientSettings() { return true; }
-      @Override public long cachePurgeMillis() { return 1; }
-    };
+    BotFilterModule.Config shortCacheConfig =
+        new BotFilterModule.Config() {
+          @Override
+          public int maxPingsPerSecond() {
+            return 20;
+          }
+
+          @Override
+          public int maxConnectionsPerSecond() {
+            return 20;
+          }
+
+          @Override
+          public boolean checkClientBrand() {
+            return true;
+          }
+
+          @Override
+          public boolean checkClientSettings() {
+            return true;
+          }
+
+          @Override
+          public long cachePurgeMillis() {
+            return 1;
+          }
+        };
 
     BotFilterModule module = new BotFilterModule(plugin, eventBus, shortCacheConfig);
     module.onEnable();

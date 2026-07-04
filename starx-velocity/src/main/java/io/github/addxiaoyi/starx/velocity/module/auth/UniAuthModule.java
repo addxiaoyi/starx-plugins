@@ -25,9 +25,7 @@ public final class UniAuthModule implements VelocityModule {
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     this.config = Objects.requireNonNull(config, "config");
     this.httpClient =
-        HttpClient.newBuilder()
-            .connectTimeout(Duration.ofMillis(config.timeout()))
-            .build();
+        HttpClient.newBuilder().connectTimeout(Duration.ofMillis(config.timeout())).build();
   }
 
   @Override
@@ -62,7 +60,8 @@ public final class UniAuthModule implements VelocityModule {
    * @return 认证结果
    */
   public CompletableFuture<UniAuthResult> login(String username, String password) {
-    // TODO: 实现完整的 UniAuth 登录流程（参考 StarVC UniAuthAPIClient.login + UniAuthAuthenticator.authenticate）
+    // TODO: 实现完整的 UniAuth 登录流程（参考 StarVC UniAuthAPIClient.login +
+    // UniAuthAuthenticator.authenticate）
     CompletableFuture<UniAuthResult> future = new CompletableFuture<>();
     httpClient
         .sendAsync(
@@ -90,9 +89,7 @@ public final class UniAuthModule implements VelocityModule {
             })
         .exceptionally(
             ex -> {
-              plugin
-                  .logger()
-                  .log(Level.WARNING, "UniAuth 登录失败: " + ex.getMessage());
+              plugin.logger().log(Level.WARNING, "UniAuth 登录失败: " + ex.getMessage());
               future.complete(UniAuthResult.UNKNOWN_ERROR);
               return null;
             });
@@ -106,8 +103,7 @@ public final class UniAuthModule implements VelocityModule {
    * @param password 密码
    * @return 注册结果
    */
-  public CompletableFuture<UniAuthResult> registerWithoutEmail(
-      String username, String password) {
+  public CompletableFuture<UniAuthResult> registerWithoutEmail(String username, String password) {
     // TODO: 实现完整的 UniAuth 注册流程（参考 StarVC UniAuthAPIClient.registerWithoutEmail）
     CompletableFuture<UniAuthResult> future = new CompletableFuture<>();
     future.complete(UniAuthResult.UNKNOWN_ERROR);

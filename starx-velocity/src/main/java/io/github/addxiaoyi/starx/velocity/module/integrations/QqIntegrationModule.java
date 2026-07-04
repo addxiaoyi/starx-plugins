@@ -18,7 +18,8 @@ public final class QqIntegrationModule implements VelocityModule {
   private final WebhookClient webhookClient;
   private final Config config;
 
-  public QqIntegrationModule(StarxVelocityPlugin plugin, WebhookClient webhookClient, Config config) {
+  public QqIntegrationModule(
+      StarxVelocityPlugin plugin, WebhookClient webhookClient, Config config) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
     this.webhookClient = Objects.requireNonNull(webhookClient, "webhookClient");
     this.config = Objects.requireNonNull(config, "config");

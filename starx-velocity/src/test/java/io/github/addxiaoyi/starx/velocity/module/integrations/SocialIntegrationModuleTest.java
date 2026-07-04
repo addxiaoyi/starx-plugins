@@ -27,138 +27,140 @@ class SocialIntegrationModuleTest {
   void setUp() {
     lenient().when(plugin.logger()).thenReturn(logger);
     eventBus = new VelocityEventBus();
-    enabledConfig = new SocialIntegrationModule.Config() {
-      @Override
-      public boolean enabled() {
-        return true;
-      }
-
-      @Override
-      public SocialIntegrationModule.DiscordConfig discord() {
-        return new SocialIntegrationModule.DiscordConfig() {
+    enabledConfig =
+        new SocialIntegrationModule.Config() {
           @Override
           public boolean enabled() {
             return true;
           }
 
           @Override
-          public String token() {
-            return "test-token";
+          public SocialIntegrationModule.DiscordConfig discord() {
+            return new SocialIntegrationModule.DiscordConfig() {
+              @Override
+              public boolean enabled() {
+                return true;
+              }
+
+              @Override
+              public String token() {
+                return "test-token";
+              }
+            };
+          }
+
+          @Override
+          public SocialIntegrationModule.TelegramConfig telegram() {
+            return new SocialIntegrationModule.TelegramConfig() {
+              @Override
+              public boolean enabled() {
+                return false;
+              }
+
+              @Override
+              public String token() {
+                return "";
+              }
+            };
+          }
+
+          @Override
+          public List<List<SocialIntegrationModule.KeyboardItem>> commands() {
+            return List.of();
+          }
+
+          @Override
+          public SocialIntegrationModule.Strings strings() {
+            return new SocialIntegrationModule.Strings() {
+              @Override
+              public String linkSuccess() {
+                return "Linked!";
+              }
+
+              @Override
+              public String unlinkSuccess() {
+                return "Unlinked!";
+              }
+
+              @Override
+              public String notLinked() {
+                return "Not linked";
+              }
+
+              @Override
+              public String alreadyLinked() {
+                return "Already linked";
+              }
+            };
           }
         };
-      }
-
-      @Override
-      public SocialIntegrationModule.TelegramConfig telegram() {
-        return new SocialIntegrationModule.TelegramConfig() {
+    disabledConfig =
+        new SocialIntegrationModule.Config() {
           @Override
           public boolean enabled() {
             return false;
           }
 
           @Override
-          public String token() {
-            return "";
+          public SocialIntegrationModule.DiscordConfig discord() {
+            return new SocialIntegrationModule.DiscordConfig() {
+              @Override
+              public boolean enabled() {
+                return false;
+              }
+
+              @Override
+              public String token() {
+                return "";
+              }
+            };
+          }
+
+          @Override
+          public SocialIntegrationModule.TelegramConfig telegram() {
+            return new SocialIntegrationModule.TelegramConfig() {
+              @Override
+              public boolean enabled() {
+                return false;
+              }
+
+              @Override
+              public String token() {
+                return "";
+              }
+            };
+          }
+
+          @Override
+          public List<List<SocialIntegrationModule.KeyboardItem>> commands() {
+            return List.of();
+          }
+
+          @Override
+          public SocialIntegrationModule.Strings strings() {
+            return new SocialIntegrationModule.Strings() {
+              @Override
+              public String linkSuccess() {
+                return "Linked!";
+              }
+
+              @Override
+              public String unlinkSuccess() {
+                return "Unlinked!";
+              }
+
+              @Override
+              public String notLinked() {
+                return "Not linked";
+              }
+
+              @Override
+              public String alreadyLinked() {
+                return "Already linked";
+              }
+            };
           }
         };
-      }
-
-      @Override
-      public List<List<SocialIntegrationModule.KeyboardItem>> commands() {
-        return List.of();
-      }
-
-      @Override
-      public SocialIntegrationModule.Strings strings() {
-        return new SocialIntegrationModule.Strings() {
-          @Override
-          public String linkSuccess() {
-            return "Linked!";
-          }
-
-          @Override
-          public String unlinkSuccess() {
-            return "Unlinked!";
-          }
-
-          @Override
-          public String notLinked() {
-            return "Not linked";
-          }
-
-          @Override
-          public String alreadyLinked() {
-            return "Already linked";
-          }
-        };
-      }
-    };
-    disabledConfig = new SocialIntegrationModule.Config() {
-      @Override
-      public boolean enabled() {
-        return false;
-      }
-
-      @Override
-      public SocialIntegrationModule.DiscordConfig discord() {
-        return new SocialIntegrationModule.DiscordConfig() {
-          @Override
-          public boolean enabled() {
-            return false;
-          }
-
-          @Override
-          public String token() {
-            return "";
-          }
-        };
-      }
-
-      @Override
-      public SocialIntegrationModule.TelegramConfig telegram() {
-        return new SocialIntegrationModule.TelegramConfig() {
-          @Override
-          public boolean enabled() {
-            return false;
-          }
-
-          @Override
-          public String token() {
-            return "";
-          }
-        };
-      }
-
-      @Override
-      public List<List<SocialIntegrationModule.KeyboardItem>> commands() {
-        return List.of();
-      }
-
-      @Override
-      public SocialIntegrationModule.Strings strings() {
-        return new SocialIntegrationModule.Strings() {
-          @Override
-          public String linkSuccess() {
-            return "Linked!";
-          }
-
-          @Override
-          public String unlinkSuccess() {
-            return "Unlinked!";
-          }
-
-          @Override
-          public String notLinked() {
-            return "Not linked";
-          }
-
-          @Override
-          public String alreadyLinked() {
-            return "Already linked";
-          }
-        };
-      }
-    };
   }
 
   @Test

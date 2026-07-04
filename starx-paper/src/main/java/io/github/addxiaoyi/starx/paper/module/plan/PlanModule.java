@@ -1,7 +1,5 @@
 package io.github.addxiaoyi.starx.paper.module.plan;
 
-import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
-import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;

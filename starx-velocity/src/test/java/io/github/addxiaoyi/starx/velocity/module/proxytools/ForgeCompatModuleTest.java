@@ -18,12 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ForgeCompatModuleTest {
 
-  @Mock
-  StarxVelocityPlugin plugin;
-  @Mock
-  ProxyServer proxy;
-  @Mock
-  EventManager eventManager;
+  @Mock StarxVelocityPlugin plugin;
+  @Mock ProxyServer proxy;
+  @Mock EventManager eventManager;
 
   ForgeCompatModule.Config enabledConfig;
   ForgeCompatModule.Config disabledConfig;
@@ -32,28 +29,30 @@ class ForgeCompatModuleTest {
   void setUp() {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
-    enabledConfig = new ForgeCompatModule.Config() {
-      @Override
-      public boolean enabled() {
-        return true;
-      }
+    enabledConfig =
+        new ForgeCompatModule.Config() {
+          @Override
+          public boolean enabled() {
+            return true;
+          }
 
-      @Override
-      public boolean debug() {
-        return false;
-      }
-    };
-    disabledConfig = new ForgeCompatModule.Config() {
-      @Override
-      public boolean enabled() {
-        return false;
-      }
+          @Override
+          public boolean debug() {
+            return false;
+          }
+        };
+    disabledConfig =
+        new ForgeCompatModule.Config() {
+          @Override
+          public boolean enabled() {
+            return false;
+          }
 
-      @Override
-      public boolean debug() {
-        return false;
-      }
-    };
+          @Override
+          public boolean debug() {
+            return false;
+          }
+        };
   }
 
   @Test

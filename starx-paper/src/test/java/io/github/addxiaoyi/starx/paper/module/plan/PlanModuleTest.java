@@ -1,13 +1,9 @@
 package io.github.addxiaoyi.starx.paper.module.plan;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
@@ -17,7 +13,6 @@ import java.util.Collections;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,8 +59,7 @@ class PlanModuleTest {
     module.onEnable();
 
     try (var bukkit = mockStatic(Bukkit.class)) {
-      bukkit.when(Bukkit::getOnlinePlayers)
-          .thenReturn((Collection) Collections.emptyList());
+      bukkit.when(Bukkit::getOnlinePlayers).thenReturn((Collection) Collections.emptyList());
       bukkit.when(Bukkit::getMaxPlayers).thenReturn(20);
 
       module.collectStats();

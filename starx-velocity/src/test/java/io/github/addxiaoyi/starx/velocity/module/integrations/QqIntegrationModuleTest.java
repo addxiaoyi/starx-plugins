@@ -176,7 +176,6 @@ class QqIntegrationModuleTest {
         .post(
             eq("https://hooks.example.com/qq"),
             argThat(
-                (Map<String, Object> body) ->
-                    "[QQ] Alice: Hello".equals(body.get("formatted"))));
+                (Map<String, Object> body) -> "[QQ] Alice: Hello".equals(body.get("formatted"))));
   }
 }

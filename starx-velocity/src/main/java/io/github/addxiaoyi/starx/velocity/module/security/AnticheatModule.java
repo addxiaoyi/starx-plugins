@@ -32,8 +32,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 /**
  * 反作弊数据收集模块。
  *
- * <p>参考 BetterAnticheat 的设计，通过 Plugin Messaging 接收 Paper 后端上报的检测事件，
- * 汇总违规数据并在超过阈值时通过 EventBus 发布安全告警。
+ * <p>参考 BetterAnticheat 的设计，通过 Plugin Messaging 接收 Paper 后端上报的检测事件， 汇总违规数据并在超过阈值时通过 EventBus
+ * 发布安全告警。
  */
 public final class AnticheatModule implements VelocityModule {
 
@@ -115,7 +115,8 @@ public final class AnticheatModule implements VelocityModule {
     String playerUuidStr = (String) payload.get("player");
     String checkName = (String) payload.get("check");
     String category = (String) payload.get("category");
-    double vl = payload.get("vl") instanceof Number ? ((Number) payload.get("vl")).doubleValue() : 0;
+    double vl =
+        payload.get("vl") instanceof Number ? ((Number) payload.get("vl")).doubleValue() : 0;
     String debug = (String) payload.getOrDefault("debug", "");
 
     if (playerUuidStr == null || checkName == null) {
@@ -167,11 +168,7 @@ public final class AnticheatModule implements VelocityModule {
 
   private void registerCommand() {
     CommandManager cmdManager = plugin.proxy().getCommandManager();
-    CommandMeta meta =
-        cmdManager.metaBuilder("starx")
-            .aliases("sx")
-            .plugin(plugin)
-            .build();
+    CommandMeta meta = cmdManager.metaBuilder("starx").aliases("sx").plugin(plugin).build();
     cmdManager.register(meta, new AnticheatCommand());
   }
 
@@ -194,13 +191,34 @@ public final class AnticheatModule implements VelocityModule {
 
     static Config defaultConfig() {
       return new Config() {
-        @Override public boolean enabled() { return true; }
-        @Override public int alertThreshold() { return 5; }
-        @Override public long collectIntervalMs() { return 60000; }
-        @Override public List<String> enabledChecks() {
+        @Override
+        public boolean enabled() {
+          return true;
+        }
+
+        @Override
+        public int alertThreshold() {
+          return 5;
+        }
+
+        @Override
+        public long collectIntervalMs() {
+          return 60000;
+        }
+
+        @Override
+        public List<String> enabledChecks() {
           return Arrays.asList(
-              "Speed", "Fly", "KillAura", "Reach", "NoSlow", "Timer",
-              "Jesus", "AntiKnockback", "FastPlace", "AutoClicker");
+              "Speed",
+              "Fly",
+              "KillAura",
+              "Reach",
+              "NoSlow",
+              "Timer",
+              "Jesus",
+              "AntiKnockback",
+              "FastPlace",
+              "AutoClicker");
         }
       };
     }
@@ -288,40 +306,32 @@ public final class AnticheatModule implements VelocityModule {
             clearPlayer(source, args[2]);
           } else {
             detectionData.clear();
-            source.sendMessage(
-                Component.text("已清除所有反作弊检测数据", NamedTextColor.GREEN));
+            source.sendMessage(Component.text("已清除所有反作弊检测数据", NamedTextColor.GREEN));
           }
           break;
         default:
-          source.sendMessage(
-              Component.text("未知子命令: " + subCommand, NamedTextColor.RED));
+          source.sendMessage(Component.text("未知子命令: " + subCommand, NamedTextColor.RED));
           break;
       }
     }
 
     private void showSummary(CommandSource source) {
       int totalPlayers = detectionData.size();
-      int totalViolations =
-          detectionData.values().stream().mapToInt(d -> d.totalViolations).sum();
+      int totalViolations = detectionData.values().stream().mapToInt(d -> d.totalViolations).sum();
       int alertCount =
           (int)
               detectionData.values().stream()
                   .filter(d -> d.totalViolations >= config.alertThreshold())
                   .count();
 
+      source.sendMessage(Component.text("=== 反作弊检测统计 ===", NamedTextColor.GOLD));
+      source.sendMessage(Component.text("追踪玩家数: " + totalPlayers, NamedTextColor.YELLOW));
+      source.sendMessage(Component.text("总违规次数: " + totalViolations, NamedTextColor.YELLOW));
+      source.sendMessage(Component.text("触发告警玩家数: " + alertCount, NamedTextColor.YELLOW));
+      source.sendMessage(Component.text("告警阈值: " + config.alertThreshold(), NamedTextColor.GRAY));
       source.sendMessage(
-          Component.text("=== 反作弊检测统计 ===", NamedTextColor.GOLD));
-      source.sendMessage(
-          Component.text("追踪玩家数: " + totalPlayers, NamedTextColor.YELLOW));
-      source.sendMessage(
-          Component.text("总违规次数: " + totalViolations, NamedTextColor.YELLOW));
-      source.sendMessage(
-          Component.text("触发告警玩家数: " + alertCount, NamedTextColor.YELLOW));
-      source.sendMessage(
-          Component.text("告警阈值: " + config.alertThreshold(), NamedTextColor.GRAY));
-      source.sendMessage(
-          Component.text("启用检测: " + String.join(", ", config.enabledChecks()),
-              NamedTextColor.GRAY));
+          Component.text(
+              "启用检测: " + String.join(", ", config.enabledChecks()), NamedTextColor.GRAY));
     }
 
     private void showPlayer(CommandSource source, String playerName) {
@@ -334,27 +344,21 @@ public final class AnticheatModule implements VelocityModule {
       }
 
       if (found == null) {
-        source.sendMessage(
-            Component.text("未找到玩家 " + playerName + " 的检测数据", NamedTextColor.RED));
+        source.sendMessage(Component.text("未找到玩家 " + playerName + " 的检测数据", NamedTextColor.RED));
         return;
       }
 
       source.sendMessage(
           Component.text("=== " + found.username + " 检测详情 ===", NamedTextColor.GOLD));
-      source.sendMessage(
-          Component.text("总违规次数: " + found.totalViolations, NamedTextColor.YELLOW));
-      source.sendMessage(
-          Component.text("检测类型明细:", NamedTextColor.YELLOW));
+      source.sendMessage(Component.text("总违规次数: " + found.totalViolations, NamedTextColor.YELLOW));
+      source.sendMessage(Component.text("检测类型明细:", NamedTextColor.YELLOW));
       for (Map.Entry<String, Integer> entry : found.checkViolations.entrySet()) {
         source.sendMessage(
-            Component.text("  " + entry.getKey() + ": " + entry.getValue(),
-                NamedTextColor.GRAY));
+            Component.text("  " + entry.getKey() + ": " + entry.getValue(), NamedTextColor.GRAY));
       }
-      source.sendMessage(
-          Component.text("最近检测:", NamedTextColor.YELLOW));
+      source.sendMessage(Component.text("最近检测:", NamedTextColor.YELLOW));
       for (String detection : found.recentDetections) {
-        source.sendMessage(
-            Component.text("  " + detection, NamedTextColor.GRAY));
+        source.sendMessage(Component.text("  " + detection, NamedTextColor.GRAY));
       }
     }
 
@@ -369,11 +373,9 @@ public final class AnticheatModule implements VelocityModule {
       }
 
       if (found == null) {
-        source.sendMessage(
-            Component.text("未找到玩家 " + playerName + " 的检测数据", NamedTextColor.RED));
+        source.sendMessage(Component.text("未找到玩家 " + playerName + " 的检测数据", NamedTextColor.RED));
       } else {
-        source.sendMessage(
-            Component.text("已清除玩家 " + playerName + " 的检测数据", NamedTextColor.GREEN));
+        source.sendMessage(Component.text("已清除玩家 " + playerName + " 的检测数据", NamedTextColor.GREEN));
       }
     }
   }

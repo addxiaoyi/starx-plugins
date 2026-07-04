@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -125,8 +124,8 @@ class FileCleanerModuleTest {
     Path newFile = folder.resolve("new.log");
     Files.writeString(newFile, "new content");
 
-    FileCleanerModule.Config ageConfig = configWithFolders(List.of(
-        folderConfig(folder.toString(), 5, -1, -1, List.of())));
+    FileCleanerModule.Config ageConfig =
+        configWithFolders(List.of(folderConfig(folder.toString(), 5, -1, -1, List.of())));
     FileCleanerModule module = new FileCleanerModule(plugin, ageConfig, tempDir.toFile());
     module.onEnable();
     module.runCleanup();
@@ -147,8 +146,8 @@ class FileCleanerModuleTest {
     Files.writeString(deleteFile, "delete");
     Files.setLastModifiedTime(deleteFile, FileTime.from(Instant.now().minus(10, ChronoUnit.DAYS)));
 
-    FileCleanerModule.Config excludeConfig = configWithFolders(List.of(
-        folderConfig("test-exclude", 5, -1, -1, List.of("keep-.*"))));
+    FileCleanerModule.Config excludeConfig =
+        configWithFolders(List.of(folderConfig("test-exclude", 5, -1, -1, List.of("keep-.*"))));
     FileCleanerModule module = new FileCleanerModule(plugin, excludeConfig, tempDir.toFile());
     module.onEnable();
     module.runCleanup();

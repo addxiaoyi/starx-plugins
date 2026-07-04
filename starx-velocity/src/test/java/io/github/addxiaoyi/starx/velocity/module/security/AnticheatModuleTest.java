@@ -19,7 +19,6 @@ import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
-import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
@@ -95,7 +94,8 @@ class AnticheatModuleTest {
     AnticheatModule module = new AnticheatModule(plugin, eventBus, config);
     module.onEnable();
 
-    PluginMessageEvent event = createDetectionMessage(PLAYER_UUID, "Speed", "flying", 6, "speed=1.5");
+    PluginMessageEvent event =
+        createDetectionMessage(PLAYER_UUID, "Speed", "flying", 6, "speed=1.5");
 
     module.onPluginMessage(event);
 
@@ -104,12 +104,28 @@ class AnticheatModuleTest {
 
   @Test
   void shouldNotPublishAlertBelowThreshold() {
-    AnticheatModule.Config strictConfig = new AnticheatModule.Config() {
-      @Override public boolean enabled() { return true; }
-      @Override public int alertThreshold() { return 10; }
-      @Override public long collectIntervalMs() { return 60000; }
-      @Override public List<String> enabledChecks() { return Arrays.asList("Speed", "Fly", "KillAura"); }
-    };
+    AnticheatModule.Config strictConfig =
+        new AnticheatModule.Config() {
+          @Override
+          public boolean enabled() {
+            return true;
+          }
+
+          @Override
+          public int alertThreshold() {
+            return 10;
+          }
+
+          @Override
+          public long collectIntervalMs() {
+            return 60000;
+          }
+
+          @Override
+          public List<String> enabledChecks() {
+            return Arrays.asList("Speed", "Fly", "KillAura");
+          }
+        };
 
     AnticheatModule module = new AnticheatModule(plugin, eventBus, strictConfig);
     module.onEnable();
@@ -118,7 +134,10 @@ class AnticheatModuleTest {
 
     module.onPluginMessage(event);
 
-    verify(eventBus, never()).publish(org.mockito.Mockito.<StarxEvent>argThat(e -> SecurityEvents.SECURITY_ALERT.equals(e.type())));
+    verify(eventBus, never())
+        .publish(
+            org.mockito.Mockito.<StarxEvent>argThat(
+                e -> SecurityEvents.SECURITY_ALERT.equals(e.type())));
   }
 
   @Test
@@ -162,12 +181,28 @@ class AnticheatModuleTest {
 
   @Test
   void shouldIgnoreDisabledChecks() {
-    AnticheatModule.Config filteredConfig = new AnticheatModule.Config() {
-      @Override public boolean enabled() { return true; }
-      @Override public int alertThreshold() { return 5; }
-      @Override public long collectIntervalMs() { return 60000; }
-      @Override public List<String> enabledChecks() { return Arrays.asList("Speed"); }
-    };
+    AnticheatModule.Config filteredConfig =
+        new AnticheatModule.Config() {
+          @Override
+          public boolean enabled() {
+            return true;
+          }
+
+          @Override
+          public int alertThreshold() {
+            return 5;
+          }
+
+          @Override
+          public long collectIntervalMs() {
+            return 60000;
+          }
+
+          @Override
+          public List<String> enabledChecks() {
+            return Arrays.asList("Speed");
+          }
+        };
 
     AnticheatModule module = new AnticheatModule(plugin, eventBus, filteredConfig);
     module.onEnable();
@@ -179,18 +214,19 @@ class AnticheatModuleTest {
     assertThat(module.getDetectionCount(PLAYER_UUID)).isEqualTo(0);
   }
 
-  private PluginMessageEvent createDetectionMessage(UUID playerUuid, String check, String category, int vl, String debug) {
+  private PluginMessageEvent createDetectionMessage(
+      UUID playerUuid, String check, String category, int vl, String debug) {
     Player player = mock(Player.class);
     lenient().when(player.getUniqueId()).thenReturn(playerUuid);
     lenient().when(player.getUsername()).thenReturn("TestPlayer");
 
-    Map<String, Object> payload = Map.of(
-        "player", playerUuid.toString(),
-        "check", check,
-        "category", category,
-        "vl", vl,
-        "debug", debug
-    );
+    Map<String, Object> payload =
+        Map.of(
+            "player", playerUuid.toString(),
+            "check", check,
+            "category", category,
+            "vl", vl,
+            "debug", debug);
     byte[] jsonBytes = GSON.toJson(payload).getBytes(StandardCharsets.UTF_8);
     ByteArrayDataOutput out = ByteStreams.newDataOutput();
     out.writeUTF("anticheat:detection");
