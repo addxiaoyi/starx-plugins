@@ -25,6 +25,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          add-job-summary: always
 
       - name: Check code style
         run: ./gradlew spotlessCheck --no-daemon
