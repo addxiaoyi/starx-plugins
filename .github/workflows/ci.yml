@@ -52,5 +52,5 @@ jobs:
         if: always()
         with:
           name: JUnit Tests
-          path: '**/build/test-results/test/TEST-*.xml'
+          path: '**/build/test-results*/**/TEST-*.xml'
           reporter: java-junit
