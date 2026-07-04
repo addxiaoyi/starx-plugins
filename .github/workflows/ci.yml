@@ -28,6 +28,9 @@ jobs:
         with:
           add-job-summary: always
 
+      - name: Fix gradlew permissions
+        run: chmod +x gradlew
+
       - name: Check code style
         run: ./gradlew spotlessCheck --no-daemon
 
