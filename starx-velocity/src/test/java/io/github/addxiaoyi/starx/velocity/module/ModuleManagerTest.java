@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +69,7 @@ class ModuleManagerTest {
         "test-key",
         new StarxConfig.HttpConfig("127.0.0.1", 8788),
         new StarxConfig.WebhookConfig("", ""),
+        DatabaseConfig.defaults(),
         moduleConfigs);
   }
 }

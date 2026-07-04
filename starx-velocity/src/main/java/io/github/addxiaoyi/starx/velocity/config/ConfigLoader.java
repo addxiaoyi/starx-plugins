@@ -1,5 +1,6 @@
 package io.github.addxiaoyi.starx.velocity.config;
 
+import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,13 +26,76 @@ public final class ConfigLoader {
         url: ""
         secret: ""
 
+      database:
+        type: "h2"
+        host: ""
+        port: 3306
+        database: "starx"
+        username: "starx"
+        password: ""
+        url: ""
+        pool-max-size: 10
+        connection-timeout-ms: 30000
+
       modules:
         auth:
           enabled: true
+        auth.yggdrasil:
+          enabled: true
+        auth.uniauth:
+          enabled: false
+        auth.floodgate:
+          enabled: true
+        auth.tab:
+          enabled: true
+        auth.migration:
+          enabled: false
         skin-bridge:
           enabled: true
         messaging:
           enabled: true
+        proxytools.maintenance:
+          enabled: true
+        proxytools.motd:
+          enabled: true
+        proxytools.chat:
+          enabled: true
+        proxytools.redirect:
+          enabled: true
+        proxytools.queue:
+          enabled: true
+        proxytools.limbo:
+          enabled: true
+        proxytools.reconnect:
+          enabled: true
+        proxytools.info:
+          enabled: true
+        proxytools.forge:
+          enabled: false
+        proxytools.raknet:
+          enabled: false
+        proxytools.online:
+          enabled: true
+        proxytools.enhanced:
+          enabled: true
+        proxytools.filecleaner:
+          enabled: false
+        security.bot:
+          enabled: true
+        security.crash:
+          enabled: true
+        security.risk:
+          enabled: true
+        security.anticheat:
+          enabled: true
+        integrations.qq:
+          enabled: false
+        integrations.plan:
+          enabled: false
+        integrations.mapmod:
+          enabled: false
+        integrations.social:
+          enabled: false
       """;
 
   private ConfigLoader() {}
@@ -68,6 +132,22 @@ public final class ConfigLoader {
       }
     }
 
-    return new StarxConfig(apiKey, http, webhook, modules);
+    DatabaseConfig database = parseDatabaseConfig(root.node("database"));
+
+    return new StarxConfig(apiKey, http, webhook, database, modules);
+  }
+
+  private static DatabaseConfig parseDatabaseConfig(ConfigurationNode node) {
+    String type = node.node("type").getString("h2");
+    String host = node.node("host").getString("");
+    int port = node.node("port").getInt(3306);
+    String database = node.node("database").getString("starx");
+    String username = node.node("username").getString("starx");
+    String password = node.node("password").getString("");
+    String url = node.node("url").getString("");
+    int poolMaxSize = node.node("pool-max-size").getInt(10);
+    long connectionTimeoutMs = node.node("connection-timeout-ms").getLong(30_000L);
+    return new DatabaseConfig(
+        type, host, port, database, username, password, url, poolMaxSize, connectionTimeoutMs);
   }
 }

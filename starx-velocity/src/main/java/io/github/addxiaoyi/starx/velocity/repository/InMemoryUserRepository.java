@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** {@link UserRepository} 的内存占位实现。认证服务与数据库就绪前用于本地开发与测试。 */
+@Deprecated(forRemoval = true)
 public final class InMemoryUserRepository implements UserRepository {
 
   private final Map<UUID, UserDto> usersByUuid = new ConcurrentHashMap<>();

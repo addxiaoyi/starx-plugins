@@ -6,6 +6,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.dto.UserDto;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.repository.UserRepository;
+import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
@@ -146,6 +147,7 @@ class HttpApiServerTest {
         apiKey,
         new StarxConfig.HttpConfig("127.0.0.1", TEST_PORT),
         new StarxConfig.WebhookConfig("", ""),
+        DatabaseConfig.defaults(),
         java.util.Map.of());
   }
 

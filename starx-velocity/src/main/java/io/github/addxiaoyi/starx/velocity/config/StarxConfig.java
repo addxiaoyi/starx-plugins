@@ -1,5 +1,6 @@
 package io.github.addxiaoyi.starx.velocity.config;
 
+import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import java.util.Map;
 import java.util.Objects;
 
@@ -9,13 +10,19 @@ public final class StarxConfig {
   private final String apiKey;
   private final HttpConfig http;
   private final WebhookConfig webhook;
+  private final DatabaseConfig database;
   private final Map<String, ModuleConfig> modules;
 
   public StarxConfig(
-      String apiKey, HttpConfig http, WebhookConfig webhook, Map<String, ModuleConfig> modules) {
+      String apiKey,
+      HttpConfig http,
+      WebhookConfig webhook,
+      DatabaseConfig database,
+      Map<String, ModuleConfig> modules) {
     this.apiKey = apiKey;
     this.http = Objects.requireNonNull(http, "http");
     this.webhook = Objects.requireNonNull(webhook, "webhook");
+    this.database = database == null ? DatabaseConfig.defaults() : database;
     this.modules = modules == null ? Map.of() : Map.copyOf(modules);
   }
 
@@ -29,6 +36,10 @@ public final class StarxConfig {
 
   public WebhookConfig webhook() {
     return webhook;
+  }
+
+  public DatabaseConfig database() {
+    return database;
   }
 
   public Map<String, ModuleConfig> modules() {

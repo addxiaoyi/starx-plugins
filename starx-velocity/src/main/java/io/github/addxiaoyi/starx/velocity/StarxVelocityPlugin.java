@@ -3,6 +3,7 @@ package io.github.addxiaoyi.starx.velocity;
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
@@ -18,12 +19,33 @@ import io.github.addxiaoyi.starx.velocity.http.WebhookEventPublisher;
 import io.github.addxiaoyi.starx.velocity.messaging.VelocityMessageBridge;
 import io.github.addxiaoyi.starx.velocity.module.ModuleManager;
 import io.github.addxiaoyi.starx.velocity.module.auth.AuthModule;
+import io.github.addxiaoyi.starx.velocity.module.auth.FloodgateModule;
+import io.github.addxiaoyi.starx.velocity.module.auth.MigrationModule;
+import io.github.addxiaoyi.starx.velocity.module.auth.TabIntegrationModule;
+import io.github.addxiaoyi.starx.velocity.module.auth.UniAuthModule;
+import io.github.addxiaoyi.starx.velocity.module.auth.YggdrasilModule;
+import io.github.addxiaoyi.starx.velocity.module.integrations.MapModIntegrationModule;
+import io.github.addxiaoyi.starx.velocity.module.integrations.PlanIntegrationModule;
+import io.github.addxiaoyi.starx.velocity.module.integrations.QqIntegrationModule;
+import io.github.addxiaoyi.starx.velocity.module.integrations.SocialIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.ChatModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.EnhancedProxyModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.FileCleanerModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.ForgeCompatModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.LimboHubModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.MaintenanceModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.MotdModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.OnlineSyncModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.ProxyInfoModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.QueueModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.RakNetModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.ReconnectModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.RedirectModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.queue.QueueService;
+import io.github.addxiaoyi.starx.velocity.module.security.AnticheatModule;
+import io.github.addxiaoyi.starx.velocity.module.security.BotFilterModule;
+import io.github.addxiaoyi.starx.velocity.module.security.CrashFixModule;
+import io.github.addxiaoyi.starx.velocity.module.security.RiskModule;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
 import io.github.addxiaoyi.starx.velocity.security.HmacWebhookSigner;
 import java.nio.file.Path;
@@ -46,7 +68,7 @@ public class StarxVelocityPlugin {
 
   private StarxConfig config;
   private DatabaseManager databaseManager;
-  private EventBus eventBus;
+  private VelocityEventBus eventBus;
   private HttpApiServer httpApiServer;
   private WebhookClient webhookClient;
   private ModuleManager moduleManager;
@@ -96,8 +118,7 @@ public class StarxVelocityPlugin {
 
     config = ConfigLoader.load(dataDirectory.resolve("config.yml"));
     eventBus = new VelocityEventBus();
-    databaseManager = new DatabaseManager(config);
-    databaseManager.initialize();
+    databaseManager = new DatabaseManager(config.database());
 
     moduleManager = new ModuleManager(config);
     SkinBridgeModule skinBridge = new SkinBridgeModule(proxy, eventBus);
@@ -106,6 +127,11 @@ public class StarxVelocityPlugin {
     moduleManager.register(authModule);
     moduleManager.register(skinBridge);
     moduleManager.register(messageBridge);
+    moduleManager.register(new YggdrasilModule(this, eventBus, YggdrasilModule.Config.defaultConfig()));
+    moduleManager.register(new UniAuthModule(this, eventBus, UniAuthModule.Config.defaultConfig()));
+    moduleManager.register(new FloodgateModule(this, eventBus, FloodgateModule.Config.defaultConfig()));
+    moduleManager.register(new TabIntegrationModule(this, eventBus, TabIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(new MigrationModule(this, eventBus, MigrationModule.Config.defaultConfig()));
     moduleManager.register(
         new MaintenanceModule(
             this, eventBus, messageBridge, MaintenanceModule.Config.defaultConfig()));
@@ -114,9 +140,25 @@ public class StarxVelocityPlugin {
     moduleManager.register(new RedirectModule(this, RedirectModule.Config.defaultConfig()));
     moduleManager.register(
         new QueueModule(this, QueueModule.Config.defaultConfig(), new QueueService()));
+    moduleManager.register(new LimboHubModule(this, LimboHubModule.Config.defaultConfig()));
+    moduleManager.register(new ReconnectModule(this, ReconnectModule.Config.defaultConfig()));
+    moduleManager.register(new ProxyInfoModule(this, ProxyInfoModule.Config.defaultConfig()));
+    moduleManager.register(new ForgeCompatModule(this, ForgeCompatModule.Config.defaultConfig()));
+    moduleManager.register(new OnlineSyncModule(this, OnlineSyncModule.Config.defaultConfig()));
+    moduleManager.register(new EnhancedProxyModule(this, EnhancedProxyModule.Config.simpleDefault()));
+    moduleManager.register(new FileCleanerModule(this, FileCleanerModule.Config.defaultConfig()));
+    moduleManager.register(new RakNetModule(this, RakNetModule.Config.defaultConfig()));
+    moduleManager.register(new BotFilterModule(this, eventBus, BotFilterModule.Config.defaultConfig()));
+    moduleManager.register(new CrashFixModule(this, eventBus, CrashFixModule.Config.defaultConfig()));
+    moduleManager.register(new RiskModule(this, eventBus, RiskModule.Config.defaultConfig()));
+    moduleManager.register(new AnticheatModule(this, eventBus, AnticheatModule.Config.defaultConfig()));
+    moduleManager.register(new QqIntegrationModule(this, webhookClient, QqIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(new PlanIntegrationModule(this, eventBus, messageBridge, PlanIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(new MapModIntegrationModule(this, MapModIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(new SocialIntegrationModule(this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
 
     httpApiServer =
-        new HttpApiServer(config, eventBus, proxy, authModule.userRepository(), skinBridge);
+        new HttpApiServer(config, eventBus, proxy, databaseManager.getUserRepository(), skinBridge);
     webhookClient =
         new WebhookClient(config.webhook(), new HmacWebhookSigner(config.webhook().secret()));
     new WebhookEventPublisher(eventBus, webhookClient).register();
@@ -125,5 +167,20 @@ public class StarxVelocityPlugin {
     httpApiServer.start();
 
     logger.info("StarX Velocity 初始化完成");
+  }
+
+  @Subscribe
+  public void onProxyShutdown(ProxyShutdownEvent event) {
+    logger.info("StarX Velocity 正在关闭...");
+    if (httpApiServer != null) {
+      httpApiServer.stop();
+    }
+    if (moduleManager != null) {
+      moduleManager.disableAll();
+    }
+    if (databaseManager != null) {
+      databaseManager.close();
+    }
+    logger.info("StarX Velocity 已关闭");
   }
 }

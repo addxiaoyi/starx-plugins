@@ -30,15 +30,15 @@ class PaperModuleManagerTest {
 
   @BeforeEach
   void setUp() {
-    when(plugin.getServer()).thenReturn(server);
-    when(server.getPluginManager()).thenReturn(pluginManager);
+    lenient().when(plugin.getServer()).thenReturn(server);
+    lenient().when(server.getPluginManager()).thenReturn(pluginManager);
     lenient().when(plugin.getLogger()).thenReturn(logger);
   }
 
   @Test
   void loadsMaintenanceAndChat_whenEnabled() {
-    when(configLoader.isModuleEnabled("maintenance")).thenReturn(true);
-    when(configLoader.isModuleEnabled("chat")).thenReturn(true);
+    lenient().when(configLoader.isModuleEnabled("maintenance")).thenReturn(true);
+    lenient().when(configLoader.isModuleEnabled("chat")).thenReturn(true);
 
     PaperModuleManager manager = new PaperModuleManager(plugin, configLoader);
     try (var bukkit = mockStatic(Bukkit.class)) {
@@ -55,9 +55,9 @@ class PaperModuleManagerTest {
 
   @Test
   void loadsSkinModule_whenSkinsRestorerPresentAndEnabled() {
-    when(configLoader.isModuleEnabled("maintenance")).thenReturn(false);
-    when(configLoader.isModuleEnabled("chat")).thenReturn(false);
-    when(configLoader.isModuleEnabled("skin")).thenReturn(true);
+    lenient().when(configLoader.isModuleEnabled("maintenance")).thenReturn(false);
+    lenient().when(configLoader.isModuleEnabled("chat")).thenReturn(false);
+    lenient().when(configLoader.isModuleEnabled("skin")).thenReturn(true);
 
     PaperModuleManager manager = new PaperModuleManager(plugin, configLoader);
     try (var bukkit = mockStatic(Bukkit.class)) {
@@ -71,8 +71,8 @@ class PaperModuleManagerTest {
 
   @Test
   void doesNotLoadSkinModule_whenSkinsRestorerMissing() {
-    when(configLoader.isModuleEnabled("maintenance")).thenReturn(false);
-    when(configLoader.isModuleEnabled("chat")).thenReturn(false);
+    lenient().when(configLoader.isModuleEnabled("maintenance")).thenReturn(false);
+    lenient().when(configLoader.isModuleEnabled("chat")).thenReturn(false);
 
     PaperModuleManager manager = new PaperModuleManager(plugin, configLoader);
     try (var bukkit = mockStatic(Bukkit.class)) {

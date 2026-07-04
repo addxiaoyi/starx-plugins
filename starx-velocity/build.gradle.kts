@@ -25,6 +25,9 @@ dependencies {
     testImplementation(libs.velocity.api)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.bundles.test)
+    testImplementation(libs.bundles.database)
+    testImplementation(libs.h2)
+    testImplementation(libs.flyway.core)
     testRuntimeOnly(libs.junit.launcher)
 }
 

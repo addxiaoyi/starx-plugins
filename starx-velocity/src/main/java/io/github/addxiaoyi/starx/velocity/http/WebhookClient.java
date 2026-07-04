@@ -46,6 +46,15 @@ public final class WebhookClient {
     return transport.post(config.url(), body, headers);
   }
 
+  /** 向任意 URL 发送 JSON body，返回 CompletableFuture。 */
+  public CompletableFuture<Void> post(String url, Map<String, Object> body) {
+    Objects.requireNonNull(url, "url");
+    Objects.requireNonNull(body, "body");
+    String json = gson.toJson(body);
+    Map<String, String> headers = Map.of("Content-Type", "application/json");
+    return transport.post(url, json, headers);
+  }
+
   private String serialize(WebhookPayload payload) {
     Map<String, Object> map =
         Map.of(

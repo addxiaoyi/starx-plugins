@@ -1,7 +1,7 @@
 name: starx
 version: ${version}
 main: io.github.addxiaoyi.starx.paper.StarxPaperPlugin
-api-version: "1.21"
+api-version: "1.21.1"
 folia-supported: true
 softdepend:
   - SkinsRestorer

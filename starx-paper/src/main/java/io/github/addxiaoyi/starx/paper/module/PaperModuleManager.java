@@ -3,8 +3,15 @@ package io.github.addxiaoyi.starx.paper.module;
 import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
+import io.github.addxiaoyi.starx.paper.module.anticheat.AnticheatModule;
 import io.github.addxiaoyi.starx.paper.module.chat.ChatModule;
+import io.github.addxiaoyi.starx.paper.module.crashfix.CrashFixModule;
+import io.github.addxiaoyi.starx.paper.module.filecleaner.FileCleanerModule;
 import io.github.addxiaoyi.starx.paper.module.maintenance.MaintenanceModule;
+import io.github.addxiaoyi.starx.paper.module.mapmod.MapModModule;
+import io.github.addxiaoyi.starx.paper.module.networking.NetworkingModule;
+import io.github.addxiaoyi.starx.paper.module.plan.PlanModule;
+import io.github.addxiaoyi.starx.paper.module.qq.QqModule;
 import io.github.addxiaoyi.starx.paper.module.skin.PaperSkinModule;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +36,28 @@ public final class PaperModuleManager {
     modules.add(new ChatModule(plugin, configLoader));
     if (isSkinModuleLoadable()) {
       modules.add(new PaperSkinModule(plugin));
+    }
+
+    if (configLoader.isModuleEnabled("anticheat")) {
+      modules.add(new AnticheatModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("crashfix")) {
+      modules.add(new CrashFixModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("networking")) {
+      modules.add(new NetworkingModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("mapmod")) {
+      modules.add(new MapModModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("qq")) {
+      modules.add(new QqModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("plan")) {
+      modules.add(new PlanModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("filecleaner")) {
+      modules.add(new FileCleanerModule(plugin, configLoader));
     }
 
     for (PaperModule module : modules) {

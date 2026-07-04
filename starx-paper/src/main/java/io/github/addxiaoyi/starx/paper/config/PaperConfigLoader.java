@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
@@ -20,7 +21,40 @@ public final class PaperConfigLoader {
           + "    enabled: true\n"
           + "    format: '<{player}> {message}'\n"
           + "  skin:\n"
-          + "    enabled: true\n";
+          + "    enabled: true\n"
+          + "  anticheat:\n"
+          + "    enabled: false\n"
+          + "    enabled_checks:\n"
+          + "      - speed\n"
+          + "      - break\n"
+          + "      - interact\n"
+          + "    vl_threshold: 10\n"
+          + "  crashfix:\n"
+          + "    enabled: true\n"
+          + "  networking:\n"
+          + "    enabled: true\n"
+          + "  mapmod:\n"
+          + "    enabled: false\n"
+          + "  qq:\n"
+          + "    enabled: false\n"
+          + "  plan:\n"
+          + "    enabled: false\n"
+          + "  filecleaner:\n"
+          + "    enabled: false\n"
+          + "    schedule: '0 0 * * *'\n"
+          + "    folders:\n"
+          + "      logs:\n"
+          + "        location: '/logs'\n"
+          + "        age: 7\n"
+          + "        count: -1\n"
+          + "        size: -1\n"
+          + "        exclude:\n"
+          + "          - latest.log\n"
+          + "    files:\n"
+          + "      serverlog:\n"
+          + "        location: '/logs/latest.log'\n"
+          + "        age: 30\n"
+          + "        size: -1\n";
 
   private final StarxPaperPlugin plugin;
   private ConfigurationNode root;
@@ -57,6 +91,18 @@ public final class PaperConfigLoader {
       return "<{player}> {message}";
     }
     return root.node("modules", "chat", "format").getString("<{player}> {message}");
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<String> getEnabledChecks() {
+    if (root == null) {
+      return List.of("speed", "break", "interact");
+    }
+    try {
+      return root.node("modules", "anticheat", "enabled_checks").getList(String.class);
+    } catch (Exception e) {
+      return List.of("speed", "break", "interact");
+    }
   }
 
   private void saveDefault(File configFile) throws ConfigurateException {
