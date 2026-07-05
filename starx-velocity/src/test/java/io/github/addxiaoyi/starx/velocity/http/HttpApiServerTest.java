@@ -1,23 +1,27 @@
 package io.github.addxiaoyi.starx.velocity.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.velocitypowered.api.proxy.ProxyServer;
-import io.github.addxiaoyi.starx.api.dto.UserDto;
 import io.github.addxiaoyi.starx.api.event.EventBus;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
+import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.model.StarxUser;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
-import io.github.addxiaoyi.starx.velocity.repository.InMemoryUserRepository;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,18 +36,18 @@ class HttpApiServerTest {
 
   @Mock SkinBridgeModule skinBridge;
   @Mock ProxyServer proxy;
+  @Mock AuthService authService;
+  @Mock JdbiUserRepository jdbiUserRepository;
 
   private AutoCloseable mocks;
   private HttpApiServer server;
   private HttpClient client;
-  private UserRepository userRepository;
   private EventBus eventBus;
 
   @BeforeEach
   void setUp() {
     mocks = MockitoAnnotations.openMocks(this);
     client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
-    userRepository = new InMemoryUserRepository();
     eventBus = new VelocityEventBus();
   }
 
@@ -59,7 +63,9 @@ class HttpApiServerTest {
 
   @Test
   void shouldReturn503WhenApiKeyNotConfigured() throws Exception {
-    server = new HttpApiServer(configWithApiKey(null), eventBus, proxy, userRepository, skinBridge);
+    server =
+        new HttpApiServer(
+            configWithApiKey(null), eventBus, proxy, jdbiUserRepository, authService, skinBridge);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", null);
@@ -71,7 +77,13 @@ class HttpApiServerTest {
   @Test
   void shouldReturn401WhenApiKeyIsWrong() throws Exception {
     server =
-        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+        new HttpApiServer(
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", "wrong");
@@ -82,7 +94,13 @@ class HttpApiServerTest {
   @Test
   void shouldReturn200ForHealthWithValidKey() throws Exception {
     server =
-        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+        new HttpApiServer(
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", API_KEY);
@@ -94,7 +112,13 @@ class HttpApiServerTest {
   @Test
   void shouldAuthenticateWithValidHmacSignature() throws Exception {
     server =
-        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+        new HttpApiServer(
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge);
     server.start();
 
     String timestamp = String.valueOf(System.currentTimeMillis());
@@ -109,7 +133,13 @@ class HttpApiServerTest {
   @Test
   void shouldReturn401ForInvalidHmacSignature() throws Exception {
     server =
-        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+        new HttpApiServer(
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge);
     server.start();
 
     HttpResponse<String> response = getHmac("/v1/health", "123", "invalid-signature");
@@ -119,12 +149,19 @@ class HttpApiServerTest {
 
   @Test
   void shouldReturnUserExists() throws Exception {
-    userRepository.save(UserDto.builder().uuid(UUID.randomUUID()).username("test").build());
+    when(jdbiUserRepository.existsByUsername("test")).thenReturn(true);
+
     server =
-        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+        new HttpApiServer(
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge);
     server.start();
 
-    HttpResponse<String> response = get("/v1/user/exists?username=test", API_KEY);
+    HttpResponse<String> response = get("/v1/user/exists?name=test", API_KEY);
 
     assertThat(response.statusCode()).isEqualTo(200);
     assertThat(response.body()).contains("\"exists\":true");
@@ -132,12 +169,23 @@ class HttpApiServerTest {
 
   @Test
   void shouldRefreshSkinWhenValidRequest() throws Exception {
-    userRepository.save(UserDto.builder().uuid(UUID.randomUUID()).username("alice").build());
+    UUID uuid = UUID.randomUUID();
+    StarxUser user =
+        new StarxUser(uuid, "alice", null, null, null, false, Instant.now(), null, null, List.of());
+    when(jdbiUserRepository.findFullByUsername("alice")).thenReturn(Optional.of(user));
+
     server =
-        new HttpApiServer(configWithApiKey(API_KEY), eventBus, proxy, userRepository, skinBridge);
+        new HttpApiServer(
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge);
     server.start();
 
-    HttpResponse<String> response = post("/v1/skin/refresh", API_KEY, "{\"username\":\"alice\"}");
+    HttpResponse<String> response =
+        post("/v1/admin/skin-refresh", API_KEY, "{\"username\":\"alice\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
   }

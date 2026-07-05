@@ -43,6 +43,7 @@ import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@SuppressWarnings("deprecation")
 class AnticheatModuleTest {
 
   private static final Gson GSON = new Gson();

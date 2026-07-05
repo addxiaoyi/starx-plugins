@@ -1,10 +1,11 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import io.github.addxiaoyi.starx.api.dto.UserDto;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
-import io.github.addxiaoyi.starx.velocity.repository.InMemoryUserRepository;
+import io.github.addxiaoyi.starx.common.auth.AuthResult;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.javalin.Javalin;
 import java.io.IOException;
 import java.net.URI;
@@ -12,44 +13,50 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 class DeleteUserHandlerTest {
 
   private static final int PORT = 18794;
 
-  private final UserRepository users = new InMemoryUserRepository();
+  @Mock private AuthService authService;
+
+  private AutoCloseable mocks;
   private Javalin app;
   private HttpClient client;
 
   @BeforeEach
   void setUp() {
+    mocks = MockitoAnnotations.openMocks(this);
     client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
   }
 
   @AfterEach
-  void tearDown() {
+  void tearDown() throws Exception {
     if (app != null) {
       app.stop();
+    }
+    if (mocks != null) {
+      mocks.close();
     }
   }
 
   @Test
   void shouldDeleteUser() throws Exception {
-    UUID uuid = UUID.randomUUID();
-    users.save(UserDto.builder().uuid(uuid).username("dave").build());
+    when(authService.deleteUser("dave")).thenReturn(AuthResult.success("用户已删除"));
 
     app = Javalin.create(config -> config.showJavalinBanner = false);
-    new DeleteUserHandler(users).register(app);
+    new DeleteUserHandler(authService).register(app);
     app.start("127.0.0.1", PORT);
 
     HttpResponse<String> response = post("/v1/admin/delete-user", "{\"username\":\"dave\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
-    assertThat(users.existsByUsername("dave")).isFalse();
+    verify(authService).deleteUser("dave");
   }
 
   private HttpResponse<String> post(String path, String body)

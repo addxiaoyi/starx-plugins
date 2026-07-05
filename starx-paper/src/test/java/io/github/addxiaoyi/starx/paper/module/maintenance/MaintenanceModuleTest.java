@@ -1,7 +1,7 @@
 package io.github.addxiaoyi.starx.paper.module.maintenance;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -14,6 +14,7 @@ import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import java.util.Map;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -66,7 +67,8 @@ class MaintenanceModuleTest {
     PlayerLoginEvent event = loginEventFor(player, true);
     module.onLogin(event);
 
-    verify(event, never()).disallow(eq(PlayerLoginEvent.Result.KICK_WHITELIST), anyString());
+    verify(event, never())
+        .disallow(eq(PlayerLoginEvent.Result.KICK_WHITELIST), any(Component.class));
   }
 
   @Test
@@ -77,7 +79,7 @@ class MaintenanceModuleTest {
     PlayerLoginEvent event = loginEventFor(player, false);
     module.onLogin(event);
 
-    verify(event).disallow(eq(PlayerLoginEvent.Result.KICK_WHITELIST), anyString());
+    verify(event).disallow(eq(PlayerLoginEvent.Result.KICK_WHITELIST), any(Component.class));
   }
 
   @Test
@@ -88,7 +90,8 @@ class MaintenanceModuleTest {
     PlayerLoginEvent event = loginEventFor(player, false);
     module.onLogin(event);
 
-    verify(event, never()).disallow(eq(PlayerLoginEvent.Result.KICK_WHITELIST), anyString());
+    verify(event, never())
+        .disallow(eq(PlayerLoginEvent.Result.KICK_WHITELIST), any(Component.class));
   }
 
   private PlayerLoginEvent loginEventFor(Player player, boolean hasBypass) {

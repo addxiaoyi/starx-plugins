@@ -1,6 +1,6 @@
 package io.github.addxiaoyi.starx.paper.module.chat;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -12,6 +12,7 @@ import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import java.util.Map;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
@@ -56,7 +57,7 @@ class ChatModuleTest {
       module.onPluginMessage(
           new PluginMessage("chat_broadcast", Map.of("sender", "Alice", "message", "hello")));
 
-      bukkit.verify(() -> Bukkit.broadcastMessage("<Alice> hello"));
+      bukkit.verify(() -> Bukkit.broadcast(any(Component.class)));
     }
   }
 
@@ -69,7 +70,7 @@ class ChatModuleTest {
       module.onPluginMessage(
           new PluginMessage("chat_broadcast", Map.of("sender", "Alice", "message", "hello")));
 
-      bukkit.verify(() -> Bukkit.broadcastMessage(anyString()), never());
+      bukkit.verify(() -> Bukkit.broadcast(any(Component.class)), never());
     }
   }
 }

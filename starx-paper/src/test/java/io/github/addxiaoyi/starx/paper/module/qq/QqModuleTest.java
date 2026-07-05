@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
@@ -54,7 +55,7 @@ class QqModuleTest {
 
     PlayerDeathEvent event = mock(PlayerDeathEvent.class);
     lenient().when(event.getEntity()).thenReturn(player);
-    lenient().when(event.getDeathMessage()).thenReturn("testPlayer died");
+    lenient().when(event.deathMessage()).thenReturn(Component.text("testPlayer died"));
     module.onDeath(event);
 
     assertThat(module.getPendingNotifications()).hasSize(1);

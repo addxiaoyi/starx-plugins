@@ -1,14 +1,12 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import io.github.addxiaoyi.starx.api.dto.UserDto;
-import io.github.addxiaoyi.starx.api.event.EventBus;
-import io.github.addxiaoyi.starx.api.event.EventTypes;
-import io.github.addxiaoyi.starx.api.event.StarxEvent;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
-import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
-import io.github.addxiaoyi.starx.velocity.repository.InMemoryUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.model.StarxUser;
+import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
 import io.javalin.Javalin;
 import java.io.IOException;
 import java.net.URI;
@@ -16,61 +14,69 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 class SkinRefreshHandlerTest {
 
   private static final int PORT = 18796;
 
-  private final UserRepository users = new InMemoryUserRepository();
-  private final EventBus eventBus = new VelocityEventBus();
+  @Mock private SkinBridgeModule skinBridge;
+  @Mock private JdbiUserRepository jdbiUserRepository;
+
+  private AutoCloseable mocks;
   private Javalin app;
   private HttpClient client;
 
   @BeforeEach
   void setUp() {
+    mocks = MockitoAnnotations.openMocks(this);
     client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
   }
 
   @AfterEach
-  void tearDown() {
+  void tearDown() throws Exception {
     if (app != null) {
       app.stop();
+    }
+    if (mocks != null) {
+      mocks.close();
     }
   }
 
   @Test
   void shouldPublishSkinRefreshRequestByUsername() throws Exception {
     UUID uuid = UUID.randomUUID();
-    users.save(UserDto.builder().uuid(uuid).username("grace").build());
-
-    AtomicReference<StarxEvent> captured = new AtomicReference<>();
-    eventBus.subscribe(EventTypes.SKIN_REFRESH_REQUEST, captured::set);
+    StarxUser user =
+        new StarxUser(uuid, "grace", null, null, null, false, Instant.now(), null, null, List.of());
+    when(jdbiUserRepository.findFullByUsername("grace")).thenReturn(Optional.of(user));
 
     app = Javalin.create(config -> config.showJavalinBanner = false);
-    new SkinRefreshHandler(users, eventBus).register(app);
+    new SkinRefreshHandler(skinBridge, jdbiUserRepository).register(app);
     app.start("127.0.0.1", PORT);
 
-    HttpResponse<String> response = post("/v1/skin/refresh", "{\"username\":\"grace\"}");
+    HttpResponse<String> response = post("/v1/admin/skin-refresh", "{\"username\":\"grace\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
-    assertThat(captured.get()).isNotNull();
-    assertThat(captured.get().type()).isEqualTo(EventTypes.SKIN_REFRESH_REQUEST);
-    assertThat(captured.get().<String>get("username")).isEqualTo("grace");
-    assertThat(captured.get().<String>get("uuid")).isEqualTo(uuid.toString());
+    verify(skinBridge).refreshSkin(uuid);
   }
 
   @Test
   void shouldReturn404ForUnknownUsername() throws Exception {
+    when(jdbiUserRepository.findFullByUsername("unknown")).thenReturn(Optional.empty());
+
     app = Javalin.create(config -> config.showJavalinBanner = false);
-    new SkinRefreshHandler(users, eventBus).register(app);
+    new SkinRefreshHandler(skinBridge, jdbiUserRepository).register(app);
     app.start("127.0.0.1", PORT);
 
-    HttpResponse<String> response = post("/v1/skin/refresh", "{\"username\":\"unknown\"}");
+    HttpResponse<String> response = post("/v1/admin/skin-refresh", "{\"username\":\"unknown\"}");
 
     assertThat(response.statusCode()).isEqualTo(404);
   }

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
+import java.util.List;
 import java.util.logging.Logger;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -84,13 +85,14 @@ class CrashFixModuleTest {
     verify(event, never()).setCancelled(true);
   }
 
+  @SuppressWarnings("deprecation")
   private BookMeta createOversizedBookMeta() {
     BookMeta meta = mock(BookMeta.class);
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < 1000; i++) {
       sb.append("abc");
     }
-    lenient().when(meta.getPage(1)).thenReturn(sb.toString());
+    lenient().when(meta.getPages()).thenReturn(List.of(sb.toString()));
     lenient().when(meta.getPageCount()).thenReturn(1);
     return meta;
   }

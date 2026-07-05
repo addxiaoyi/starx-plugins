@@ -1,14 +1,11 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import io.github.addxiaoyi.starx.api.dto.UserDto;
-import io.github.addxiaoyi.starx.api.event.EventBus;
-import io.github.addxiaoyi.starx.api.event.EventTypes;
-import io.github.addxiaoyi.starx.api.event.StarxEvent;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
-import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
-import io.github.addxiaoyi.starx.velocity.repository.InMemoryUserRepository;
+import io.github.addxiaoyi.starx.common.auth.AuthResult;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.javalin.Javalin;
 import java.io.IOException;
 import java.net.URI;
@@ -16,54 +13,52 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 class BindEmailHandlerTest {
 
   private static final int PORT = 18791;
 
-  private final UserRepository users = new InMemoryUserRepository();
-  private final EventBus eventBus = new VelocityEventBus();
+  @Mock private AuthService authService;
+
+  private AutoCloseable mocks;
   private Javalin app;
   private HttpClient client;
 
   @BeforeEach
   void setUp() {
+    mocks = MockitoAnnotations.openMocks(this);
     client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
   }
 
   @AfterEach
-  void tearDown() {
+  void tearDown() throws Exception {
     if (app != null) {
       app.stop();
+    }
+    if (mocks != null) {
+      mocks.close();
     }
   }
 
   @Test
   void shouldUpdateEmailAndPublishEvent() throws Exception {
-    users.save(UserDto.builder().uuid(UUID.randomUUID()).username("bob").build());
-
-    AtomicReference<StarxEvent> captured = new AtomicReference<>();
-    eventBus.subscribe(EventTypes.ADMIN_BIND_EMAIL, captured::set);
+    when(authService.bindEmail("bob", "bob@example.com")).thenReturn(AuthResult.success("邮箱已绑定"));
 
     app = Javalin.create(config -> config.showJavalinBanner = false);
-    new BindEmailHandler(users, eventBus).register(app);
+    new BindEmailHandler(authService).register(app);
     app.start("127.0.0.1", PORT);
 
     HttpResponse<String> response =
         post("/v1/admin/bind-email", "{\"username\":\"bob\",\"email\":\"bob@example.com\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
-    assertThat(users.findByUsername("bob")).isPresent();
-    assertThat(users.findByUsername("bob").get().email()).isEqualTo("bob@example.com");
-    assertThat(captured.get()).isNotNull();
-    assertThat(captured.get().type()).isEqualTo(EventTypes.ADMIN_BIND_EMAIL);
-    assertThat(captured.get().<String>get("username")).isEqualTo("bob");
-    assertThat(captured.get().<String>get("email")).isEqualTo("bob@example.com");
+    assertThat(response.body()).contains("\"success\":true");
+    verify(authService).bindEmail("bob", "bob@example.com");
   }
 
   private HttpResponse<String> post(String path, String body)
