@@ -9,11 +9,7 @@ import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * 崩溃修复模块：防止非法包、NBT 溢出、过大数据包导致服务器崩溃。
- *
- * <p>参考 AntiCrasher 的 Check 系统和 BundleCrashFix 的包拦截模式。
- */
+/** 崩溃修复模块：防止非法包、NBT 溢出、过大数据包导致服务器崩溃。 */
 public final class CrashFixModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;

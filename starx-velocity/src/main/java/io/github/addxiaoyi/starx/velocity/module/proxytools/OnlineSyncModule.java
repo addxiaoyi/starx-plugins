@@ -19,7 +19,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 /**
  * 在线同步模块：保持玩家在代理端显示为在线状态，处理全局玩家列表。
  *
- * <p>参考 ProxyOnlineLinker 和 AlwaysOnline 插件逻辑。维护玩家在线状态映射， 提供 /list 命令显示全局玩家（包括不同子服的玩家）。
+ * <p>维护玩家在线状态映射，提供 /list 命令显示全局玩家（包括不同子服的玩家）。
  */
 public final class OnlineSyncModule implements VelocityModule {
 

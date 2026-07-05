@@ -80,7 +80,7 @@ public final class MigrationModule implements VelocityModule {
             break;
           }
         case "authme":
-          // TODO: 实现 AuthMe 数据迁移（参考 AuthMe 数据库结构）
+          // TODO: 实现 AuthMe 数据迁移
           plugin.logger().log(Level.WARNING, "AuthMe 迁移尚未实现");
           break;
         default:
@@ -100,7 +100,6 @@ public final class MigrationModule implements VelocityModule {
   }
 
   private MigrationResult migrateFromMultiLogin(boolean dryRun) throws Exception {
-    // 参考 StarVC MultiLoginUuidMigrator 逻辑
     int total = 0;
     int imported = 0;
     int skippedExisting = 0;

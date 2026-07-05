@@ -14,7 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
 
-/** Paper 端文件清理模块：监听 Paper 特定文件（world 存档、日志等），参考 SilverstoneMC/FileCleaner。 */
+/** Paper 端文件清理模块：监听 Paper 特定文件（world 存档、日志等）。 */
 public final class FileCleanerModule implements PaperModule, Listener {
 
   private static final int DEFAULT_AGE_DAYS = 7;

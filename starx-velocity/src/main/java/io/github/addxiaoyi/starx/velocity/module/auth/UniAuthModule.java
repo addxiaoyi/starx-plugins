@@ -36,7 +36,7 @@ public final class UniAuthModule implements VelocityModule {
   @Override
   public void onEnable() {
     plugin.logger().log(Level.INFO, "UniAuthModule 已启用，API: {0}", config.apiUrl());
-    // TODO: 验证 API 连通性（参考 StarVC UniAuthAPIClient.fetchPublicKey）
+    // TODO: 验证 API 连通性
   }
 
   @Override
@@ -60,8 +60,7 @@ public final class UniAuthModule implements VelocityModule {
    * @return 认证结果
    */
   public CompletableFuture<UniAuthResult> login(String username, String password) {
-    // TODO: 实现完整的 UniAuth 登录流程（参考 StarVC UniAuthAPIClient.login +
-    // UniAuthAuthenticator.authenticate）
+    // TODO: 实现完整的 UniAuth 登录流程
     CompletableFuture<UniAuthResult> future = new CompletableFuture<>();
     httpClient
         .sendAsync(
@@ -104,7 +103,7 @@ public final class UniAuthModule implements VelocityModule {
    * @return 注册结果
    */
   public CompletableFuture<UniAuthResult> registerWithoutEmail(String username, String password) {
-    // TODO: 实现完整的 UniAuth 注册流程（参考 StarVC UniAuthAPIClient.registerWithoutEmail）
+    // TODO: 实现完整的 UniAuth 注册流程
     CompletableFuture<UniAuthResult> future = new CompletableFuture<>();
     future.complete(UniAuthResult.UNKNOWN_ERROR);
     return future;
@@ -117,7 +116,7 @@ public final class UniAuthModule implements VelocityModule {
    * @return 用户状态
    */
   public CompletableFuture<UserStatus> fetchStatus(String username) {
-    // TODO: 实现用户状态查询（参考 StarVC UniAuthAPIClient.fetchUserInfo）
+    // TODO: 实现用户状态查询
     CompletableFuture<UserStatus> future = new CompletableFuture<>();
     future.complete(UserStatus.UNKNOWN);
     return future;

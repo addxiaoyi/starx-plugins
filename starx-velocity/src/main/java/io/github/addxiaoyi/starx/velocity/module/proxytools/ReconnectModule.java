@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 重连模块：玩家断开后自动重连到上次所在服务器。
  *
- * <p>参考 LimboReconnect 和 SmartRejoin 插件逻辑。监听 DisconnectEvent 记录玩家最后所在服务器， 下次登录时自动发送到该服务器。
+ * <p>监听 DisconnectEvent 记录玩家最后所在服务器，下次登录时自动发送到该服务器。
  */
 public final class ReconnectModule implements VelocityModule {
 

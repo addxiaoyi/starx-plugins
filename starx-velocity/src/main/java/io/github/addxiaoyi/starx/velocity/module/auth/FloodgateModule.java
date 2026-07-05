@@ -28,7 +28,7 @@ public final class FloodgateModule implements VelocityModule {
 
   @Override
   public void onEnable() {
-    // TODO: 检测 Floodgate API 是否可用（参考 StarVC FloodgateHandler，使用 FloodgateApi.getInstance()）
+    // TODO: 检测 Floodgate API 是否可用
     checkFloodgateAvailability();
     if (floodgateAvailable) {
       plugin.logger().log(Level.INFO, "FloodgateModule 已启用，自动登录: {0}", config.autoLogin());
@@ -69,7 +69,7 @@ public final class FloodgateModule implements VelocityModule {
     if (!floodgateAvailable) {
       return false;
     }
-    // TODO: 实现完整的 Floodgate 检测逻辑（参考 StarVC FloodgateHandler.isFloodgatePlayer）
+    // TODO: 实现完整的 Floodgate 检测逻辑
     // 通过前缀判断：Geyser 玩家默认带有配置的前缀
     return username.startsWith(config.prefix());
   }

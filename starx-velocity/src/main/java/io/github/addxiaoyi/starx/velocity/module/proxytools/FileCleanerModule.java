@@ -19,7 +19,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-/** 文件清理模块：基于年龄、数量、大小的文件自动清理，参考 SilverstoneMC/FileCleaner。 */
+/** 文件清理模块：基于年龄、数量、大小的文件自动清理。 */
 public final class FileCleanerModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;

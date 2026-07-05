@@ -12,11 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 反机器人模块：连接速率限制、Ping 频率检测、可疑包检测。
- *
- * <p>参考 LimboFilter 的 CPS/PPS 统计逻辑和 sonar 的速率限制模式。
- */
+/** 反机器人模块：连接速率限制、Ping 频率检测、可疑包检测。 */
 public final class BotFilterModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;

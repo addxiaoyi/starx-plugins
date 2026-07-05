@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** 社交平台集成模块：Discord/Telegram 机器人，玩家账号关联/解绑，参考 Elytrium/LimboAuth-SocialAddon。 */
+/** 社交平台集成模块：Discord/Telegram 机器人，玩家账号关联/解绑。 */
 public final class SocialIntegrationModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;

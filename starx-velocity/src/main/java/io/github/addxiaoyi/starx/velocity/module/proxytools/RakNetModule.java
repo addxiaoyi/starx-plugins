@@ -34,7 +34,7 @@ public final class RakNetModule implements VelocityModule {
     // TODO: 启动 RakNet 服务器监听 UDP 端口
     // TODO: 实现 RakNet 协议握手（UnconnectedPing/UnconnectedPong）
     // TODO: 实现 OpenConnectionRequest/OpenConnectionReply
-    // TODO: 参考 raknetify 实现完整协议栈
+    // TODO: 实现完整协议栈
     // TODO: 实现 Bedrock 客户端到 Java 服务器的数据包转换
     // TODO: 实现 ACK/NACK 可靠传输机制
   }

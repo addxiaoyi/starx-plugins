@@ -16,8 +16,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 /**
  * 代理信息命令模块：提供管理命令查看代理运行状态。
  *
- * <p>参考 VelocityTools、VelocityUptime、VServerInfo 插件逻辑。提供 /starx info、/starx uptime、 /starx servers
- * 命令，显示代理运行时间、内存使用、服务器列表、玩家统计。
+ * <p>提供 /starx info、/starx uptime、/starx servers 命令，显示代理运行时间、内存使用、服务器列表、玩家统计。
  */
 public final class ProxyInfoModule implements VelocityModule {
 

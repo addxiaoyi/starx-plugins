@@ -11,8 +11,7 @@ import java.util.Objects;
 /**
  * Forge 兼容模块：处理 Forge 客户端的握手和 Mod 列表同步。
  *
- * <p>参考 Ambassador 和 Proxy-Compatible-Forge 插件逻辑。检测 Forge 客户端连接， 确保 Mod 列表在代理端正确传递，保证 Forge
- * 玩家能正常通过代理连接到子服。
+ * <p>检测 Forge 客户端连接，确保 Mod 列表在代理端正确传递，保证 Forge 玩家能正常通过代理连接到子服。
  *
  * <p>TODO: 实现完整的 Forge 握手管道注入（ChannelInitializer hook） TODO: 实现 FML2 握手协议处理 TODO: 实现 Mod 列表缓存和同步
  */

@@ -117,7 +117,7 @@ public final class YggdrasilModule implements VelocityModule {
    * @return 任意服务器存在则为 true
    */
   public CompletableFuture<Boolean> checkAllServers(String username, UUID uuid) {
-    // TODO: 实现完整的并行检查 + 超时控制逻辑（参考 StarVC YggdrasilAuthenticator.checkAllExists）
+    // TODO: 实现完整的并行检查 + 超时控制逻辑
     CompletableFuture<Boolean> result = new CompletableFuture<>();
     result.complete(false);
     return result;

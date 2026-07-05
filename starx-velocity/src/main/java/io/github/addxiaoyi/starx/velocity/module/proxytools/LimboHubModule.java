@@ -14,7 +14,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 /**
  * Limbo 大厅模块：管理 Limbo 虚拟服务器，提供 /hub 和 /lobby 命令返回大厅。
  *
- * <p>参考 LimboHub 插件逻辑，核心功能：将玩家发送到配置的大厅服务器，显示在线玩家统计。
+ * <p>核心功能：将玩家发送到配置的大厅服务器，显示在线玩家统计。
  */
 public final class LimboHubModule implements VelocityModule {
 

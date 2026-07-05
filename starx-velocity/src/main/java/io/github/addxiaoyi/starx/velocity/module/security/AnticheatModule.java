@@ -32,8 +32,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 /**
  * 反作弊数据收集模块。
  *
- * <p>参考 BetterAnticheat 的设计，通过 Plugin Messaging 接收 Paper 后端上报的检测事件， 汇总违规数据并在超过阈值时通过 EventBus
- * 发布安全告警。
+ * <p>通过 Plugin Messaging 接收 Paper 后端上报的检测事件，汇总违规数据并在超过阈值时通过 EventBus 发布安全告警。
  */
 public final class AnticheatModule implements VelocityModule {
 

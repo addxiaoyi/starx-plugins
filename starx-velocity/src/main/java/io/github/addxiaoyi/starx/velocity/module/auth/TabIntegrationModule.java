@@ -32,7 +32,7 @@ public final class TabIntegrationModule implements VelocityModule {
   public void onEnable() {
     checkTabAvailability();
     if (tabAvailable) {
-      // TODO: 注册 TAB 占位符（参考 StarVC TABHandler.registerPlaceholder）
+      // TODO: 注册 TAB 占位符
       // 使用 TabAPI.getInstance().getPlaceholderManager().registerPlayerPlaceholder(...)
       plugin
           .logger()
@@ -72,7 +72,7 @@ public final class TabIntegrationModule implements VelocityModule {
    * @return 占位符值
    */
   public String resolvePlaceholder(String placeholder, String playerName) {
-    // TODO: 实现占位符解析逻辑（参考 StarVC PlaceholderHandler）
+    // TODO: 实现占位符解析逻辑
     String key = config.placeholders().get(placeholder);
     if (key == null) {
       return "";

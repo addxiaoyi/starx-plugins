@@ -19,7 +19,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 /**
  * 增强代理命令模块：提供 /glist, /find, /send, /alert, /ping, /kickall 命令。
  *
- * <p>参考 EnhancedVelocity 插件实现。配置键：proxytools.enhanced。
+ * <p>配置键：proxytools.enhanced。
  */
 public final class EnhancedProxyModule implements VelocityModule {
 

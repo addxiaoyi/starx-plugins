@@ -38,7 +38,7 @@ public final class MapModIntegrationModule implements VelocityModule {
     plugin.proxy().getChannelRegistrar().register(channel);
     plugin.proxy().getEventManager().register(plugin, new ServerConnectListener());
     // TODO: 注册多个地图模组通道（xaerominimap:main, xaeroworldmap:main, worldinfo:world_id）
-    // TODO: 参考 MapModCompanion 的 Handler 机制，支持多种地图模组格式
+    // TODO: 支持多种地图模组格式
   }
 
   @Override
