@@ -17,10 +17,10 @@ class WebhookEventPublisherTest {
   private final WebhookClient webhookClient = mock(WebhookClient.class);
 
   @Test
-  void shouldSendLoginSuccessWebhook() {
+  void shouldSendLoginSuccessWebhook() throws Exception {
     new WebhookEventPublisher(eventBus, webhookClient).register();
-
     eventBus.publish(EventTypes.PLAYER_LOGIN_SUCCESS, Map.of("username", "alice"));
+    Thread.sleep(200);
 
     verify(webhookClient)
         .send(
@@ -31,10 +31,10 @@ class WebhookEventPublisherTest {
   }
 
   @Test
-  void shouldSendRegisterWebhook() {
+  void shouldSendRegisterWebhook() throws Exception {
     new WebhookEventPublisher(eventBus, webhookClient).register();
-
     eventBus.publish(EventTypes.PLAYER_REGISTER, Map.of("username", "bob"));
+    Thread.sleep(200);
 
     verify(webhookClient)
         .send(
@@ -45,12 +45,12 @@ class WebhookEventPublisherTest {
   }
 
   @Test
-  void shouldSendSkinUpdatedWebhook() {
+  void shouldSendSkinUpdatedWebhook() throws Exception {
     new WebhookEventPublisher(eventBus, webhookClient).register();
-
     eventBus.publish(
         EventTypes.SKIN_UPDATED,
         Map.of("username", "charlie", "skinUrl", "https://example.com/skin.png"));
+    Thread.sleep(200);
 
     verify(webhookClient)
         .send(
@@ -61,10 +61,10 @@ class WebhookEventPublisherTest {
   }
 
   @Test
-  void shouldSendSkinAppliedWebhook() {
+  void shouldSendSkinAppliedWebhook() throws Exception {
     new WebhookEventPublisher(eventBus, webhookClient).register();
-
     eventBus.publish(EventTypes.SKIN_APPLIED, Map.of("username", "dave"));
+    Thread.sleep(200);
 
     verify(webhookClient)
         .send(
@@ -75,10 +75,10 @@ class WebhookEventPublisherTest {
   }
 
   @Test
-  void shouldSendBanWebhook() {
+  void shouldSendBanWebhook() throws Exception {
     new WebhookEventPublisher(eventBus, webhookClient).register();
-
     eventBus.publish(EventTypes.ADMIN_BAN_PLAYER, Map.of("username", "eve", "reason", "cheating"));
+    Thread.sleep(200);
 
     verify(webhookClient)
         .send(
@@ -89,10 +89,10 @@ class WebhookEventPublisherTest {
   }
 
   @Test
-  void shouldSendKickWebhook() {
+  void shouldSendKickWebhook() throws Exception {
     new WebhookEventPublisher(eventBus, webhookClient).register();
-
     eventBus.publish(EventTypes.ADMIN_KICK_PLAYER, Map.of("username", "frank", "reason", "afk"));
+    Thread.sleep(200);
 
     verify(webhookClient)
         .send(

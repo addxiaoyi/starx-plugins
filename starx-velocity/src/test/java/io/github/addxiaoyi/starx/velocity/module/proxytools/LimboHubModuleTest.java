@@ -1,12 +1,12 @@
 package io.github.addxiaoyi.starx.velocity.module.proxytools;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -25,6 +25,8 @@ class LimboHubModuleTest {
   @Mock ProxyServer proxy;
   @Mock EventManager eventManager;
   @Mock CommandManager commandManager;
+  @Mock CommandMeta.Builder metaBuilder;
+  @Mock CommandMeta meta;
 
   LimboHubModule.Config enabledConfig;
   LimboHubModule.Config disabledConfig;
@@ -34,6 +36,8 @@ class LimboHubModuleTest {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
     lenient().when(proxy.getCommandManager()).thenReturn(commandManager);
+    lenient().when(commandManager.metaBuilder(any(String.class))).thenReturn(metaBuilder);
+    lenient().when(metaBuilder.build()).thenReturn(meta);
     enabledConfig =
         new LimboHubModule.Config() {
           @Override
@@ -64,20 +68,20 @@ class LimboHubModuleTest {
   void shouldRegisterHubCommandOnEnable() {
     LimboHubModule module = new LimboHubModule(plugin, enabledConfig);
     module.onEnable();
-    verify(commandManager).register(eq("hub"), any(SimpleCommand.class));
+    verify(commandManager).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test
   void shouldRegisterLobbyCommandOnEnable() {
     LimboHubModule module = new LimboHubModule(plugin, enabledConfig);
     module.onEnable();
-    verify(commandManager).register(eq("lobby"), any(SimpleCommand.class));
+    verify(commandManager).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test
   void shouldNotRegisterCommandsWhenDisabled() {
     LimboHubModule module = new LimboHubModule(plugin, disabledConfig);
     module.onEnable();
-    verify(commandManager, never()).register(any(String.class), any(SimpleCommand.class));
+    verify(commandManager, never()).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 }

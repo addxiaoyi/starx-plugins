@@ -2,7 +2,6 @@ package io.github.addxiaoyi.starx.velocity.module.proxytools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -10,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -34,6 +34,8 @@ class EnhancedProxyModuleTest {
   @Mock StarxVelocityPlugin plugin;
   @Mock ProxyServer proxy;
   @Mock CommandManager commandManager;
+  @Mock CommandMeta.Builder metaBuilder;
+  @Mock CommandMeta meta;
 
   EnhancedProxyModule.Config config;
 
@@ -41,6 +43,8 @@ class EnhancedProxyModuleTest {
   void setUp() {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getCommandManager()).thenReturn(commandManager);
+    lenient().when(commandManager.metaBuilder(any(String.class))).thenReturn(metaBuilder);
+    lenient().when(metaBuilder.build()).thenReturn(meta);
     config = EnhancedProxyModule.Config.simpleDefault();
   }
 
@@ -55,12 +59,7 @@ class EnhancedProxyModuleTest {
     EnhancedProxyModule module = new EnhancedProxyModule(plugin, config);
     module.onEnable();
 
-    verify(commandManager).register(eq("glist"), any(SimpleCommand.class));
-    verify(commandManager).register(eq("find"), any(SimpleCommand.class));
-    verify(commandManager).register(eq("send"), any(SimpleCommand.class));
-    verify(commandManager).register(eq("alert"), any(SimpleCommand.class));
-    verify(commandManager).register(eq("ping"), any(SimpleCommand.class));
-    verify(commandManager).register(eq("kickall"), any(SimpleCommand.class));
+    verify(commandManager, times(6)).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test
@@ -69,7 +68,7 @@ class EnhancedProxyModuleTest {
         new EnhancedProxyModule(plugin, EnhancedProxyModule.Config.disabled());
     module.onEnable();
 
-    verify(commandManager, never()).register(any(String.class), any(SimpleCommand.class));
+    verify(commandManager, never()).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test

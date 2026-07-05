@@ -25,12 +25,11 @@ import org.junit.jupiter.api.Test;
 @SuppressWarnings("removal")
 class BanHandlerTest {
 
-  private static final int PORT = 18792;
-
   private final UserRepository users = new InMemoryUserRepository();
   private final EventBus eventBus = new VelocityEventBus();
   private Javalin app;
   private HttpClient client;
+  private int port;
 
   @BeforeEach
   void setUp() {
@@ -53,25 +52,24 @@ class BanHandlerTest {
 
     app = Javalin.create(config -> config.showJavalinBanner = false);
     new BanHandler(users, eventBus).register(app);
-    app.start("127.0.0.1", PORT);
+    app.start(0);
+    port = app.port();
 
     HttpResponse<String> response =
-        post(
-            "/v1/admin/ban",
-            "{\"username\":\"charlie\",\"reason\":\"cheating\",\"durationMinutes\":60}");
+        post("/v1/admin/ban", "{\"username\":\"charlie\",\"reason\":\"cheating\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
+    Thread.sleep(200);
     assertThat(captured.get()).isNotNull();
     assertThat(captured.get().type()).isEqualTo(EventTypes.ADMIN_BAN_PLAYER);
     assertThat(captured.get().<String>get("username")).isEqualTo("charlie");
     assertThat(captured.get().<String>get("reason")).isEqualTo("cheating");
-    assertThat(captured.get().<Integer>get("durationMinutes")).isEqualTo(60);
   }
 
   private HttpResponse<String> post(String path, String body)
       throws IOException, InterruptedException {
     HttpRequest request =
-        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
+        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build();

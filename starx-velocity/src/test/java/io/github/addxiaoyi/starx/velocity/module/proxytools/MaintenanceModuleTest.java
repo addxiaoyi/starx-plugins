@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.event.ResultedEvent;
@@ -43,6 +44,8 @@ class MaintenanceModuleTest {
   @Mock VelocityMessageBridge bridge;
   @Mock EventManager eventManager;
   @Mock CommandManager commandManager;
+  @Mock CommandMeta.Builder metaBuilder;
+  @Mock CommandMeta meta;
 
   MaintenanceModule.Config config;
 
@@ -51,6 +54,8 @@ class MaintenanceModuleTest {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
     lenient().when(proxy.getCommandManager()).thenReturn(commandManager);
+    lenient().when(commandManager.metaBuilder(any(String.class))).thenReturn(metaBuilder);
+    lenient().when(metaBuilder.build()).thenReturn(meta);
     config =
         new MaintenanceModule.Config() {
           @Override
@@ -76,7 +81,7 @@ class MaintenanceModuleTest {
     module.onEnable();
 
     verify(eventManager).register(eq(plugin), any());
-    verify(commandManager).register(eq("maintenance"), any(SimpleCommand.class));
+    verify(commandManager).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test

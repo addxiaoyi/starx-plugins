@@ -25,12 +25,13 @@ import org.junit.jupiter.api.Test;
 @SuppressWarnings("removal")
 class LinkExternalUserHandlerTest {
 
-  private static final int PORT = 18795;
+  private static final int PORT = 0;
 
   private final UserRepository users = new InMemoryUserRepository();
   private final EventBus eventBus = new VelocityEventBus();
   private Javalin app;
   private HttpClient client;
+  private int port;
 
   @BeforeEach
   void setUp() {
@@ -53,14 +54,17 @@ class LinkExternalUserHandlerTest {
 
     app = Javalin.create(config -> config.showJavalinBanner = false);
     new LinkExternalUserHandler(users, eventBus).register(app);
-    app.start("127.0.0.1", PORT);
+    app.start(0);
+    port = app.port();
 
     HttpResponse<String> response =
-        post("/v1/link/external-user", "{\"username\":\"eve\",\"externalUserId\":\"ext-42\"}");
+        post(
+            "/v1/admin/link-external-user", "{\"username\":\"eve\",\"externalUserId\":\"ext-42\"}");
 
     assertThat(response.statusCode()).isEqualTo(200);
     assertThat(users.findByUsername("eve")).isPresent();
     assertThat(users.findByUsername("eve").get().externalUserId()).isEqualTo("ext-42");
+    Thread.sleep(200);
     assertThat(captured.get()).isNotNull();
     assertThat(captured.get().type()).isEqualTo(EventTypes.LINK_EXTERNAL_USER);
     assertThat(captured.get().<String>get("username")).isEqualTo("eve");
@@ -70,7 +74,7 @@ class LinkExternalUserHandlerTest {
   private HttpResponse<String> post(String path, String body)
       throws IOException, InterruptedException {
     HttpRequest request =
-        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
+        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build();

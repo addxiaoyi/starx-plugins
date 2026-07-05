@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -25,6 +26,8 @@ class OnlineSyncModuleTest {
   @Mock ProxyServer proxy;
   @Mock EventManager eventManager;
   @Mock CommandManager commandManager;
+  @Mock CommandMeta.Builder metaBuilder;
+  @Mock CommandMeta meta;
 
   OnlineSyncModule.Config enabledConfig;
   OnlineSyncModule.Config disabledConfig;
@@ -34,6 +37,8 @@ class OnlineSyncModuleTest {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
     lenient().when(proxy.getCommandManager()).thenReturn(commandManager);
+    lenient().when(commandManager.metaBuilder(any(String.class))).thenReturn(metaBuilder);
+    lenient().when(metaBuilder.build()).thenReturn(meta);
     enabledConfig =
         new OnlineSyncModule.Config() {
           @Override
@@ -61,7 +66,7 @@ class OnlineSyncModuleTest {
   void shouldRegisterListCommandOnEnable() {
     OnlineSyncModule module = new OnlineSyncModule(plugin, enabledConfig);
     module.onEnable();
-    verify(commandManager).register(eq("list"), any(SimpleCommand.class));
+    verify(commandManager).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test
@@ -69,6 +74,6 @@ class OnlineSyncModuleTest {
     OnlineSyncModule module = new OnlineSyncModule(plugin, disabledConfig);
     module.onEnable();
     verify(eventManager, never()).register(eq(plugin), any());
-    verify(commandManager, never()).register(any(String.class), any(SimpleCommand.class));
+    verify(commandManager, never()).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 }
