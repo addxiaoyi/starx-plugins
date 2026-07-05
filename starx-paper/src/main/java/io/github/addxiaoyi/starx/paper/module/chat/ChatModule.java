@@ -59,9 +59,12 @@ public final class ChatModule implements PaperModule, Listener {
       return;
     }
     String format = configLoader.getChatFormat();
-    event.renderer((source, sourceDisplayName, message, viewer) ->
-        Component.text(format
-            .replace("{player}", source.getName())
-            .replace("{message}", PlainTextComponentSerializer.plainText().serialize(message))));
+    event.renderer(
+        (source, sourceDisplayName, message, viewer) ->
+            Component.text(
+                format
+                    .replace("{player}", source.getName())
+                    .replace(
+                        "{message}", PlainTextComponentSerializer.plainText().serialize(message))));
   }
 }

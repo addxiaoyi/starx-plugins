@@ -1,7 +1,7 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
-import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.github.addxiaoyi.starx.common.auth.AuthResult;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.Map;

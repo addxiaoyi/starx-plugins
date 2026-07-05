@@ -34,38 +34,44 @@ public final class SessionManager {
     this.clock = clock;
     this.maxSessions = maxSessions;
     this.sessions = new ConcurrentHashMap<>(INITIAL_CAPACITY);
-    this.cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-      Thread t = new Thread(r, "starx-session-cleanup");
-      t.setDaemon(true);
-      return t;
-    });
+    this.cleanupExecutor =
+        Executors.newSingleThreadScheduledExecutor(
+            r -> {
+              Thread t = new Thread(r, "starx-session-cleanup");
+              t.setDaemon(true);
+              return t;
+            });
     cleanupExecutor.scheduleWithFixedDelay(
         this::cleanup, CLEANUP_INTERVAL_SECONDS, CLEANUP_INTERVAL_SECONDS, TimeUnit.SECONDS);
   }
 
   public AuthSession getOrCreate(UUID uuid, String username, InetAddress address) {
-    return sessions.compute(uuid, (k, existing) -> {
-      Instant now = clock.get();
-      if (existing != null && !existing.isExpired(now, timeout)) {
-        existing.touch(now);
-        return existing;
-      }
-      if (sessions.size() >= maxSessions && existing == null) {
-        return null;
-      }
-      return new AuthSession(uuid, username, address, now);
-    });
+    return sessions.compute(
+        uuid,
+        (k, existing) -> {
+          Instant now = clock.get();
+          if (existing != null && !existing.isExpired(now, timeout)) {
+            existing.touch(now);
+            return existing;
+          }
+          if (sessions.size() >= maxSessions && existing == null) {
+            return null;
+          }
+          return new AuthSession(uuid, username, address, now);
+        });
   }
 
   public Optional<AuthSession> get(UUID uuid) {
     return Optional.ofNullable(
-        sessions.computeIfPresent(uuid, (k, session) -> {
-          Instant now = clock.get();
-          if (session.isExpired(now, timeout)) {
-            return null;
-          }
-          return session;
-        }));
+        sessions.computeIfPresent(
+            uuid,
+            (k, session) -> {
+              Instant now = clock.get();
+              if (session.isExpired(now, timeout)) {
+                return null;
+              }
+              return session;
+            }));
   }
 
   public void remove(UUID uuid) {

@@ -177,7 +177,11 @@ public final class AuthModule implements VelocityModule {
         authLimbo.spawnPlayer(
             player,
             new LimboSessionListener(
-                player, authService, commandHandler, AuthModule.this::handleAuthResult, deviceId(player)));
+                player,
+                authService,
+                commandHandler,
+                AuthModule.this::handleAuthResult,
+                deviceId(player)));
       } else {
         player.disconnect(Component.text("未安装 LimboAPI，无法认证"));
       }

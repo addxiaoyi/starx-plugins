@@ -4,7 +4,6 @@ import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,14 +45,22 @@ public final class UserQueryHandler implements AdminHandler {
       return;
     }
     StarxUser u = user.get();
-    ctx.status(200).json(Map.of(
-        "uuid", u.uuid().toString(),
-        "username", u.username(),
-        "registered", true,
-        "email", u.email() == null ? "" : u.email(),
-        "totpEnabled", u.totpSecret() != null,
-        "lastLoginAt", u.lastLoginAt() == null ? "" : u.lastLoginAt().toString(),
-        "externalUserId", u.externalUserId() == null ? "" : u.externalUserId()
-    ));
+    ctx.status(200)
+        .json(
+            Map.of(
+                "uuid",
+                u.uuid().toString(),
+                "username",
+                u.username(),
+                "registered",
+                true,
+                "email",
+                u.email() == null ? "" : u.email(),
+                "totpEnabled",
+                u.totpSecret() != null,
+                "lastLoginAt",
+                u.lastLoginAt() == null ? "" : u.lastLoginAt().toString(),
+                "externalUserId",
+                u.externalUserId() == null ? "" : u.externalUserId()));
   }
 }

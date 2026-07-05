@@ -55,18 +55,24 @@ public final class EnhancedProxyModule implements VelocityModule {
       return;
     }
     ProxyServer proxy = plugin.proxy();
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("glist").build(), glistCommand);
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("find").build(), findCommand);
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("send").build(), sendCommand);
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("alert").build(), alertCommand);
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("ping").build(), pingCommand);
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("kickall").build(), kickAllCommand);
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("glist").build(), glistCommand);
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("find").build(), findCommand);
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("send").build(), sendCommand);
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("alert").build(), alertCommand);
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("ping").build(), pingCommand);
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("kickall").build(), kickAllCommand);
   }
 
   @Override

@@ -40,8 +40,12 @@ public final class ProxyInfoModule implements VelocityModule {
     if (!config.enabled()) {
       return;
     }
-    plugin.proxy().getCommandManager().register(
-        plugin.proxy().getCommandManager().metaBuilder("starx").build(), new StarxInfoCommand());
+    plugin
+        .proxy()
+        .getCommandManager()
+        .register(
+            plugin.proxy().getCommandManager().metaBuilder("starx").build(),
+            new StarxInfoCommand());
   }
 
   @Override

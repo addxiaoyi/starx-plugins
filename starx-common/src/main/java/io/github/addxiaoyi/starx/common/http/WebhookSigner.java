@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * 对 {@link WebhookPayload} 进行 VLA HMAC 签名，输出请求头。签名仅使用原始 JSON 正文，
- * X-VLA-Timestamp 仅用于审计用途。
- */
+/** 对 {@link WebhookPayload} 进行 VLA HMAC 签名，输出请求头。签名仅使用原始 JSON 正文， X-VLA-Timestamp 仅用于审计用途。 */
 public final class WebhookSigner {
 
   private static final Gson GSON =

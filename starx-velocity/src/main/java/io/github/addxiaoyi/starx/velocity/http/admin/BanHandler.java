@@ -46,8 +46,11 @@ public final class BanHandler implements AdminHandler {
     }
     eventBus.publish(
         EventTypes.ADMIN_BAN_PLAYER,
-        Map.of("username", req.username,
-            "reason", req.reason == null || req.reason.isBlank() ? "Banned by admin" : req.reason));
+        Map.of(
+            "username",
+            req.username,
+            "reason",
+            req.reason == null || req.reason.isBlank() ? "Banned by admin" : req.reason));
     ctx.status(200).json(Map.of("success", true));
   }
 

@@ -37,8 +37,7 @@ public final class LimboSessionListener implements LimboSessionHandler {
   @Override
   public void onSpawn(Limbo server, LimboPlayer player) {
     if (authService.isUserRegistered(this.player.getUniqueId())) {
-      this.player.sendMessage(
-          Component.text("请输入密码登录", NamedTextColor.YELLOW));
+      this.player.sendMessage(Component.text("请输入密码登录", NamedTextColor.YELLOW));
     } else {
       this.player.sendMessage(
           Component.text("欢迎来到 StarMC！", NamedTextColor.GREEN)

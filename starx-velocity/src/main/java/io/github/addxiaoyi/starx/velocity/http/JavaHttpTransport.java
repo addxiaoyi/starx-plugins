@@ -17,9 +17,8 @@ public final class JavaHttpTransport implements WebhookHttpTransport {
 
   private static final Logger LOGGER = Logger.getLogger(JavaHttpTransport.class.getName());
 
-  private static final HttpClient SHARED_CLIENT = HttpClient.newBuilder()
-      .connectTimeout(Duration.ofSeconds(5))
-      .build();
+  private static final HttpClient SHARED_CLIENT =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
   private final HttpClient httpClient;
 
@@ -43,13 +42,16 @@ public final class JavaHttpTransport implements WebhookHttpTransport {
         .thenAccept(
             response -> {
               if (response.statusCode() >= 400) {
-                LOGGER.log(Level.WARNING,
-                    "Webhook delivery failed: {0} {1}", new Object[]{response.statusCode(), url});
+                LOGGER.log(
+                    Level.WARNING,
+                    "Webhook delivery failed: {0} {1}",
+                    new Object[] {response.statusCode(), url});
               }
             })
-        .exceptionally(ex -> {
-          LOGGER.log(Level.WARNING, "Webhook delivery error: " + url, ex);
-          return null;
-        });
+        .exceptionally(
+            ex -> {
+              LOGGER.log(Level.WARNING, "Webhook delivery error: " + url, ex);
+              return null;
+            });
   }
 }

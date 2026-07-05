@@ -17,8 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * 网站皮肤仓库实现，通过 HTTP 调用网站皮肤 API 获取 VLA 兼容的纹理 JSON。
- * 内置本地缓存避免重复 HTTP 请求。
+ * 网站皮肤仓库实现，通过 HTTP 调用网站皮肤 API 获取 VLA 兼容的纹理 JSON。 内置本地缓存避免重复 HTTP 请求。
  *
  * <p>API 格式：{@code GET {baseUrl}/{playerName}.json}
  */
@@ -39,9 +38,7 @@ public final class WebsiteSkinRepository implements SkinRepository {
             ? skinProfileBaseUrl.substring(0, skinProfileBaseUrl.length() - 1)
             : skinProfileBaseUrl;
     this.logger = logger;
-    this.httpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build();
+    this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     this.gson = new Gson();
     this.cache = new ConcurrentHashMap<>(64);
   }
@@ -55,12 +52,14 @@ public final class WebsiteSkinRepository implements SkinRepository {
 
     String url = skinProfileBaseUrl + "/" + name + ".json";
     try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .timeout(Duration.ofSeconds(5))
-          .GET()
-          .build();
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(url))
+              .timeout(Duration.ofSeconds(5))
+              .GET()
+              .build();
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() != 200) {
         logger.fine("Website skin API returned status " + response.statusCode() + " for " + name);
         return Optional.empty();
@@ -73,8 +72,8 @@ public final class WebsiteSkinRepository implements SkinRepository {
       if (profile.textures.containsKey("SKIN")) {
         skinUrl = profile.textures.get("SKIN").url;
       }
-      Optional<SkinDto> result = Optional.of(
-          new SkinDto(uuid, name, profile.id, null, null, skinUrl));
+      Optional<SkinDto> result =
+          Optional.of(new SkinDto(uuid, name, profile.id, null, null, skinUrl));
       if (cache.size() < CACHE_MAX_SIZE) {
         cache.put(name, new CacheEntry(result, Instant.now().plusSeconds(CACHE_TTL_SECONDS)));
       }

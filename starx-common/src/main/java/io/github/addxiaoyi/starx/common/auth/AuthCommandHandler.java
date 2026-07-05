@@ -4,10 +4,7 @@ import java.net.InetAddress;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * 处理认证相关命令的纯逻辑。
- * 玩家在 Limbo 内直接输入密码即可，系统自动判断是注册还是登录。
- */
+/** 处理认证相关命令的纯逻辑。 玩家在 Limbo 内直接输入密码即可，系统自动判断是注册还是登录。 */
 public final class AuthCommandHandler {
 
   private final AuthService authService;
@@ -18,10 +15,11 @@ public final class AuthCommandHandler {
 
   /**
    * 处理玩家在聊天框中的输入，自动判断意图：
+   *
    * <ul>
-   *   <li>未注册 → 自动注册</li>
-   *   <li>已注册且会话为 GUEST → 自动登录</li>
-   *   <li>会话为 AUTHENTICATING → 二步验证</li>
+   *   <li>未注册 → 自动注册
+   *   <li>已注册且会话为 GUEST → 自动登录
+   *   <li>会话为 AUTHENTICATING → 二步验证
    * </ul>
    */
   public AuthResult handle(

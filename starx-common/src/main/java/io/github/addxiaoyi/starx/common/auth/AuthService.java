@@ -47,19 +47,36 @@ public final class AuthService {
     String normalizedEmail = normalizeEmail(email);
     StarxUser user =
         new StarxUser(
-            uuid, username, normalizedEmail, PasswordHasher.hash(password),
-            null, false, Instant.now(), null, null, List.of());
+            uuid,
+            username,
+            normalizedEmail,
+            PasswordHasher.hash(password),
+            null,
+            false,
+            Instant.now(),
+            null,
+            null,
+            List.of());
     userRepository.saveUser(user);
     eventBus.publish(
         EventTypes.PLAYER_REGISTER,
-        Map.of("uuid", uuid, "username", username,
-            "email", normalizedEmail == null ? "" : normalizedEmail));
+        Map.of(
+            "uuid",
+            uuid,
+            "username",
+            username,
+            "email",
+            normalizedEmail == null ? "" : normalizedEmail));
     return AuthResult.success("注册成功");
   }
 
   public AuthResult login(
-      UUID uuid, String username, String password, String totpCode,
-      InetAddress address, String deviceId) {
+      UUID uuid,
+      String username,
+      String password,
+      String totpCode,
+      InetAddress address,
+      String deviceId) {
     Optional<StarxUser> optional = userRepository.findFullByUuid(uuid);
     if (optional.isEmpty()) {
       return AuthResult.failure("用户未注册");
@@ -169,11 +186,13 @@ public final class AuthService {
     if (deviceId == null || deviceId.isBlank()) {
       return false;
     }
-    return userRepository.findTrustedDevicesByUuid(uuid)
-        .map(json -> {
-          List<String> devices = parseTrustedDevices(json);
-          return devices.contains(deviceId);
-        })
+    return userRepository
+        .findTrustedDevicesByUuid(uuid)
+        .map(
+            json -> {
+              List<String> devices = parseTrustedDevices(json);
+              return devices.contains(deviceId);
+            })
         .orElse(false);
   }
 
@@ -204,8 +223,8 @@ public final class AuthService {
     String secret = TotpGenerator.generateSecret();
     String uri = TotpGenerator.provisioningUri("StarX", user.username(), secret);
     userRepository.updateTotpSecret(uuid, secret);
-    eventBus.publish(EventTypes.PLAYER_TOTP_ENABLED,
-        Map.of("uuid", uuid, "username", user.username()));
+    eventBus.publish(
+        EventTypes.PLAYER_TOTP_ENABLED, Map.of("uuid", uuid, "username", user.username()));
     return AuthResult.success("二步验证已开启！密钥: " + secret + " | " + uri);
   }
 
@@ -222,8 +241,8 @@ public final class AuthService {
       return AuthResult.failure("二步验证未开启");
     }
     userRepository.updateTotpSecret(uuid, null);
-    eventBus.publish(EventTypes.PLAYER_TOTP_DISABLED,
-        Map.of("uuid", uuid, "username", user.username()));
+    eventBus.publish(
+        EventTypes.PLAYER_TOTP_DISABLED, Map.of("uuid", uuid, "username", user.username()));
     return AuthResult.success("二步验证已关闭");
   }
 
@@ -263,8 +282,8 @@ public final class AuthService {
     }
     session.setState(AuthSession.State.AUTHENTICATED);
     userRepository.updateLastLogin(user.uuid(), Instant.now());
-    eventBus.publish(EventTypes.PLAYER_LOGIN_SUCCESS,
-        Map.of("uuid", user.uuid(), "username", user.username()));
+    eventBus.publish(
+        EventTypes.PLAYER_LOGIN_SUCCESS, Map.of("uuid", user.uuid(), "username", user.username()));
     return AuthResult.success("登录成功", AuthSession.State.AUTHENTICATED);
   }
 
@@ -293,8 +312,9 @@ public final class AuthService {
       return List.of();
     }
     try {
-      List<String> parsed = new com.google.gson.Gson().fromJson(
-          json, new com.google.gson.reflect.TypeToken<List<String>>() {}.getType());
+      List<String> parsed =
+          new com.google.gson.Gson()
+              .fromJson(json, new com.google.gson.reflect.TypeToken<List<String>>() {}.getType());
       return parsed == null ? List.of() : List.copyOf(parsed);
     } catch (Exception e) {
       return List.of();

@@ -1,6 +1,5 @@
 package io.github.addxiaoyi.starx.velocity.module.skin;
 
-import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
@@ -21,8 +20,7 @@ import net.kyori.adventure.text.Component;
 /** 皮肤桥模块：检测 SkinsRestorer 是否存在并提供皮肤刷新能力。 */
 public final class SkinBridgeModule implements VelocityModule {
 
-  private static final Logger LOGGER =
-      Logger.getLogger(SkinBridgeModule.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(SkinBridgeModule.class.getName());
 
   private final ProxyServer proxy;
   private final EventBus eventBus;
@@ -39,8 +37,7 @@ public final class SkinBridgeModule implements VelocityModule {
     this.repositoryFactory = null;
   }
 
-  public SkinBridgeModule(
-      ProxyServer proxy, EventBus eventBus, String skinProfileBaseUrl) {
+  public SkinBridgeModule(ProxyServer proxy, EventBus eventBus, String skinProfileBaseUrl) {
     this.proxy = Objects.requireNonNull(proxy, "proxy");
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     this.skinProfileBaseUrl = skinProfileBaseUrl;
@@ -70,15 +67,11 @@ public final class SkinBridgeModule implements VelocityModule {
       skinsRestorerAvailable = false;
     } else if (repositoryFactory != null) {
       repository = repositoryFactory.get();
-      skinsRestorerAvailable =
-          proxy.getPluginManager().getPlugin("skinsrestorer").isPresent();
+      skinsRestorerAvailable = proxy.getPluginManager().getPlugin("skinsrestorer").isPresent();
     } else {
-      skinsRestorerAvailable =
-          proxy.getPluginManager().getPlugin("skinsrestorer").isPresent();
+      skinsRestorerAvailable = proxy.getPluginManager().getPlugin("skinsrestorer").isPresent();
       repository =
-          skinsRestorerAvailable
-              ? new SkinsRestorerSkinRepository()
-              : new NoopSkinRepository();
+          skinsRestorerAvailable ? new SkinsRestorerSkinRepository() : new NoopSkinRepository();
     }
     skinService = new SkinService(repository, eventBus);
     registerSkinCommand();
@@ -123,8 +116,11 @@ public final class SkinBridgeModule implements VelocityModule {
   }
 
   private void registerSkinCommand() {
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("skin").aliases("skins").build(), new SkinCommand());
+    proxy
+        .getCommandManager()
+        .register(
+            proxy.getCommandManager().metaBuilder("skin").aliases("skins").build(),
+            new SkinCommand());
   }
 
   private final class SkinCommand implements SimpleCommand {
@@ -134,13 +130,11 @@ public final class SkinBridgeModule implements VelocityModule {
       if (source instanceof Player player) {
         if (skinProfileBaseUrl != null && !skinProfileBaseUrl.isBlank()) {
           source.sendMessage(
-              Component.text(
-                  "Fetching skin from website for " + player.getUsername() + "..."));
+              Component.text("Fetching skin from website for " + player.getUsername() + "..."));
           refreshSkinFromWebsite(player.getUniqueId(), player.getUsername());
           source.sendMessage(Component.text("Skin refresh requested from website."));
         } else {
-          source.sendMessage(
-              Component.text("Refreshing skin for " + player.getUsername() + "..."));
+          source.sendMessage(Component.text("Refreshing skin for " + player.getUsername() + "..."));
           skinService.refreshSkin(player.getUniqueId(), player.getUsername());
           source.sendMessage(Component.text("Skin refresh requested."));
         }

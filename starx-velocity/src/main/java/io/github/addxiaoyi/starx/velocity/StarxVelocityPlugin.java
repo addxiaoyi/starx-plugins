@@ -162,7 +162,13 @@ public class StarxVelocityPlugin {
             this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
 
     httpApiServer =
-        new HttpApiServer(config, eventBus, proxy, authModule.userRepository(), authModule.authService(), skinBridge);
+        new HttpApiServer(
+            config,
+            eventBus,
+            proxy,
+            authModule.userRepository(),
+            authModule.authService(),
+            skinBridge);
     webhookClient =
         new WebhookClient(config.webhook(), new HmacWebhookSigner(config.webhook().secret()));
     new WebhookEventPublisher(eventBus, webhookClient).register();

@@ -50,10 +50,12 @@ public final class HttpApiServer {
   }
 
   public void start() {
-    app = Javalin.create(javalinConfig -> {
-      javalinConfig.showJavalinBanner = false;
-      javalinConfig.http.maxRequestSize = 1_048_576L;
-    });
+    app =
+        Javalin.create(
+            javalinConfig -> {
+              javalinConfig.showJavalinBanner = false;
+              javalinConfig.http.maxRequestSize = 1_048_576L;
+            });
     app.before(this::authFilter);
     app.get("/v1/health", this::health);
 

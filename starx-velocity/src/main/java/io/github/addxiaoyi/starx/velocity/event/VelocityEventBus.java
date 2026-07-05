@@ -21,11 +21,14 @@ public final class VelocityEventBus implements EventBus {
 
   public VelocityEventBus() {
     this.subscribers = new ConcurrentHashMap<>(32);
-    this.asyncExecutor = Executors.newFixedThreadPool(ASYNC_THREADS, r -> {
-      Thread t = new Thread(r, "starx-event-bus");
-      t.setDaemon(true);
-      return t;
-    });
+    this.asyncExecutor =
+        Executors.newFixedThreadPool(
+            ASYNC_THREADS,
+            r -> {
+              Thread t = new Thread(r, "starx-event-bus");
+              t.setDaemon(true);
+              return t;
+            });
   }
 
   @Override
@@ -34,15 +37,17 @@ public final class VelocityEventBus implements EventBus {
     if (listeners.isEmpty()) {
       return;
     }
-    CompletableFuture.runAsync(() -> {
-      for (Consumer<StarxEvent> listener : listeners) {
-        try {
-          listener.accept(event);
-        } catch (Exception e) {
-          // 吞掉单个 listener 异常，不影响其他 listener
-        }
-      }
-    }, asyncExecutor);
+    CompletableFuture.runAsync(
+        () -> {
+          for (Consumer<StarxEvent> listener : listeners) {
+            try {
+              listener.accept(event);
+            } catch (Exception e) {
+              // 吞掉单个 listener 异常，不影响其他 listener
+            }
+          }
+        },
+        asyncExecutor);
   }
 
   @Override
@@ -51,9 +56,11 @@ public final class VelocityEventBus implements EventBus {
   }
 
   public void unsubscribe(String type, Consumer<StarxEvent> subscriber) {
-    subscribers.computeIfPresent(type, (k, list) -> {
-      list.remove(subscriber);
-      return list.isEmpty() ? null : list;
-    });
+    subscribers.computeIfPresent(
+        type,
+        (k, list) -> {
+          list.remove(subscriber);
+          return list.isEmpty() ? null : list;
+        });
   }
 }

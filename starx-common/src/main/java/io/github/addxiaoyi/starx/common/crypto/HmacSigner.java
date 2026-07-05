@@ -6,8 +6,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * HMAC-SHA256 签名工具。签名原文为原始 JSON 正文，与网站后端
- * {@code crypto.createHmac('sha256', secret).update(rawPayload, 'utf8').digest('hex')} 保持一致。
+ * HMAC-SHA256 签名工具。签名原文为原始 JSON 正文，与网站后端 {@code crypto.createHmac('sha256',
+ * secret).update(rawPayload, 'utf8').digest('hex')} 保持一致。
  */
 public final class HmacSigner {
 

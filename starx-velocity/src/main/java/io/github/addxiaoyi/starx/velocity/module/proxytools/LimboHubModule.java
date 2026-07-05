@@ -37,10 +37,12 @@ public final class LimboHubModule implements VelocityModule {
       return;
     }
     ProxyServer proxy = plugin.proxy();
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("hub").build(), new HubCommand());
-    proxy.getCommandManager().register(
-        proxy.getCommandManager().metaBuilder("lobby").build(), new LobbyCommand());
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("hub").build(), new HubCommand());
+    proxy
+        .getCommandManager()
+        .register(proxy.getCommandManager().metaBuilder("lobby").build(), new LobbyCommand());
   }
 
   @Override
