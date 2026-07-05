@@ -3,6 +3,7 @@ package io.github.addxiaoyi.starx.velocity.module.proxytools;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.velocitypowered.api.command.CommandManager;
@@ -68,14 +69,14 @@ class LimboHubModuleTest {
   void shouldRegisterHubCommandOnEnable() {
     LimboHubModule module = new LimboHubModule(plugin, enabledConfig);
     module.onEnable();
-    verify(commandManager).register(any(CommandMeta.class), any(SimpleCommand.class));
+    verify(commandManager, times(2)).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test
   void shouldRegisterLobbyCommandOnEnable() {
     LimboHubModule module = new LimboHubModule(plugin, enabledConfig);
     module.onEnable();
-    verify(commandManager).register(any(CommandMeta.class), any(SimpleCommand.class));
+    verify(commandManager, times(2)).register(any(CommandMeta.class), any(SimpleCommand.class));
   }
 
   @Test
