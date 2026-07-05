@@ -1,5 +1,6 @@
 package io.github.addxiaoyi.starx.common.config;
 
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,9 +24,21 @@ public final class ConfigLoader {
 
     HttpApiConfig httpApi = loadHttpApi(root.node("http-api"));
     DatabaseConfig database = loadDatabase(root.node("database"));
+    UniAuthConfig uniauth = loadUniAuth(root.node("uniauth"));
     Map<String, ModuleConfig> modules = loadModules(root.node("modules"));
 
-    return new StarxConfig(httpApi, database, modules);
+    return new StarxConfig(httpApi, database, uniauth, modules);
+  }
+
+  private static UniAuthConfig loadUniAuth(ConfigurationNode node) {
+    UniAuthConfig defaults = UniAuthConfig.defaults();
+    boolean enabled = node.node("enabled").getBoolean(defaults.enabled());
+    String apiUrl = node.node("api-url").getString(defaults.apiUrl());
+    String appId = node.node("app-id").getString(defaults.appId());
+    String appSecret = node.node("app-secret").getString(defaults.appSecret());
+    int timeoutMs = node.node("timeout-ms").getInt(defaults.timeoutMs());
+    boolean bridgeMode = node.node("bridge-mode").getBoolean(defaults.bridgeMode());
+    return new UniAuthConfig(enabled, apiUrl, appId, appSecret, timeoutMs, bridgeMode);
   }
 
   private static HttpApiConfig loadHttpApi(ConfigurationNode node) {

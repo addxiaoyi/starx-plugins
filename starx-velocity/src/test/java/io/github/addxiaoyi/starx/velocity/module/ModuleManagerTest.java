@@ -70,6 +70,7 @@ class ModuleManagerTest {
         new StarxConfig.HttpConfig("127.0.0.1", 8788),
         new StarxConfig.WebhookConfig("", ""),
         DatabaseConfig.defaults(),
+        io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig.defaults(),
         moduleConfigs);
   }
 }

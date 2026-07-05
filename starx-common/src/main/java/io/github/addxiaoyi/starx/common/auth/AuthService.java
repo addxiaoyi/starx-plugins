@@ -2,6 +2,8 @@ package io.github.addxiaoyi.starx.common.auth;
 
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthBridge;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import io.github.addxiaoyi.starx.common.crypto.PasswordHasher;
 import io.github.addxiaoyi.starx.common.crypto.RecoveryCodeGenerator;
 import io.github.addxiaoyi.starx.common.crypto.TotpGenerator;
@@ -16,21 +18,44 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/** 认证服务：注册、登录、登出、密码修改、TOTP、可信设备。 */
+/** 认证服务：注册、登录、登出、密码修改、TOTP、可信设备、UniAuth 桥接。 */
 public final class AuthService {
+
+  private static final Logger logger = Logger.getLogger(AuthService.class.getName());
 
   private final JdbiUserRepository userRepository;
   private final EventBus eventBus;
   private final SessionManager sessionManager;
-  private final BruteForceProtector bruteForceProtector; // 新增
+  private final BruteForceProtector bruteForceProtector;
+  private final UniAuthConfig uniauthConfig;
+  private final UniAuthBridge uniauthBridge;
+
+  public AuthService(
+      JdbiUserRepository userRepository,
+      EventBus eventBus,
+      SessionManager sessionManager,
+      UniAuthConfig uniauthConfig,
+      UniAuthBridge uniauthBridge) {
+    this.userRepository = userRepository;
+    this.eventBus = eventBus;
+    this.sessionManager = sessionManager;
+    this.bruteForceProtector = new BruteForceProtector();
+    this.uniauthConfig = uniauthConfig;
+    this.uniauthBridge = uniauthBridge;
+  }
 
   public AuthService(
       JdbiUserRepository userRepository, EventBus eventBus, SessionManager sessionManager) {
     this.userRepository = userRepository;
     this.eventBus = eventBus;
     this.sessionManager = sessionManager;
-    this.bruteForceProtector = new BruteForceProtector(); // 新增
+    this.bruteForceProtector = new BruteForceProtector();
+    this.uniauthConfig = UniAuthConfig.defaults();
+    this.uniauthBridge = null;
   }
 
   public AuthResult autoLogin(UUID uuid, String username, InetAddress address) {
@@ -46,7 +71,6 @@ public final class AuthService {
   }
 
   public AuthResult register(UUID uuid, String username, String password, String email) {
-    // 新增：密码复杂度校验
     String passwordError = PasswordValidator.validate(password);
     if (passwordError != null) {
       return AuthResult.failure(passwordError);
@@ -66,9 +90,12 @@ public final class AuthService {
             Instant.now(),
             null,
             null,
-            List.of(),
+            null,
+            null,
+            "local",
+            "completed",
             null);
-    userRepository.saveUser(user);
+    userRepository.create(user);
     eventBus.publish(
         EventTypes.PLAYER_REGISTER,
         Map.of(
@@ -88,7 +115,6 @@ public final class AuthService {
       String totpCode,
       InetAddress address,
       String deviceId) {
-    // 新增：爆破防护检查
     BruteForceProtector.BruteForceStatus status = bruteForceProtector.check(uuid);
     if (status == BruteForceProtector.BruteForceStatus.LOCKED) {
       long sec = status.waitMs() / 1000;
@@ -99,13 +125,41 @@ public final class AuthService {
       return AuthResult.failure("请等待" + sec + "秒后再试");
     }
 
+    if (uniauthConfig.enabled() && uniauthConfig.bridgeMode() && uniauthBridge != null) {
+      logger.log(Level.FINE, "Using UniAuth bridge for user: {0}", username);
+      CompletableFuture<UniAuthBridge.BridgeResult> bridgeResultFuture =
+          uniauthBridge.authenticate(uuid, username, password);
+      try {
+        UniAuthBridge.BridgeResult bridgeResult = bridgeResultFuture.get();
+        if (bridgeResult.success() && bridgeResult.user() != null) {
+          bruteForceProtector.clear(uuid);
+          return authenticate(bridgeResult.user());
+        } else {
+          bruteForceProtector.recordFailure(uuid);
+          publishLoginFailed(uuid, username, bridgeResult.message());
+          return AuthResult.failure(bridgeResult.message());
+        }
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "UniAuth bridge failed, falling back to local auth", e);
+      }
+    }
+
+    return loginLocal(uuid, username, password, totpCode, address, deviceId);
+  }
+
+  private AuthResult loginLocal(
+      UUID uuid,
+      String username,
+      String password,
+      String totpCode,
+      InetAddress address,
+      String deviceId) {
     Optional<StarxUser> optional = userRepository.findFullByUuid(uuid);
     if (optional.isEmpty()) {
       return AuthResult.failure("用户未注册");
     }
     StarxUser user = optional.get();
     if (!PasswordHasher.verify(password, user.passwordHash())) {
-      // 新增：记录失败 + 发布爆破告警
       bruteForceProtector.recordFailure(uuid);
       int failures = bruteForceProtector.getAttemptCount(uuid);
       if (failures >= 3) {
@@ -124,7 +178,6 @@ public final class AuthService {
       publishLoginFailed(uuid, username, "密码错误");
       return AuthResult.failure("密码错误");
     }
-    // 新增：密码正确，清除爆破记录
     bruteForceProtector.clear(uuid);
     if (user.totpSecret() != null && !isTrustedDevice(user.trustedDevices(), deviceId)) {
       if (totpCode != null && TotpGenerator.verify(user.totpSecret(), totpCode, Instant.now())) {
@@ -176,7 +229,7 @@ public final class AuthService {
     if (!PasswordHasher.verify(oldPassword, optional.get().passwordHash())) {
       return AuthResult.failure("原密码错误");
     }
-    userRepository.updatePasswordHash(uuid, PasswordHasher.hash(newPassword));
+    userRepository.updatePassword(uuid, PasswordHasher.hash(newPassword));
     return AuthResult.success("密码修改成功");
   }
 
@@ -248,7 +301,6 @@ public final class AuthService {
     return userRepository.findTotpSecretByUuid(uuid).isPresent();
   }
 
-  /** 使用恢复码登录（替代 TOTP 验证码）。 */
   public AuthResult verifyRecoveryCode(UUID uuid, String recoveryCode) {
     Optional<StarxUser> optional = userRepository.findFullByUuid(uuid);
     if (optional.isEmpty()) {
@@ -317,7 +369,7 @@ public final class AuthService {
     if (optional.isEmpty()) {
       return AuthResult.failure("用户不存在");
     }
-    userRepository.updatePasswordHash(optional.get().uuid(), PasswordHasher.hash(newPassword));
+    userRepository.updatePassword(optional.get().uuid(), PasswordHasher.hash(newPassword));
     return AuthResult.success("密码已重置");
   }
 
@@ -357,7 +409,7 @@ public final class AuthService {
     if (deviceId == null || deviceId.isBlank()) {
       return false;
     }
-    return trustedDevices.contains(deviceId);
+    return trustedDevices != null && trustedDevices.contains(deviceId);
   }
 
   private void publishLoginFailed(UUID uuid, String username, String reason) {

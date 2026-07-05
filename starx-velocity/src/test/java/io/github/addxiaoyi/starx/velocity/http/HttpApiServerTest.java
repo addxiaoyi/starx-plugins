@@ -172,7 +172,20 @@ class HttpApiServerTest {
     UUID uuid = UUID.randomUUID();
     StarxUser user =
         new StarxUser(
-            uuid, "alice", null, null, null, false, Instant.now(), null, null, List.of(), null);
+            uuid,
+            "alice",
+            null,
+            null,
+            null,
+            false,
+            Instant.now(),
+            null,
+            null,
+            List.of(),
+            null,
+            null,
+            "completed",
+            null);
     when(jdbiUserRepository.findFullByUsername("alice")).thenReturn(Optional.of(user));
 
     server =
@@ -197,6 +210,7 @@ class HttpApiServerTest {
         new StarxConfig.HttpConfig("127.0.0.1", TEST_PORT),
         new StarxConfig.WebhookConfig("", ""),
         DatabaseConfig.defaults(),
+        io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig.defaults(),
         java.util.Map.of());
   }
 

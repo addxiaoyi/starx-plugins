@@ -21,7 +21,8 @@ public class JdbiUserRepository implements UserRepository {
 
   private static final String SELECT_COLUMNS =
       "uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at,"
-          + " external_user_id, trusted_devices, COALESCE(recovery_codes, '') as recovery_codes";
+          + " external_user_id, trusted_devices, COALESCE(recovery_codes, '') as recovery_codes,"
+          + " source_system, migration_state, password_migrated_at";
   private static final String SELECT_BY_UUID =
       "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE uuid = ?";
   private static final String SELECT_BY_USERNAME =
@@ -127,11 +128,7 @@ public class JdbiUserRepository implements UserRepository {
     return jdbi.withHandle(
         handle ->
             handle
-                .createQuery(
-                    "SELECT uuid, username, email, password_hash, totp_secret,"
-                        + " premium, created_at, last_login_at, external_user_id,"
-                        + " trusted_devices, COALESCE(recovery_codes, '') as recovery_codes"
-                        + " FROM starx_users WHERE uuid = ?")
+                .createQuery(SELECT_BY_UUID)
                 .bind(0, uuid.toString())
                 .map((rs, ctx) -> mapUser(rs))
                 .findOne());
@@ -210,6 +207,14 @@ public class JdbiUserRepository implements UserRepository {
                 .execute());
   }
 
+  public void updatePassword(UUID uuid, String passwordHash) {
+    updatePasswordHash(uuid, passwordHash);
+  }
+
+  public void create(StarxUser user) {
+    jdbi.useHandle(handle -> insert(handle, user));
+  }
+
   public void updateTotpSecret(UUID uuid, String totpSecret) {
     jdbi.useHandle(
         handle ->
@@ -270,6 +275,126 @@ public class JdbiUserRepository implements UserRepository {
                 .execute());
   }
 
+  public void updateMigrationState(UUID uuid, String migrationState) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET migration_state = ? WHERE uuid = ?")
+                .bind(0, migrationState)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updatePasswordMigratedAt(UUID uuid, Instant passwordMigratedAt) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET password_migrated_at = ? WHERE uuid = ?")
+                .bind(0, passwordMigratedAt != null ? Timestamp.from(passwordMigratedAt) : null)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updateSourceSystem(UUID uuid, String sourceSystem) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET source_system = ? WHERE uuid = ?")
+                .bind(0, sourceSystem)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void markPasswordMigrated(UUID uuid, String passwordHash, Instant migratedAt) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate(
+                    "UPDATE starx_users SET password_hash = ?, password_migrated_at = ?, migration_state = ? WHERE uuid = ?")
+                .bind(0, passwordHash)
+                .bind(1, Timestamp.from(migratedAt))
+                .bind(2, "completed")
+                .bind(3, uuid)
+                .execute());
+  }
+
+  /**
+   * 统计指定迁移状态的用户数量。
+   *
+   * @param migrationState 迁移状态
+   * @return 用户数量
+   */
+  public int countByMigrationState(String migrationState) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT COUNT(*) FROM starx_users WHERE migration_state = ?")
+                .bind(0, migrationState)
+                .mapTo(Integer.class)
+                .one());
+  }
+
+  /**
+   * 统计指定来源系统的用户数量。
+   *
+   * @param sourceSystem 来源系统
+   * @return 用户数量
+   */
+  public int countBySourceSystem(String sourceSystem) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT COUNT(*) FROM starx_users WHERE source_system = ?")
+                .bind(0, sourceSystem)
+                .mapTo(Integer.class)
+                .one());
+  }
+
+  /**
+   * 获取所有用户数量。
+   *
+   * @return 用户总数
+   */
+  public int countAll() {
+    return jdbi.withHandle(
+        handle ->
+            handle.createQuery("SELECT COUNT(*) FROM starx_users").mapTo(Integer.class).one());
+  }
+
+  /**
+   * 查询指定来源系统的所有用户。
+   *
+   * @param sourceSystem 来源系统
+   * @return 用户列表
+   */
+  public List<StarxUser> findBySourceSystem(String sourceSystem) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery(
+                    "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE source_system = ?")
+                .bind(0, sourceSystem)
+                .map((rs, ctx) -> mapUser(rs))
+                .list());
+  }
+
+  /**
+   * 查询指定迁移状态的所有用户。
+   *
+   * @param migrationState 迁移状态
+   * @return 用户列表
+   */
+  public List<StarxUser> findByMigrationState(String migrationState) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery(
+                    "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE migration_state = ?")
+                .bind(0, migrationState)
+                .map((rs, ctx) -> mapUser(rs))
+                .list());
+  }
+
   private Optional<StarxUser> findFullByUuid(Handle handle, UUID uuid) {
     return handle.createQuery(SELECT_BY_UUID).bind(0, uuid).map((rs, ctx) -> mapUser(rs)).findOne();
   }
@@ -321,7 +446,7 @@ public class JdbiUserRepository implements UserRepository {
   private void insert(Handle handle, StarxUser user) {
     handle
         .createUpdate(
-            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices, recovery_codes, source_system, migration_state, password_migrated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(0, user.uuid())
         .bind(1, user.username())
         .bind(2, user.email())
@@ -332,13 +457,19 @@ public class JdbiUserRepository implements UserRepository {
         .bind(7, user.lastLoginAt() != null ? Timestamp.from(user.lastLoginAt()) : null)
         .bind(8, user.externalUserId())
         .bind(9, toJson(user.trustedDevices()))
+        .bind(10, user.recoveryCodes())
+        .bind(11, user.sourceSystem())
+        .bind(12, user.migrationState())
+        .bind(
+            13,
+            user.passwordMigratedAt() != null ? Timestamp.from(user.passwordMigratedAt()) : null)
         .execute();
   }
 
   private void update(Handle handle, StarxUser user) {
     handle
         .createUpdate(
-            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ?, trusted_devices = ? WHERE uuid = ?")
+            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ?, trusted_devices = ?, recovery_codes = ?, source_system = ?, migration_state = ?, password_migrated_at = ? WHERE uuid = ?")
         .bind(0, user.username())
         .bind(1, user.email())
         .bind(2, user.passwordHash())
@@ -348,7 +479,13 @@ public class JdbiUserRepository implements UserRepository {
         .bind(6, user.lastLoginAt() != null ? Timestamp.from(user.lastLoginAt()) : null)
         .bind(7, user.externalUserId())
         .bind(8, toJson(user.trustedDevices()))
-        .bind(9, user.uuid())
+        .bind(9, user.recoveryCodes())
+        .bind(10, user.sourceSystem())
+        .bind(11, user.migrationState())
+        .bind(
+            12,
+            user.passwordMigratedAt() != null ? Timestamp.from(user.passwordMigratedAt()) : null)
+        .bind(13, user.uuid())
         .execute();
   }
 
@@ -367,6 +504,7 @@ public class JdbiUserRepository implements UserRepository {
   private StarxUser mapUser(ResultSet rs) throws SQLException {
     Timestamp createdAt = rs.getTimestamp("created_at");
     Timestamp lastLoginAt = rs.getTimestamp("last_login_at");
+    Timestamp passwordMigratedAt = rs.getTimestamp("password_migrated_at");
     return new StarxUser(
         UUID.fromString(rs.getString("uuid")),
         rs.getString("username"),
@@ -378,7 +516,10 @@ public class JdbiUserRepository implements UserRepository {
         lastLoginAt != null ? lastLoginAt.toInstant() : null,
         rs.getString("external_user_id"),
         parseTrustedDevices(rs.getString("trusted_devices")),
-        rs.getString("recovery_codes"));
+        rs.getString("recovery_codes"),
+        rs.getString("source_system"),
+        rs.getString("migration_state"),
+        passwordMigratedAt != null ? passwordMigratedAt.toInstant() : null);
   }
 
   private String toJson(List<String> trustedDevices) {

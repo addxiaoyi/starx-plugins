@@ -1,5 +1,6 @@
 package io.github.addxiaoyi.starx.common.config;
 
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -9,19 +10,25 @@ import java.util.Objects;
  *
  * @param httpApi HTTP API 配置
  * @param database 数据库配置
+ * @param uniauth UniAuth 配置
  * @param modules 模块开关映射
  */
 public record StarxConfig(
-    HttpApiConfig httpApi, DatabaseConfig database, Map<String, ModuleConfig> modules) {
+    HttpApiConfig httpApi,
+    DatabaseConfig database,
+    UniAuthConfig uniauth,
+    Map<String, ModuleConfig> modules) {
 
   public StarxConfig {
     httpApi = httpApi == null ? HttpApiConfig.defaults() : httpApi;
     database = database == null ? DatabaseConfig.defaults() : database;
+    uniauth = uniauth == null ? UniAuthConfig.defaults() : uniauth;
     modules = modules == null ? Map.of() : Map.copyOf(modules);
   }
 
   public static StarxConfig defaults() {
-    return new StarxConfig(HttpApiConfig.defaults(), DatabaseConfig.defaults(), Map.of());
+    return new StarxConfig(
+        HttpApiConfig.defaults(), DatabaseConfig.defaults(), UniAuthConfig.defaults(), Map.of());
   }
 
   /**
@@ -36,9 +43,11 @@ public record StarxConfig(
         HttpApiConfig.defaults().equals(overlay.httpApi) ? this.httpApi : overlay.httpApi;
     DatabaseConfig mergedDatabase =
         DatabaseConfig.defaults().equals(overlay.database) ? this.database : overlay.database;
+    UniAuthConfig mergedUniAuth =
+        UniAuthConfig.defaults().equals(overlay.uniauth) ? this.uniauth : overlay.uniauth;
     Map<String, ModuleConfig> mergedModules = new HashMap<>(this.modules);
     mergedModules.putAll(overlay.modules);
-    return new StarxConfig(mergedHttpApi, mergedDatabase, mergedModules);
+    return new StarxConfig(mergedHttpApi, mergedDatabase, mergedUniAuth, mergedModules);
   }
 
   public boolean isModuleEnabled(String name) {

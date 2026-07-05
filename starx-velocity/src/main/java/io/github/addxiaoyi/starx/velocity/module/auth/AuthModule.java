@@ -11,6 +11,9 @@ import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.github.addxiaoyi.starx.common.auth.AuthSession;
 import io.github.addxiaoyi.starx.common.auth.PremiumResolver;
 import io.github.addxiaoyi.starx.common.auth.SessionManager;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthBridge;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.database.DatabaseManager;
 import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
@@ -37,6 +40,7 @@ public final class AuthModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;
   private final EventBus eventBus;
+  private final UniAuthConfig uniauthConfig;
 
   private DatabaseManager databaseManager;
   private JdbiUserRepository userRepository;
@@ -46,11 +50,19 @@ public final class AuthModule implements VelocityModule {
   private AuthCommandHandler commandHandler;
   private LimboFactory limboFactory;
   private Limbo authLimbo;
+  private UniAuthClient uniauthClient;
+  private UniAuthBridge uniauthBridge;
 
   public AuthModule(StarxVelocityPlugin plugin, EventBus eventBus) {
+    this(plugin, eventBus, UniAuthConfig.defaults());
+  }
+
+  public AuthModule(StarxVelocityPlugin plugin, EventBus eventBus, UniAuthConfig uniauthConfig) {
     this.plugin = plugin;
     this.eventBus = eventBus;
+    this.uniauthConfig = uniauthConfig;
     initDatabase();
+    initUniAuth();
     initAuthService();
   }
 
@@ -95,10 +107,19 @@ public final class AuthModule implements VelocityModule {
     this.userRepository = new JdbiUserRepository(databaseManager.getJdbi());
   }
 
+  private void initUniAuth() {
+    if (uniauthConfig.enabled()) {
+      this.uniauthClient = new UniAuthClient(uniauthConfig);
+      this.uniauthBridge = new UniAuthBridge(uniauthConfig, uniauthClient, userRepository);
+      plugin.logger().log(Level.INFO, "UniAuth 桥接已启用: {0}", uniauthConfig.apiUrl());
+    }
+  }
+
   private void initAuthService() {
     this.sessionManager = new SessionManager(Duration.ofMinutes(10), Instant::now);
     this.premiumResolver = new PremiumResolver();
-    this.authService = new AuthService(userRepository, eventBus, sessionManager);
+    this.authService =
+        new AuthService(userRepository, eventBus, sessionManager, uniauthConfig, uniauthBridge);
     this.commandHandler = new AuthCommandHandler(authService);
   }
 

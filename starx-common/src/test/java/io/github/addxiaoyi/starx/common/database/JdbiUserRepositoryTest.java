@@ -57,6 +57,9 @@ class JdbiUserRepositoryTest {
             now,
             "ext-1",
             List.of(),
+            null,
+            null,
+            "completed",
             null);
 
     repository.saveUser(user);
@@ -103,6 +106,9 @@ class JdbiUserRepositoryTest {
             null,
             null,
             List.of(),
+            null,
+            null,
+            "completed",
             null);
     repository.saveUser(full);
 
@@ -141,6 +147,59 @@ class JdbiUserRepositoryTest {
     assertThat(repository.findAll()).hasSize(2);
   }
 
+  @Test
+  void countByMigrationStateReturnsCorrectCount() {
+    repository.saveUser(sampleUserWithMigrationState("user1", "user1@example.com", "pending"));
+    repository.saveUser(sampleUserWithMigrationState("user2", "user2@example.com", "completed"));
+    repository.saveUser(sampleUserWithMigrationState("user3", "user3@example.com", "completed"));
+
+    assertThat(repository.countByMigrationState("pending")).isEqualTo(1);
+    assertThat(repository.countByMigrationState("completed")).isEqualTo(2);
+    assertThat(repository.countByMigrationState("unknown")).isEqualTo(0);
+  }
+
+  @Test
+  void countBySourceSystemReturnsCorrectCount() {
+    repository.saveUser(sampleUserWithSourceSystem("user1", "user1@example.com", "starvc"));
+    repository.saveUser(sampleUserWithSourceSystem("user2", "user2@example.com", "starvc"));
+    repository.saveUser(sampleUserWithSourceSystem("user3", "user3@example.com", "local"));
+
+    assertThat(repository.countBySourceSystem("starvc")).isEqualTo(2);
+    assertThat(repository.countBySourceSystem("local")).isEqualTo(1);
+    assertThat(repository.countBySourceSystem("unknown")).isEqualTo(0);
+  }
+
+  @Test
+  void countAllReturnsTotalUsers() {
+    assertThat(repository.countAll()).isEqualTo(0);
+    repository.saveUser(sampleUser("user1", "user1@example.com"));
+    repository.saveUser(sampleUser("user2", "user2@example.com"));
+    assertThat(repository.countAll()).isEqualTo(2);
+  }
+
+  @Test
+  void findBySourceSystemReturnsMatchingUsers() {
+    repository.saveUser(sampleUserWithSourceSystem("starvc1", "starvc1@example.com", "starvc"));
+    repository.saveUser(sampleUserWithSourceSystem("starvc2", "starvc2@example.com", "starvc"));
+    repository.saveUser(sampleUserWithSourceSystem("local1", "local1@example.com", "local"));
+
+    List<StarxUser> starvcUsers = repository.findBySourceSystem("starvc");
+    assertThat(starvcUsers).hasSize(2);
+    assertThat(starvcUsers.stream().map(StarxUser::username)).contains("starvc1", "starvc2");
+  }
+
+  @Test
+  void findByMigrationStateReturnsMatchingUsers() {
+    repository.saveUser(
+        sampleUserWithMigrationState("pending1", "pending1@example.com", "pending"));
+    repository.saveUser(
+        sampleUserWithMigrationState("completed1", "completed1@example.com", "completed"));
+
+    List<StarxUser> pendingUsers = repository.findByMigrationState("pending");
+    assertThat(pendingUsers).hasSize(1);
+    assertThat(pendingUsers.get(0).username()).isEqualTo("pending1");
+  }
+
   private StarxUser sampleUser(String username, String email) {
     return new StarxUser(
         UUID.randomUUID(),
@@ -153,6 +212,46 @@ class JdbiUserRepositoryTest {
         null,
         null,
         List.of(),
+        null,
+        null,
+        "completed",
+        null);
+  }
+
+  private StarxUser sampleUserWithMigrationState(
+      String username, String email, String migrationState) {
+    return new StarxUser(
+        UUID.randomUUID(),
+        username,
+        email,
+        "hash",
+        "secret",
+        false,
+        Instant.now(),
+        null,
+        null,
+        List.of(),
+        null,
+        null,
+        migrationState,
+        null);
+  }
+
+  private StarxUser sampleUserWithSourceSystem(String username, String email, String sourceSystem) {
+    return new StarxUser(
+        UUID.randomUUID(),
+        username,
+        email,
+        "hash",
+        "secret",
+        false,
+        Instant.now(),
+        null,
+        null,
+        List.of(),
+        null,
+        sourceSystem,
+        "completed",
         null);
   }
 }

@@ -3,10 +3,10 @@ package io.github.addxiaoyi.starx.common.config;
 /**
  * 数据库连接池配置。
  *
- * @param type 数据库类型，支持 h2、mysql、postgresql
+ * @param type 数据库类型，支持 h2、mysql、postgresql、sqlite
  * @param host 主机地址
  * @param port 端口
- * @param database 数据库名
+ * @param database 数据库名（SQLite时为文件路径）
  * @param username 用户名
  * @param password 密码
  * @param url 完整 JDBC URL；非空时优先使用
@@ -44,6 +44,10 @@ public record DatabaseConfig(
     return !url.isBlank();
   }
 
+  public boolean isSqlite() {
+    return "sqlite".equalsIgnoreCase(type);
+  }
+
   public String jdbcUrl() {
     if (hasUrl()) {
       return url;
@@ -53,6 +57,7 @@ public record DatabaseConfig(
       case "mysql" ->
           "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&serverTimezone=UTC";
       case "postgresql" -> "jdbc:postgresql://" + host + ":" + port + "/" + database;
+      case "sqlite" -> "jdbc:sqlite:" + database;
       default -> throw new IllegalArgumentException("Unsupported database type: " + type);
     };
   }

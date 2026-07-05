@@ -20,6 +20,9 @@ public final class StarxUser {
   private final String externalUserId;
   private final List<String> trustedDevices;
   private final String recoveryCodes;
+  private final String sourceSystem;
+  private final String migrationState;
+  private final Instant passwordMigratedAt;
 
   public StarxUser(
       UUID uuid,
@@ -32,7 +35,10 @@ public final class StarxUser {
       Instant lastLoginAt,
       String externalUserId,
       List<String> trustedDevices,
-      String recoveryCodes) {
+      String recoveryCodes,
+      String sourceSystem,
+      String migrationState,
+      Instant passwordMigratedAt) {
     this.uuid = uuid;
     this.username = username;
     this.email = email;
@@ -47,6 +53,9 @@ public final class StarxUser {
             ? List.of()
             : Collections.unmodifiableList(new ArrayList<>(trustedDevices));
     this.recoveryCodes = recoveryCodes;
+    this.sourceSystem = sourceSystem;
+    this.migrationState = migrationState;
+    this.passwordMigratedAt = passwordMigratedAt;
   }
 
   public UUID uuid() {
@@ -91,5 +100,17 @@ public final class StarxUser {
 
   public String recoveryCodes() {
     return recoveryCodes;
+  }
+
+  public String sourceSystem() {
+    return sourceSystem;
+  }
+
+  public String migrationState() {
+    return migrationState;
+  }
+
+  public Instant passwordMigratedAt() {
+    return passwordMigratedAt;
   }
 }

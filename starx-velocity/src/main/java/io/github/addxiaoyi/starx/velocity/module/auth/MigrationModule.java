@@ -1,6 +1,8 @@
 package io.github.addxiaoyi.starx.velocity.module.auth;
 
 import io.github.addxiaoyi.starx.api.event.EventBus;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
+import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.nio.ByteBuffer;
@@ -15,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-/** 数据迁移模块，支持从 MultiLogin / AuthMe 等插件迁移用户数据到 StarX。 */
+/** 数据迁移模块，支持从 MultiLogin / AuthMe / StarVC 等插件迁移用户数据到 StarX。 */
 public final class MigrationModule implements VelocityModule {
 
   private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
@@ -23,11 +25,28 @@ public final class MigrationModule implements VelocityModule {
   private final StarxVelocityPlugin plugin;
   private final EventBus eventBus;
   private final Config config;
+  private final JdbiUserRepository userRepository;
+  private final UniAuthClient uniAuthClient;
+
+  public MigrationModule(
+      StarxVelocityPlugin plugin,
+      EventBus eventBus,
+      Config config,
+      JdbiUserRepository userRepository,
+      UniAuthClient uniAuthClient) {
+    this.plugin = Objects.requireNonNull(plugin, "plugin");
+    this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
+    this.config = Objects.requireNonNull(config, "config");
+    this.userRepository = userRepository;
+    this.uniAuthClient = uniAuthClient;
+  }
 
   public MigrationModule(StarxVelocityPlugin plugin, EventBus eventBus, Config config) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     this.config = Objects.requireNonNull(config, "config");
+    this.userRepository = null;
+    this.uniAuthClient = null;
   }
 
   @Override
@@ -89,6 +108,98 @@ public final class MigrationModule implements VelocityModule {
       }
     } catch (Exception e) {
       plugin.logger().log(Level.SEVERE, "迁移失败: " + e.getMessage(), e);
+      errors++;
+    } finally {
+      RUNNING.set(false);
+    }
+
+    long duration = System.currentTimeMillis() - start;
+    return new MigrationResult(
+        total, imported, skippedExisting, skippedInvalid, errors, duration, dryRun);
+  }
+
+  /**
+   * 从 StarVC 导入用户元数据（不包含密码，通过 UniAuth 桥接在首次登录时完成迁移）。
+   *
+   * @param dryRun 是否为试运行模式
+   * @return 迁移结果
+   */
+  public MigrationResult importStarVCMeta(boolean dryRun) {
+    if (!RUNNING.compareAndSet(false, true)) {
+      throw new IllegalStateException("Migration is already running.");
+    }
+
+    if (userRepository == null) {
+      RUNNING.set(false);
+      throw new IllegalStateException("userRepository is not available");
+    }
+
+    long start = System.currentTimeMillis();
+    int total = 0;
+    int imported = 0;
+    int skippedExisting = 0;
+    int skippedInvalid = 0;
+    int errors = 0;
+
+    try (Connection sourceConn = getSourceConnection()) {
+      // TODO: 根据实际 StarVC 数据库表结构调整查询
+      String query = "SELECT uuid, username, email FROM starvc_users"; // 示例查询，请根据实际表结构调整
+      try (PreparedStatement st = sourceConn.prepareStatement(query);
+          ResultSet rs = st.executeQuery()) {
+        while (rs.next()) {
+          total++;
+          try {
+            String uuidStr = rs.getString("uuid");
+            String username = rs.getString("username");
+            String email = rs.getString("email");
+
+            if (username == null || username.isBlank()) {
+              skippedInvalid++;
+              continue;
+            }
+
+            UUID uuid;
+            try {
+              uuid = UUID.fromString(uuidStr);
+            } catch (Exception e) {
+              skippedInvalid++;
+              continue;
+            }
+
+            if (userRepository.existsByUuid(uuid) || userRepository.existsByUsername(username)) {
+              skippedExisting++;
+              continue;
+            }
+
+            if (!dryRun) {
+              // 导入用户元数据，标记为来自 StarVC，状态为 pending（等待首次登录完成密码迁移）
+              var user =
+                  new io.github.addxiaoyi.starx.common.model.StarxUser(
+                      uuid,
+                      username,
+                      email,
+                      null, // 密码哈希暂时为空
+                      null,
+                      false,
+                      java.time.Instant.now(),
+                      null,
+                      null,
+                      java.util.List.of(),
+                      null,
+                      "starvc",
+                      "pending",
+                      null);
+              userRepository.create(user);
+            }
+            imported++;
+          } catch (Exception e) {
+            errors++;
+            plugin.logger().log(Level.WARNING, "导入用户失败: " + e.getMessage(), e);
+          }
+        }
+      }
+    } catch (Exception e) {
+      plugin.logger().log(Level.SEVERE, "从 StarVC 导入失败: " + e.getMessage(), e);
       errors++;
     } finally {
       RUNNING.set(false);

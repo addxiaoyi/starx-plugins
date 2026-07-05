@@ -1,5 +1,6 @@
 package io.github.addxiaoyi.starx.velocity.config;
 
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,14 @@ public final class ConfigLoader {
         url: ""
         pool-max-size: 10
         connection-timeout-ms: 30000
+
+      uniauth:
+        enabled: false
+        api-url: "https://api.example.com/uniauth/"
+        app-id: ""
+        app-secret: ""
+        timeout-ms: 5000
+        bridge-mode: false
 
       modules:
         auth:
@@ -133,8 +142,19 @@ public final class ConfigLoader {
     }
 
     DatabaseConfig database = parseDatabaseConfig(root.node("database"));
+    UniAuthConfig uniauth = parseUniAuthConfig(root.node("uniauth"));
 
-    return new StarxConfig(apiKey, http, webhook, database, modules);
+    return new StarxConfig(apiKey, http, webhook, database, uniauth, modules);
+  }
+
+  private static UniAuthConfig parseUniAuthConfig(ConfigurationNode node) {
+    boolean enabled = node.node("enabled").getBoolean(false);
+    String apiUrl = node.node("api-url").getString("https://api.example.com/uniauth/");
+    String appId = node.node("app-id").getString("");
+    String appSecret = node.node("app-secret").getString("");
+    int timeoutMs = node.node("timeout-ms").getInt(5000);
+    boolean bridgeMode = node.node("bridge-mode").getBoolean(false);
+    return new UniAuthConfig(enabled, apiUrl, appId, appSecret, timeoutMs, bridgeMode);
   }
 
   private static DatabaseConfig parseDatabaseConfig(ConfigurationNode node) {

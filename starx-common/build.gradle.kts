@@ -16,6 +16,7 @@ dependencies {
     runtimeOnly(libs.h2)
     runtimeOnly(libs.mysql.connector)
     runtimeOnly(libs.postgresql)
+    runtimeOnly(libs.sqlite)
 
     testImplementation(project(":starx-testfixtures"))
     testImplementation(platform(libs.junit.bom))

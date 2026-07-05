@@ -87,6 +87,7 @@ class ConfigLoaderTest {
         new StarxConfig(
             new HttpApiConfig("127.0.0.1", 9090, "key"),
             base.database(),
+            base.uniauth(),
             java.util.Map.of("auth", new ModuleConfig(true)));
 
     StarxConfig merged = base.merge(overlay);

@@ -7,6 +7,9 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
+import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
+import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
 import io.github.addxiaoyi.starx.velocity.config.ConfigLoader;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import io.github.addxiaoyi.starx.velocity.database.DatabaseManager;
@@ -18,6 +21,7 @@ import io.github.addxiaoyi.starx.velocity.messaging.VelocityMessageBridge;
 import io.github.addxiaoyi.starx.velocity.module.ModuleManager;
 import io.github.addxiaoyi.starx.velocity.module.auth.AuthModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.FloodgateModule;
+import io.github.addxiaoyi.starx.velocity.module.auth.MigrationCommands;
 import io.github.addxiaoyi.starx.velocity.module.auth.MigrationModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.TabIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.UniAuthModule;
@@ -115,22 +119,39 @@ public class StarxVelocityPlugin {
     eventBus = new VelocityEventBus();
     databaseManager = new DatabaseManager(config.database());
 
+    // 初始化 UniAuth 客户端
+    UniAuthClient uniAuthClient = null;
+    UniAuthConfig uniAuthConfig = config.uniauth();
+    if (uniAuthConfig != null && uniAuthConfig.enabled()) {
+      uniAuthClient = new UniAuthClient(uniAuthConfig);
+    }
+
     moduleManager = new ModuleManager(config);
     SkinBridgeModule skinBridge = new SkinBridgeModule(proxy, eventBus);
-    AuthModule authModule = new AuthModule(this, eventBus);
+    AuthModule authModule = new AuthModule(this, eventBus, config.uniauth());
     VelocityMessageBridge messageBridge = new VelocityMessageBridge(this, proxy, eventBus);
+
+    // 获取 JdbiUserRepository
+    JdbiUserRepository userRepository = authModule.userRepository();
+
     moduleManager.register(authModule);
     moduleManager.register(skinBridge);
     moduleManager.register(messageBridge);
     moduleManager.register(
         new YggdrasilModule(this, eventBus, YggdrasilModule.Config.defaultConfig()));
-    moduleManager.register(new UniAuthModule(this, eventBus, UniAuthModule.Config.defaultConfig()));
+    moduleManager.register(new UniAuthModule(this, eventBus, config.uniauth()));
     moduleManager.register(
         new FloodgateModule(this, eventBus, FloodgateModule.Config.defaultConfig()));
     moduleManager.register(
         new TabIntegrationModule(this, eventBus, TabIntegrationModule.Config.defaultConfig()));
+
+    // 初始化 MigrationModule 和 MigrationCommands
+    MigrationModule migrationModule =
+        new MigrationModule(
+            this, eventBus, MigrationModule.Config.defaultConfig(), userRepository, uniAuthClient);
+    moduleManager.register(migrationModule);
     moduleManager.register(
-        new MigrationModule(this, eventBus, MigrationModule.Config.defaultConfig()));
+        new MigrationCommands(this, userRepository, migrationModule, uniAuthClient));
     moduleManager.register(
         new MaintenanceModule(
             this, eventBus, messageBridge, MaintenanceModule.Config.defaultConfig()));
