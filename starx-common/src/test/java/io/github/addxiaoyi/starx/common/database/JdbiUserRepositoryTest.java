@@ -56,7 +56,8 @@ class JdbiUserRepositoryTest {
             now,
             now,
             "ext-1",
-            List.of());
+            List.of(),
+            null);
 
     repository.saveUser(user);
 
@@ -101,7 +102,8 @@ class JdbiUserRepositoryTest {
             Instant.now(),
             null,
             null,
-            List.of());
+            List.of(),
+            null);
     repository.saveUser(full);
 
     UserDto update =
@@ -150,6 +152,7 @@ class JdbiUserRepositoryTest {
         Instant.now(),
         null,
         null,
-        List.of());
+        List.of(),
+        null);
   }
 }

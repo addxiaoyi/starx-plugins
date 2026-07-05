@@ -171,7 +171,8 @@ class HttpApiServerTest {
   void shouldRefreshSkinWhenValidRequest() throws Exception {
     UUID uuid = UUID.randomUUID();
     StarxUser user =
-        new StarxUser(uuid, "alice", null, null, null, false, Instant.now(), null, null, List.of());
+        new StarxUser(
+            uuid, "alice", null, null, null, false, Instant.now(), null, null, List.of(), null);
     when(jdbiUserRepository.findFullByUsername("alice")).thenReturn(Optional.of(user));
 
     server =

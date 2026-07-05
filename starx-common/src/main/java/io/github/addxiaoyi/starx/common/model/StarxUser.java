@@ -19,6 +19,7 @@ public final class StarxUser {
   private final Instant lastLoginAt;
   private final String externalUserId;
   private final List<String> trustedDevices;
+  private final String recoveryCodes;
 
   public StarxUser(
       UUID uuid,
@@ -30,7 +31,8 @@ public final class StarxUser {
       Instant createdAt,
       Instant lastLoginAt,
       String externalUserId,
-      List<String> trustedDevices) {
+      List<String> trustedDevices,
+      String recoveryCodes) {
     this.uuid = uuid;
     this.username = username;
     this.email = email;
@@ -44,6 +46,7 @@ public final class StarxUser {
         trustedDevices == null
             ? List.of()
             : Collections.unmodifiableList(new ArrayList<>(trustedDevices));
+    this.recoveryCodes = recoveryCodes;
   }
 
   public UUID uuid() {
@@ -84,5 +87,9 @@ public final class StarxUser {
 
   public List<String> trustedDevices() {
     return trustedDevices;
+  }
+
+  public String recoveryCodes() {
+    return recoveryCodes;
   }
 }

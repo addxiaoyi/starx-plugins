@@ -55,7 +55,8 @@ class SkinRefreshHandlerTest {
   void shouldPublishSkinRefreshRequestByUsername() throws Exception {
     UUID uuid = UUID.randomUUID();
     StarxUser user =
-        new StarxUser(uuid, "grace", null, null, null, false, Instant.now(), null, null, List.of());
+        new StarxUser(
+            uuid, "grace", null, null, null, false, Instant.now(), null, null, List.of(), null);
     when(jdbiUserRepository.findFullByUsername("grace")).thenReturn(Optional.of(user));
 
     app = Javalin.create(config -> config.showJavalinBanner = false);

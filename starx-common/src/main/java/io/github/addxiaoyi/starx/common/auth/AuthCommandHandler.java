@@ -51,6 +51,9 @@ public final class AuthCommandHandler {
   }
 
   private AuthResult handle2fa(UUID uuid, String code) {
+    if (code.length() == 10 && code.chars().allMatch(Character::isLetterOrDigit)) {
+      return authService.verifyRecoveryCode(uuid, code);
+    }
     return authService.verifyTotp(uuid, code);
   }
 }

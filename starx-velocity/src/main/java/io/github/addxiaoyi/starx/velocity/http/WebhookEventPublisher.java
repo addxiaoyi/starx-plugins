@@ -11,7 +11,9 @@ public final class WebhookEventPublisher {
 
   private static final String[] SUBSCRIBED_EVENTS = {
     EventTypes.PLAYER_LOGIN_SUCCESS,
+    EventTypes.PLAYER_LOGIN_FAILED,
     EventTypes.PLAYER_REGISTER,
+    EventTypes.PLAYER_BRUTE_FORCE,
     EventTypes.SKIN_UPDATED,
     EventTypes.SKIN_APPLIED,
     EventTypes.ADMIN_BAN_PLAYER,

@@ -75,7 +75,8 @@ class UserQueryHandlerTest {
             Instant.now(),
             null,
             null,
-            List.of());
+            List.of(),
+            null);
     when(jdbiUserRepository.findFullByUsername("henry")).thenReturn(Optional.of(user));
 
     app = Javalin.create(config -> config.showJavalinBanner = false);

@@ -3,6 +3,7 @@ package io.github.addxiaoyi.starx.common.auth;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
 import io.github.addxiaoyi.starx.common.crypto.PasswordHasher;
+import io.github.addxiaoyi.starx.common.crypto.RecoveryCodeGenerator;
 import io.github.addxiaoyi.starx.common.crypto.TotpGenerator;
 import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
@@ -65,7 +66,8 @@ public final class AuthService {
             Instant.now(),
             null,
             null,
-            List.of());
+            List.of(),
+            null);
     userRepository.saveUser(user);
     eventBus.publish(
         EventTypes.PLAYER_REGISTER,
@@ -246,28 +248,50 @@ public final class AuthService {
     return userRepository.findTotpSecretByUuid(uuid).isPresent();
   }
 
-  public BruteForceProtector bruteForceProtector() {
-    return bruteForceProtector;
-  }
-
-  public AuthResult enableTotp(UUID uuid, String password) {
+  /** 使用恢复码登录（替代 TOTP 验证码）。 */
+  public AuthResult verifyRecoveryCode(UUID uuid, String recoveryCode) {
     Optional<StarxUser> optional = userRepository.findFullByUuid(uuid);
     if (optional.isEmpty()) {
       return AuthResult.failure("用户未注册");
     }
     StarxUser user = optional.get();
-    if (!PasswordHasher.verify(password, user.passwordHash())) {
+    if (user.recoveryCodes() == null || user.recoveryCodes().isEmpty()) {
+      return AuthResult.failure("无可用恢复码");
+    }
+
+    String[] codes = user.recoveryCodes().split(",");
+    for (String hashedCode : codes) {
+      if (PasswordHasher.verify(recoveryCode.trim(), hashedCode.trim())) {
+        userRepository.updateRecoveryCodes(uuid, null);
+        return authenticate(user);
+      }
+    }
+    return AuthResult.failure("恢复码无效");
+  }
+
+  public BruteForceProtector bruteForceProtector() {
+    return bruteForceProtector;
+  }
+
+  public AuthResult enableTotp(UUID uuid, String password) {
+    if (!userRepository.existsByUuid(uuid)) {
+      return AuthResult.failure("用户不存在");
+    }
+    Optional<String> existingHash = userRepository.findPasswordHashByUuid(uuid);
+    if (existingHash.isEmpty() || !PasswordHasher.verify(password, existingHash.get())) {
       return AuthResult.failure("密码错误");
     }
-    if (user.totpSecret() != null) {
-      return AuthResult.failure("二步验证已开启，请先关闭后再重新开启");
-    }
+
     String secret = TotpGenerator.generateSecret();
-    String uri = TotpGenerator.provisioningUri("StarX", user.username(), secret);
     userRepository.updateTotpSecret(uuid, secret);
+
+    List<String> recoveryCodes = RecoveryCodeGenerator.generate();
+    String hashedCodes = PasswordHasher.hash(String.join(",", recoveryCodes));
+    userRepository.updateRecoveryCodes(uuid, hashedCodes);
+
     eventBus.publish(
-        EventTypes.PLAYER_TOTP_ENABLED, Map.of("uuid", uuid, "username", user.username()));
-    return AuthResult.success("二步验证已开启！密钥: " + secret + " | " + uri);
+        EventTypes.PLAYER_TOTP_ENABLED, Map.of("uuid", uuid, "recovery_codes", recoveryCodes));
+    return AuthResult.totpEnabled(secret, recoveryCodes);
   }
 
   public AuthResult disableTotp(UUID uuid, String password) {

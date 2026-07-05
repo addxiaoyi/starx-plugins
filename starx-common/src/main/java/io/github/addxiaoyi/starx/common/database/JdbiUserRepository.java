@@ -20,7 +20,8 @@ import org.jdbi.v3.core.Jdbi;
 public class JdbiUserRepository implements UserRepository {
 
   private static final String SELECT_COLUMNS =
-      "uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices";
+      "uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at,"
+          + " external_user_id, trusted_devices, COALESCE(recovery_codes, '') as recovery_codes";
   private static final String SELECT_BY_UUID =
       "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE uuid = ?";
   private static final String SELECT_BY_USERNAME =
@@ -123,7 +124,17 @@ public class JdbiUserRepository implements UserRepository {
   }
 
   public Optional<StarxUser> findFullByUuid(UUID uuid) {
-    return jdbi.withHandle(handle -> findFullByUuid(handle, uuid));
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery(
+                    "SELECT uuid, username, email, password_hash, totp_secret,"
+                        + " premium, created_at, last_login_at, external_user_id,"
+                        + " trusted_devices, COALESCE(recovery_codes, '') as recovery_codes"
+                        + " FROM starx_users WHERE uuid = ?")
+                .bind(0, uuid.toString())
+                .map((rs, ctx) -> mapUser(rs))
+                .findOne());
   }
 
   public Optional<StarxUser> findFullByUsername(String username) {
@@ -249,6 +260,16 @@ public class JdbiUserRepository implements UserRepository {
                 .execute());
   }
 
+  public void updateRecoveryCodes(UUID uuid, String recoveryCodes) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET recovery_codes = ? WHERE uuid = ?")
+                .bind(0, recoveryCodes)
+                .bind(1, uuid)
+                .execute());
+  }
+
   private Optional<StarxUser> findFullByUuid(Handle handle, UUID uuid) {
     return handle.createQuery(SELECT_BY_UUID).bind(0, uuid).map((rs, ctx) -> mapUser(rs)).findOne();
   }
@@ -356,7 +377,8 @@ public class JdbiUserRepository implements UserRepository {
         createdAt != null ? createdAt.toInstant() : null,
         lastLoginAt != null ? lastLoginAt.toInstant() : null,
         rs.getString("external_user_id"),
-        parseTrustedDevices(rs.getString("trusted_devices")));
+        parseTrustedDevices(rs.getString("trusted_devices")),
+        rs.getString("recovery_codes"));
   }
 
   private String toJson(List<String> trustedDevices) {
