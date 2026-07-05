@@ -12,6 +12,7 @@ import io.github.addxiaoyi.starx.paper.module.mapmod.MapModModule;
 import io.github.addxiaoyi.starx.paper.module.networking.NetworkingModule;
 import io.github.addxiaoyi.starx.paper.module.plan.PlanModule;
 import io.github.addxiaoyi.starx.paper.module.qq.QqModule;
+import io.github.addxiaoyi.starx.paper.module.security.BlossomGuardModule;
 import io.github.addxiaoyi.starx.paper.module.skin.PaperSkinModule;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,9 @@ public final class PaperModuleManager {
     }
     if (configLoader.isModuleEnabled("filecleaner")) {
       modules.add(new FileCleanerModule(plugin, configLoader));
+    }
+    if (configLoader.isModuleEnabled("security.blossom")) {
+      modules.add(new BlossomGuardModule(plugin, configLoader));
     }
 
     for (PaperModule module : modules) {

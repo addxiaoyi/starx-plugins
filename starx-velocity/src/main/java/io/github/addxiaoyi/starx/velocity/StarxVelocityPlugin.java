@@ -41,6 +41,7 @@ import io.github.addxiaoyi.starx.velocity.module.proxytools.ReconnectModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.RedirectModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.queue.QueueService;
 import io.github.addxiaoyi.starx.velocity.module.security.AnticheatModule;
+import io.github.addxiaoyi.starx.velocity.module.security.BlossomGuardModule;
 import io.github.addxiaoyi.starx.velocity.module.security.BotFilterModule;
 import io.github.addxiaoyi.starx.velocity.module.security.CrashFixModule;
 import io.github.addxiaoyi.starx.velocity.module.security.RiskModule;
@@ -150,6 +151,7 @@ public class StarxVelocityPlugin {
     moduleManager.register(new RiskModule(this, eventBus, RiskModule.Config.defaultConfig()));
     moduleManager.register(
         new AnticheatModule(this, eventBus, AnticheatModule.Config.defaultConfig()));
+    moduleManager.register(new BlossomGuardModule(this));
     moduleManager.register(
         new QqIntegrationModule(this, webhookClient, QqIntegrationModule.Config.defaultConfig()));
     moduleManager.register(
