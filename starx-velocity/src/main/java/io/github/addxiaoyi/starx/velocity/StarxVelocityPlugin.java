@@ -39,12 +39,16 @@ import io.github.addxiaoyi.starx.velocity.module.proxytools.QueueModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.RakNetModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.ReconnectModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.RedirectModule;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.SmartQueueModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.queue.QueueService;
+import io.github.addxiaoyi.starx.velocity.module.proxytools.smart.SmartQueueService;
 import io.github.addxiaoyi.starx.velocity.module.security.AnticheatModule;
 import io.github.addxiaoyi.starx.velocity.module.security.BlossomGuardModule;
 import io.github.addxiaoyi.starx.velocity.module.security.BotFilterModule;
 import io.github.addxiaoyi.starx.velocity.module.security.CrashFixModule;
 import io.github.addxiaoyi.starx.velocity.module.security.RiskModule;
+import io.github.addxiaoyi.starx.velocity.module.security.SmartAlertModule;
+import io.github.addxiaoyi.starx.velocity.module.security.SmartRateLimitModule;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
 import io.github.addxiaoyi.starx.velocity.security.HmacWebhookSigner;
 import java.nio.file.Path;
@@ -152,6 +156,11 @@ public class StarxVelocityPlugin {
     moduleManager.register(
         new AnticheatModule(this, eventBus, AnticheatModule.Config.defaultConfig()));
     moduleManager.register(new BlossomGuardModule(this));
+    moduleManager.register(new SmartRateLimitModule(this, eventBus));
+    moduleManager.register(new SmartAlertModule(this, eventBus));
+    moduleManager.register(
+        new SmartQueueModule(
+            this, SmartQueueModule.Config.defaultConfig(), new SmartQueueService()));
     moduleManager.register(
         new QqIntegrationModule(this, webhookClient, QqIntegrationModule.Config.defaultConfig()));
     moduleManager.register(
