@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 
 class AuthServiceTest {
 
+  private static final String VALID_PASS = "secret1";
+
   private DatabaseManager databaseManager;
   private JdbiUserRepository userRepository;
   private LocalEventBus eventBus;
@@ -55,11 +57,12 @@ class AuthServiceTest {
   void registerCreatesUserAndPasswordLoginSucceeds() throws Exception {
     UUID uuid = UUID.randomUUID();
 
-    AuthResult registered = authService.register(uuid, "alice", "secret", "alice@example.com");
+    AuthResult registered = authService.register(uuid, "alice", VALID_PASS, "alice@example.com");
 
     assertThat(registered.success()).isTrue();
     AuthResult loggedIn =
-        authService.login(uuid, "alice", "secret", null, InetAddress.getByName("127.0.0.1"), null);
+        authService.login(
+            uuid, "alice", VALID_PASS, null, InetAddress.getByName("127.0.0.1"), null);
     assertThat(loggedIn.success()).isTrue();
     assertThat(loggedIn.state()).isEqualTo(AuthSession.State.AUTHENTICATED);
   }
@@ -67,10 +70,10 @@ class AuthServiceTest {
   @Test
   void loginWithWrongPasswordFails() throws Exception {
     UUID uuid = UUID.randomUUID();
-    authService.register(uuid, "bob", "correct", null);
+    authService.register(uuid, "bob", VALID_PASS, null);
 
     AuthResult result =
-        authService.login(uuid, "bob", "wrong", null, InetAddress.getByName("127.0.0.1"), null);
+        authService.login(uuid, "bob", "wrong1", null, InetAddress.getByName("127.0.0.1"), null);
 
     assertThat(result.success()).isFalse();
   }
@@ -79,11 +82,12 @@ class AuthServiceTest {
   void totpLoginRequiresVerification() throws Exception {
     UUID uuid = UUID.randomUUID();
     String secret = "JBSWY3DPEHPK3PXP";
-    authService.register(uuid, "carol", "secret", null);
-    authService.bindTotp(uuid, "secret", secret);
+    authService.register(uuid, "carol", VALID_PASS, null);
+    authService.bindTotp(uuid, VALID_PASS, secret);
 
     AuthResult first =
-        authService.login(uuid, "carol", "secret", null, InetAddress.getByName("127.0.0.1"), null);
+        authService.login(
+            uuid, "carol", VALID_PASS, null, InetAddress.getByName("127.0.0.1"), null);
 
     assertThat(first.success()).isTrue();
     assertThat(first.state()).isEqualTo(AuthSession.State.AUTHENTICATING);
@@ -100,9 +104,9 @@ class AuthServiceTest {
   void wrongTotpCodeFails() throws Exception {
     UUID uuid = UUID.randomUUID();
     String secret = "JBSWY3DPEHPK3PXP";
-    authService.register(uuid, "dave", "secret", null);
-    authService.bindTotp(uuid, "secret", secret);
-    authService.login(uuid, "dave", "secret", null, InetAddress.getByName("127.0.0.1"), null);
+    authService.register(uuid, "dave", VALID_PASS, null);
+    authService.bindTotp(uuid, VALID_PASS, secret);
+    authService.login(uuid, "dave", VALID_PASS, null, InetAddress.getByName("127.0.0.1"), null);
 
     AuthResult result = authService.verifyTotp(uuid, "000000");
 
@@ -112,19 +116,20 @@ class AuthServiceTest {
   @Test
   void changePasswordInvalidatesOldPassword() throws Exception {
     UUID uuid = UUID.randomUUID();
-    authService.register(uuid, "eve", "old-pass", null);
+    authService.register(uuid, "eve", "old123", null);
 
-    AuthResult changed = authService.changePassword(uuid, "old-pass", "new-pass");
+    AuthResult changed = authService.changePassword(uuid, "old123", "new456");
 
     assertThat(changed.success()).isTrue();
     assertThat(
             authService
-                .login(uuid, "eve", "old-pass", null, InetAddress.getByName("127.0.0.1"), null)
+                .login(uuid, "eve", "old123", null, InetAddress.getByName("127.0.0.1"), null)
                 .success())
         .isFalse();
+    Thread.sleep(2000);
     assertThat(
             authService
-                .login(uuid, "eve", "new-pass", null, InetAddress.getByName("127.0.0.1"), null)
+                .login(uuid, "eve", "new456", null, InetAddress.getByName("127.0.0.1"), null)
                 .success())
         .isTrue();
   }
@@ -132,10 +137,10 @@ class AuthServiceTest {
   @Test
   void loginPublishesSuccessEvent() throws Exception {
     UUID uuid = UUID.randomUUID();
-    authService.register(uuid, "frank", "secret", null);
+    authService.register(uuid, "frank", VALID_PASS, null);
     List<StarxEvent> events = captureEvents("player:login:success");
 
-    authService.login(uuid, "frank", "secret", null, InetAddress.getByName("127.0.0.1"), null);
+    authService.login(uuid, "frank", VALID_PASS, null, InetAddress.getByName("127.0.0.1"), null);
 
     assertThat(events).hasSize(1);
     assertThat(events.get(0).payload().get("uuid")).isEqualTo(uuid);
@@ -144,12 +149,25 @@ class AuthServiceTest {
   @Test
   void failedLoginPublishesFailedEvent() throws Exception {
     UUID uuid = UUID.randomUUID();
-    authService.register(uuid, "grace", "secret", null);
+    authService.register(uuid, "grace", VALID_PASS, null);
     List<StarxEvent> events = captureEvents("player:login:failed");
 
-    authService.login(uuid, "grace", "wrong", null, InetAddress.getByName("127.0.0.1"), null);
+    authService.login(uuid, "grace", "wrong1", null, InetAddress.getByName("127.0.0.1"), null);
 
     assertThat(events).hasSize(1);
+  }
+
+  @Test
+  void registerRejectsWeakPassword() {
+    UUID uuid = UUID.randomUUID();
+    AuthResult result = authService.register(uuid, "test", "12345", null);
+    assertThat(result.success()).isFalse();
+
+    result = authService.register(uuid, "test", "abcdef", null);
+    assertThat(result.success()).isFalse();
+
+    result = authService.register(uuid, "test", "123456", null);
+    assertThat(result.success()).isFalse();
   }
 
   private List<StarxEvent> captureEvents(String type) {

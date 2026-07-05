@@ -4,6 +4,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.StarxEvent;
+import io.github.addxiaoyi.starx.common.security.HttpClient;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.net.InetSocketAddress;
@@ -11,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 风控引擎模块：IP 地理位置检查、ASN 检测、新设备登录检测。
@@ -24,6 +27,8 @@ public final class RiskModule implements VelocityModule {
   private final Config config;
 
   private final Map<UUID, String> deviceRegistry = new ConcurrentHashMap<>();
+  private static final Logger LOGGER = Logger.getLogger(RiskModule.class.getName());
+  private static final String IP_API_URL = "http://ip-api.com/json/";
 
   public RiskModule(StarxVelocityPlugin plugin, EventBus eventBus, Config config) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
@@ -46,13 +51,38 @@ public final class RiskModule implements VelocityModule {
     deviceRegistry.clear();
   }
 
-  /** 对 IP 地址进行风险评分。 */
+  /** 对 IP 地址进行风险评分（基于 ip-api.com 免费 API）。 */
   int scoreIp(String ip) {
-    int score = 0;
-    // TODO: 集成 IP 地理位置 API（如 ip-api.com, MaxMind GeoIP）
-    // TODO: 集成 ASN 数据库检查
-    // TODO: 检查 IP 是否在已知的恶意 IP 列表中
-    return score;
+    if (isLocalIp(ip)) {
+      return 0;
+    }
+    try {
+      IpApiResponse response = HttpClient.get(IP_API_URL + ip).sendJson(IpApiResponse.class);
+      if (response == null || !"success".equals(response.status)) {
+        return 0;
+      }
+      int score = 0;
+      if (response.proxy) {
+        score += 40;
+      }
+      if (response.hosting) {
+        score += 30;
+      }
+      if (response.mobile) {
+        score += 10;
+      }
+      return score;
+    } catch (Exception e) {
+      LOGGER.log(Level.WARNING, "IP API query failed for {0}", ip);
+      return 0;
+    }
+  }
+
+  private static boolean isLocalIp(String ip) {
+    return ip.startsWith("127.")
+        || ip.startsWith("10.")
+        || ip.startsWith("192.168.")
+        || ip.startsWith("172.16.");
   }
 
   /** 判断风险评分是否达到高风险阈值。 */

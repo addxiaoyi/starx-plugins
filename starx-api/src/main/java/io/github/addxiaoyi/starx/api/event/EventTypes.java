@@ -17,6 +17,7 @@ public final class EventTypes {
   // 安全相关
   public static final String SECURITY_ALERT = "security:alert";
   public static final String BOT_CHECK_FAILED = "security:bot:failed";
+  public static final String PLAYER_BRUTE_FORCE = "player:brute-force";
 
   // 皮肤相关
   public static final String SKIN_REFRESH_REQUEST = "skin:refresh:request";

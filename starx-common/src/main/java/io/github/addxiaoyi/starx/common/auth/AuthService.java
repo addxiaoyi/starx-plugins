@@ -6,6 +6,8 @@ import io.github.addxiaoyi.starx.common.crypto.PasswordHasher;
 import io.github.addxiaoyi.starx.common.crypto.TotpGenerator;
 import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
+import io.github.addxiaoyi.starx.common.security.BruteForceProtector;
+import io.github.addxiaoyi.starx.common.security.PasswordValidator;
 import java.net.InetAddress;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,12 +22,14 @@ public final class AuthService {
   private final JdbiUserRepository userRepository;
   private final EventBus eventBus;
   private final SessionManager sessionManager;
+  private final BruteForceProtector bruteForceProtector; // 新增
 
   public AuthService(
       JdbiUserRepository userRepository, EventBus eventBus, SessionManager sessionManager) {
     this.userRepository = userRepository;
     this.eventBus = eventBus;
     this.sessionManager = sessionManager;
+    this.bruteForceProtector = new BruteForceProtector(); // 新增
   }
 
   public AuthResult autoLogin(UUID uuid, String username, InetAddress address) {
@@ -41,6 +45,11 @@ public final class AuthService {
   }
 
   public AuthResult register(UUID uuid, String username, String password, String email) {
+    // 新增：密码复杂度校验
+    String passwordError = PasswordValidator.validate(password);
+    if (passwordError != null) {
+      return AuthResult.failure(passwordError);
+    }
     if (userRepository.existsByUsernameOrUuid(username, uuid)) {
       return AuthResult.failure("用户名已被占用或已注册");
     }
@@ -77,15 +86,44 @@ public final class AuthService {
       String totpCode,
       InetAddress address,
       String deviceId) {
+    // 新增：爆破防护检查
+    BruteForceProtector.BruteForceStatus status = bruteForceProtector.check(uuid);
+    if (status == BruteForceProtector.BruteForceStatus.LOCKED) {
+      long sec = status.waitMs() / 1000;
+      return AuthResult.failure("密码错误次数过多，请" + sec + "秒后再试");
+    }
+    if (status == BruteForceProtector.BruteForceStatus.DELAYED) {
+      long sec = status.waitMs() / 1000;
+      return AuthResult.failure("请等待" + sec + "秒后再试");
+    }
+
     Optional<StarxUser> optional = userRepository.findFullByUuid(uuid);
     if (optional.isEmpty()) {
       return AuthResult.failure("用户未注册");
     }
     StarxUser user = optional.get();
     if (!PasswordHasher.verify(password, user.passwordHash())) {
+      // 新增：记录失败 + 发布爆破告警
+      bruteForceProtector.recordFailure(uuid);
+      int failures = bruteForceProtector.getAttemptCount(uuid);
+      if (failures >= 3) {
+        eventBus.publish(
+            EventTypes.PLAYER_BRUTE_FORCE,
+            Map.of(
+                "uuid",
+                uuid,
+                "username",
+                username,
+                "attempts",
+                failures,
+                "ip",
+                address == null ? "unknown" : address.getHostAddress()));
+      }
       publishLoginFailed(uuid, username, "密码错误");
       return AuthResult.failure("密码错误");
     }
+    // 新增：密码正确，清除爆破记录
+    bruteForceProtector.clear(uuid);
     if (user.totpSecret() != null && !isTrustedDevice(user.trustedDevices(), deviceId)) {
       if (totpCode != null && TotpGenerator.verify(user.totpSecret(), totpCode, Instant.now())) {
         return authenticate(user);
@@ -206,6 +244,10 @@ public final class AuthService {
 
   public boolean isTotpEnabled(UUID uuid) {
     return userRepository.findTotpSecretByUuid(uuid).isPresent();
+  }
+
+  public BruteForceProtector bruteForceProtector() {
+    return bruteForceProtector;
   }
 
   public AuthResult enableTotp(UUID uuid, String password) {
