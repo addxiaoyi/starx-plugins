@@ -55,12 +55,18 @@ public final class EnhancedProxyModule implements VelocityModule {
       return;
     }
     ProxyServer proxy = plugin.proxy();
-    proxy.getCommandManager().register("glist", glistCommand);
-    proxy.getCommandManager().register("find", findCommand);
-    proxy.getCommandManager().register("send", sendCommand);
-    proxy.getCommandManager().register("alert", alertCommand);
-    proxy.getCommandManager().register("ping", pingCommand);
-    proxy.getCommandManager().register("kickall", kickAllCommand);
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("glist").build(), glistCommand);
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("find").build(), findCommand);
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("send").build(), sendCommand);
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("alert").build(), alertCommand);
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("ping").build(), pingCommand);
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("kickall").build(), kickAllCommand);
   }
 
   @Override

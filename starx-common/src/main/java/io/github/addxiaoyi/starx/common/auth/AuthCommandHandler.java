@@ -1,9 +1,13 @@
 package io.github.addxiaoyi.starx.common.auth;
 
 import java.net.InetAddress;
+import java.util.Optional;
 import java.util.UUID;
 
-/** 处理认证相关命令的纯逻辑。 */
+/**
+ * 处理认证相关命令的纯逻辑。
+ * 玩家在 Limbo 内直接输入密码即可，系统自动判断是注册还是登录。
+ */
 public final class AuthCommandHandler {
 
   private final AuthService authService;
@@ -12,41 +16,43 @@ public final class AuthCommandHandler {
     this.authService = authService;
   }
 
+  /**
+   * 处理玩家在聊天框中的输入，自动判断意图：
+   * <ul>
+   *   <li>未注册 → 自动注册</li>
+   *   <li>已注册且会话为 GUEST → 自动登录</li>
+   *   <li>会话为 AUTHENTICATING → 二步验证</li>
+   * </ul>
+   */
   public AuthResult handle(
-      UUID uuid, String username, String rawCommand, InetAddress address, String deviceId) {
-    if (rawCommand == null || rawCommand.isBlank()) {
-      return AuthResult.failure("未知命令");
+      UUID uuid, String username, String rawInput, InetAddress address, String deviceId) {
+    if (rawInput == null || rawInput.isBlank()) {
+      return AuthResult.failure("密码不能为空");
     }
-    String[] parts = rawCommand.trim().split("\\s+", 3);
-    String label = parts[0].toLowerCase();
-    return switch (label) {
-      case "/login", "login" -> handleLogin(uuid, username, parts, address, deviceId);
-      case "/register", "register" -> handleRegister(uuid, username, parts);
-      case "/2fa", "2fa" -> handle2fa(uuid, parts);
-      default -> AuthResult.failure("未知命令");
-    };
+    String input = rawInput.trim();
+
+    if (!authService.isUserRegistered(uuid)) {
+      return handleRegister(uuid, username, input);
+    }
+
+    Optional<AuthSession.State> sessionState = authService.getSessionState(uuid);
+    if (sessionState.isPresent() && sessionState.get() == AuthSession.State.AUTHENTICATING) {
+      return handle2fa(uuid, input);
+    }
+
+    return handleLogin(uuid, username, input, address, deviceId);
   }
 
   private AuthResult handleLogin(
-      UUID uuid, String username, String[] parts, InetAddress address, String deviceId) {
-    if (parts.length < 2) {
-      return AuthResult.failure("用法: /login <密码>");
-    }
-    return authService.login(uuid, username, parts[1], null, address, deviceId);
+      UUID uuid, String username, String password, InetAddress address, String deviceId) {
+    return authService.login(uuid, username, password, null, address, deviceId);
   }
 
-  private AuthResult handleRegister(UUID uuid, String username, String[] parts) {
-    if (parts.length < 2) {
-      return AuthResult.failure("用法: /register <密码> [邮箱]");
-    }
-    String email = parts.length >= 3 ? parts[2] : null;
-    return authService.register(uuid, username, parts[1], email);
+  private AuthResult handleRegister(UUID uuid, String username, String password) {
+    return authService.register(uuid, username, password, null);
   }
 
-  private AuthResult handle2fa(UUID uuid, String[] parts) {
-    if (parts.length < 2) {
-      return AuthResult.failure("用法: /2fa <验证码>");
-    }
-    return authService.verifyTotp(uuid, parts[1]);
+  private AuthResult handle2fa(UUID uuid, String code) {
+    return authService.verifyTotp(uuid, code);
   }
 }

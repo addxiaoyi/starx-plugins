@@ -5,7 +5,8 @@
 
 [![CI](https://github.com/addxiaoyi/starx-plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/addxiaoyi/starx-plugins/actions)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1+-brightgreen)](https://www.minecraft.net/)
+[![Velocity](https://img.shields.io/badge/Velocity-3.5.x-blue)](https://papermc.io/software/velocity)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4+-brightgreen)](https://www.minecraft.net/)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 ---
@@ -28,8 +29,8 @@
 ### 环境要求
 
 - **Java 21** 或更高版本
-- **Velocity** 代理端
-- **Paper 1.21.1+** 子服端（支持 Folia）
+- **Velocity 3.5.x** 代理端
+- **Paper 1.21.4+** 子服端（支持 Folia）
 
 ### 安装步骤
 
@@ -58,15 +59,15 @@
 
 ### 玩家命令
 
+> 登录/注册无需命令，首次进入时直接在聊天框输入密码即可自动注册，之后输入密码即可登录。
+
 | 命令 | 说明 |
 |------|------|
-| `/register <密码>` | 注册新账号 |
-| `/login <密码>` | 登录已有账号 |
-| `/2fa <验证码>` | 输入二步验证码（开启 TOTP 后） |
 | `/hub` / `/lobby` | 返回大厅服务器 |
 | `/list` | 查看所有在线玩家及所在子服 |
 | `/ping [玩家]` | 查看自己或他人的延迟 |
 | `/skin` | 刷新皮肤 |
+| `/2fa` | 查看/管理二步验证（enable/disable/status） |
 
 ### 管理员命令
 
@@ -110,9 +111,9 @@
 
 完整的登录、注册、二步验证体系。
 
-- 玩家首次进入时用 `/register <密码>` 注册
-- 之后用 `/login <密码>` 登录
-- 可选开启 TOTP 二步验证，登录后需输入 `/2fa <验证码>`
+- 玩家首次进入时直接在聊天框输入密码自动注册，之后输入密码即可登录
+- 二步验证（TOTP）为可选功能，使用 `/2fa enable <密码>` 开启，`/2fa disable <密码>` 关闭
+- 开启后登录时自动要求输入验证码，支持 Google Authenticator 等 App
 - 支持正版在线验证 + 离线模式双路由
 - 支持第三方 Yggdrasil 验证服务器对接
 - Mojang → Microsoft 账户迁移检测与提示
@@ -209,46 +210,41 @@
 
 ```yaml
 database:
-  # 可选: H2, MYSQL, POSTGRESQL
-  type: H2
-  url: "jdbc:h2:file:./plugins/starx/starx"
-  username: "sa"
+  # 可选: h2, mysql, postgresql
+  type: "h2"
+  host: ""
+  port: 3306
+  database: "starx"
+  username: "starx"
   password: ""
-  pool:
-    maximumPoolSize: 10
-    minimumIdle: 2
+  url: ""                     # 自定义 JDBC URL（留空则用以上字段自动拼接）
+  pool-max-size: 10
+  connection-timeout-ms: 30000
 ```
 
 **MySQL 示例**：
 ```yaml
 database:
-  type: MYSQL
-  url: "jdbc:mysql://localhost:3306/starx?useSSL=true&serverTimezone=Asia/Shanghai"
+  type: "mysql"
+  host: "localhost"
+  port: 3306
+  database: "starx"
   username: "starx"
   password: "your_password"
 ```
 
-### 认证
+### HTTP API 与 Webhook
 
 ```yaml
-features:
-  auth:
-    enabled: true
-    allowOffline: true        # 允许离线模式注册
-    maxLoginAttempts: 5       # 最大尝试次数
-    lockoutMinutes: 15        # 锁定时间（分钟）
-  totp:
-    enabled: false            # 二步验证
-    issuer: "StarX"
-```
+api-key: ""                   # 网站后端调用插件的 API 密钥（务必修改）
 
-### HTTP API
-
-```yaml
 http:
-  host: "127.0.0.1"
-  port: 9287
-  token: "CHANGE_ME"         # 务必修改为强随机 Token
+  bind: "127.0.0.1"          # 监听地址
+  port: 8788                  # 监听端口
+
+webhook:
+  url: ""                     # 网站 Webhook 回调地址
+  secret: ""                  # HMAC 签名密钥
 ```
 
 ### 模块开关
@@ -257,64 +253,97 @@ http:
 modules:
   auth:
     enabled: true
-  security:
-    bot:
-      enabled: true
-    crash:
-      enabled: true
-    risk:
-      enabled: true
-    anticheat:
-      enabled: true
-  proxytools:
-    maintenance:
-      enabled: true
-    motd:
-      enabled: true
-    chat:
-      enabled: true
-    redirect:
-      enabled: true
-    queue:
-      enabled: true
-    limbo:
-      enabled: false
-  integrations:
-    qq:
-      enabled: false
-    plan:
-      enabled: false
+  auth.yggdrasil:
+    enabled: true
+  auth.uniauth:
+    enabled: false
+  auth.floodgate:
+    enabled: true
+  auth.tab:
+    enabled: true
+  auth.migration:
+    enabled: false
+  skin-bridge:
+    enabled: true
+  messaging:
+    enabled: true
+  proxytools.maintenance:
+    enabled: true
+  proxytools.motd:
+    enabled: true
+  proxytools.chat:
+    enabled: true
+  proxytools.redirect:
+    enabled: true
+  proxytools.queue:
+    enabled: true
+  proxytools.limbo:
+    enabled: true
+  proxytools.reconnect:
+    enabled: true
+  proxytools.info:
+    enabled: true
+  proxytools.forge:
+    enabled: false
+  proxytools.raknet:
+    enabled: false
+  proxytools.online:
+    enabled: true
+  proxytools.enhanced:
+    enabled: true
+  proxytools.filecleaner:
+    enabled: false
+  security.bot:
+    enabled: true
+  security.crash:
+    enabled: true
+  security.risk:
+    enabled: true
+  security.anticheat:
+    enabled: true
+  integrations.qq:
+    enabled: false
+  integrations.plan:
+    enabled: false
+  integrations.mapmod:
+    enabled: false
+  integrations.social:
+    enabled: false
 ```
-
-### 环境变量覆盖
-
-敏感配置可通过环境变量设置，优先级高于配置文件：
-
-| 环境变量 | 对应配置 |
-|----------|----------|
-| `STARX_HTTP_TOKEN` | `http.token` |
-| `STARX_DB_URL` | `database.url` |
-| `STARX_DB_USERNAME` | `database.username` |
-| `STARX_DB_PASSWORD` | `database.password` |
 
 ---
 
 ## HTTP API
 
-StarX 提供 REST API 用于外部管理，默认端口 **9287**，使用 Bearer Token 鉴权。
+StarX 提供 REST API 用于外部管理，默认端口 **8788**，使用 `X-API-Key` 请求头或 HMAC 签名鉴权。
+
+### VLA 管理端点
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/v1/user/exists?username=<name>` | GET | 查询用户是否存在 |
+| `/v1/user/detail?username=<name>` | GET | 查询用户详情（含 totpEnabled、lastLoginAt） |
+| `/v1/admin/reset-password` | POST | 重置玩家密码 |
+| `/v1/admin/bind-email` | POST | 绑定玩家邮箱 |
+| `/v1/admin/delete-user` | POST | 删除玩家账户 |
+| `/v1/ban?username=<name>` | GET | 查询封禁状态 |
+| `/v1/admin/ban` | POST | 封禁/解封玩家 |
+| `/v1/admin/kick-online` | POST | 踢出在线玩家 |
+| `/v1/admin/link-external-user` | POST | 关联外部网站用户 ID |
+| `/v1/admin/skin-refresh` | POST | 请求刷新玩家皮肤 |
 
 ### 请求示例
 
 ```bash
-# 查看代理状态
-curl http://127.0.0.1:9287/api/v2/plugin/status \
-  -H "Authorization: Bearer <token>"
+# 查询用户是否存在
+curl http://127.0.0.1:8788/v1/user/exists?username=Steve \
+  -H "X-API-Key: <your-api-key>"
 
-# 全服公告
-curl -X POST http://127.0.0.1:9287/api/v2/plugin/alert \
-  -H "Authorization: Bearer <token>" \
+# 重置密码
+curl -X POST http://127.0.0.1:8788/v1/admin/reset-password \
+  -H "X-API-Key: <your-api-key>" \
   -H "Content-Type: application/json" \
-  -d '{"message": "服务器将在 5 分钟后重启"}'
+  -d '{"username": "Steve", "password": "new_password"}'
 ```
 
 ### 端点列表
@@ -392,8 +421,8 @@ cd starx-plugins
 |------|------|
 | Java 21 | 开发语言 |
 | Gradle 8.14 + Kotlin DSL | 构建系统 |
-| Velocity API | 代理端 |
-| Paper API 1.21.1+ | 子服端 |
+| Velocity API 3.5.x | 代理端 |
+| Paper API 1.21.4 | 子服端 |
 | HikariCP + JDBI + Flyway | 数据库 |
 | H2 / MySQL / PostgreSQL | 存储后端 |
 | JUnit 5 + Mockito | 测试框架 |

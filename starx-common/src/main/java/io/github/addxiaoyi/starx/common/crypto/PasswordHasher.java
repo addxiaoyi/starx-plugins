@@ -5,7 +5,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 /** BCrypt 密码哈希包装类。 */
 public final class PasswordHasher {
 
-  private static final int COST_FACTOR = 12;
+  private static final int COST_FACTOR = 10;
 
   private PasswordHasher() {}
 

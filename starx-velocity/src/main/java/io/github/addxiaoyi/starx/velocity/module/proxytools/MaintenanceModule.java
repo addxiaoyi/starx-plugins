@@ -47,7 +47,8 @@ public final class MaintenanceModule implements VelocityModule {
   public void onEnable() {
     ProxyServer proxy = plugin.proxy();
     proxy.getEventManager().register(plugin, new LoginListener());
-    proxy.getCommandManager().register("maintenance", new MaintenanceCommand());
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("maintenance").build(), new MaintenanceCommand());
   }
 
   public boolean isEnabled() {

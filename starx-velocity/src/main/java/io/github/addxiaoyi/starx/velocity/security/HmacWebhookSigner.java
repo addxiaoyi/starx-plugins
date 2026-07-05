@@ -1,16 +1,9 @@
 package io.github.addxiaoyi.starx.velocity.security;
 
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
 
-/** 基于 HMAC-SHA256 的 Webhook 签名实现。 */
+/** 基于 HMAC-SHA256 的 Webhook 签名实现，输出十六进制与网站 {@code crypto.createHmac('sha256', secret).update(rawPayload, 'utf8').digest('hex')} 一致。 */
 public final class HmacWebhookSigner implements WebhookSigner {
-
-  private static final String ALGORITHM = "HmacSHA256";
 
   private final String secret;
 
@@ -23,13 +16,6 @@ public final class HmacWebhookSigner implements WebhookSigner {
     if (secret == null || secret.isBlank()) {
       return "";
     }
-    try {
-      Mac mac = Mac.getInstance(ALGORITHM);
-      mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), ALGORITHM));
-      byte[] signature = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-      return Base64.getEncoder().encodeToString(signature);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-      throw new IllegalStateException("Failed to sign webhook payload", e);
-    }
+    return HmacSigner.sign(secret, payload);
   }
 }

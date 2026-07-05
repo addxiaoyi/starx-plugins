@@ -4,10 +4,12 @@ import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /** 聊天模块：接收 Velocity 跨服聊天消息并在本服务器广播。 */
 public final class ChatModule implements PaperModule, Listener {
@@ -48,18 +50,18 @@ public final class ChatModule implements PaperModule, Listener {
     String sender = String.valueOf(message.payload().getOrDefault("sender", ""));
     String text = String.valueOf(message.payload().getOrDefault("message", ""));
     String format = configLoader.getChatFormat();
-    Bukkit.broadcastMessage(format.replace("{player}", sender).replace("{message}", text));
+    Bukkit.broadcast(Component.text(format.replace("{player}", sender).replace("{message}", text)));
   }
 
   @EventHandler
-  public void onChat(AsyncPlayerChatEvent event) {
+  public void onChat(AsyncChatEvent event) {
     if (!enabled) {
       return;
     }
     String format = configLoader.getChatFormat();
-    event.setFormat(
-        format
-            .replace("{player}", event.getPlayer().getName())
-            .replace("{message}", event.getMessage()));
+    event.renderer((source, sourceDisplayName, message, viewer) ->
+        Component.text(format
+            .replace("{player}", source.getName())
+            .replace("{message}", PlainTextComponentSerializer.plainText().serialize(message))));
   }
 }

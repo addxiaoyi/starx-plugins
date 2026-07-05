@@ -98,7 +98,7 @@ class HttpApiServerTest {
     server.start();
 
     String timestamp = String.valueOf(System.currentTimeMillis());
-    String signature = HmacSigner.sign(API_KEY, timestamp, "");
+    String signature = HmacSigner.sign(API_KEY, "");
 
     HttpResponse<String> response = getHmac("/v1/health", timestamp, signature);
 

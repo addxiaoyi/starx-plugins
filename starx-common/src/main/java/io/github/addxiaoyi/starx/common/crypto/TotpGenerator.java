@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.SecureRandom;
 import java.time.Instant;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -15,8 +16,21 @@ public final class TotpGenerator {
       new TimeBasedOneTimePasswordGenerator();
   private static final String ALGORITHM = "HmacSHA1";
   private static final String ALIAS = "HmacSHA1";
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+  private static final String BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
   private TotpGenerator() {}
+
+  /**
+   * 生成随机的 Base32 编码 TOTP 密钥（20 字节 → 32 字符）。
+   *
+   * @return Base32 编码的密钥字符串
+   */
+  public static String generateSecret() {
+    byte[] bytes = new byte[20];
+    SECURE_RANDOM.nextBytes(bytes);
+    return encodeBase32(bytes);
+  }
 
   /**
    * 生成指定时间点的 TOTP 码。
@@ -73,6 +87,24 @@ public final class TotpGenerator {
 
   private static String encode(String value) {
     return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+  }
+
+  private static String encodeBase32(byte[] data) {
+    StringBuilder sb = new StringBuilder();
+    int buffer = 0;
+    int bitsLeft = 0;
+    for (byte b : data) {
+      buffer = (buffer << 8) | (b & 0xFF);
+      bitsLeft += 8;
+      while (bitsLeft >= 5) {
+        bitsLeft -= 5;
+        sb.append(BASE32_ALPHABET.charAt((buffer >> bitsLeft) & 0x1F));
+      }
+    }
+    if (bitsLeft > 0) {
+      sb.append(BASE32_ALPHABET.charAt((buffer << (5 - bitsLeft)) & 0x1F));
+    }
+    return sb.toString();
   }
 
   /** 简化的 RFC 4648 Base32 编解码工具（仅提供本类所需的解码能力）。 */

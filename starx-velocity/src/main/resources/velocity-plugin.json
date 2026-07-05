@@ -1,0 +1,13 @@
+{
+  "id": "starx",
+  "name": "StarX",
+  "version": "${version}",
+  "description": "StarX All-in-One 插件套件 — 认证、皮肤、聊天、维护、反作弊等",
+  "url": "https://github.com/addxiaoyi/starx-plugins",
+  "authors": ["addxiaoyi"],
+  "dependencies": [
+    {"id": "limboapi", "optional": false},
+    {"id": "skinsrestorer", "optional": true}
+  ],
+  "main": "io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin"
+}

@@ -44,7 +44,8 @@ public final class OnlineSyncModule implements VelocityModule {
     }
     ProxyServer proxy = plugin.proxy();
     proxy.getEventManager().register(plugin, new OnlineListener());
-    proxy.getCommandManager().register("list", new ListCommand());
+    proxy.getCommandManager().register(
+        proxy.getCommandManager().metaBuilder("list").build(), new ListCommand());
   }
 
   @Override

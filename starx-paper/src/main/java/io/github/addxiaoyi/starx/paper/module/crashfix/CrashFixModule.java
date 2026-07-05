@@ -78,6 +78,7 @@ public final class CrashFixModule implements PaperModule, Listener {
     // TODO: 添加 NBT 数据大小检测（拦截过大的 NBT 数据）
   }
 
+  @SuppressWarnings("deprecation")
   @EventHandler
   public void onBookEdit(PlayerEditBookEvent event) {
     if (!enabled) {
@@ -98,8 +99,8 @@ public final class CrashFixModule implements PaperModule, Listener {
                   + event.getPlayer().getName());
       return;
     }
-    for (int i = 1; i <= meta.getPageCount(); i++) {
-      String page = meta.getPage(i);
+    for (int i = 0; i < meta.getPages().size(); i++) {
+      String page = meta.getPages().get(i);
       if (page != null && page.length() > MAX_BOOK_PAGE_SIZE * 10) {
         event.setCancelled(true);
         plugin

@@ -33,6 +33,12 @@ dependencies {
 
 sourceSets["main"].compileClasspath += sourceSets["stubs"].output.classesDirs
 
+tasks.processResources {
+    filesMatching("velocity-plugin.json") {
+        expand("version" to project.version)
+    }
+}
+
 tasks.test {
     val workerTmp = File("C:/tmp")
     workerTmp.mkdirs()

@@ -5,6 +5,7 @@ import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
+import net.kyori.adventure.text.Component;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -60,6 +61,7 @@ public final class MaintenanceModule implements PaperModule, Listener {
       return;
     }
     event.disallow(
-        PlayerLoginEvent.Result.KICK_WHITELIST, "Server is currently under maintenance.");
+        PlayerLoginEvent.Result.KICK_WHITELIST,
+        Component.text("Server is currently under maintenance."));
   }
 }

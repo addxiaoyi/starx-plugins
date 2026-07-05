@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
-/** 对 {@link WebhookPayload} 进行 VLA HMAC 签名，输出请求头。 */
+/**
+ * 对 {@link WebhookPayload} 进行 VLA HMAC 签名，输出请求头。签名仅使用原始 JSON 正文，
+ * X-VLA-Timestamp 仅用于审计用途。
+ */
 public final class WebhookSigner {
 
   private static final Gson GSON =
@@ -32,7 +35,7 @@ public final class WebhookSigner {
   public static Map<String, String> sign(WebhookPayload payload, String secret) {
     String rawBody = toJson(payload);
     String timestamp = String.valueOf(payload.timestamp().getEpochSecond());
-    String signature = HmacSigner.sign(secret, timestamp, rawBody);
+    String signature = HmacSigner.sign(secret, rawBody);
     return Map.of("X-VLA-Timestamp", timestamp, "X-VLA-Signature", signature);
   }
 

@@ -4,7 +4,7 @@ plugins {
 
 allprojects {
     group = "io.github.addxiaoyi"
-    version = "0.1.0-SNAPSHOT"
+    version = (project.findProperty("version") as? String) ?: "0.1.1"
 
     repositories {
         mavenCentral()

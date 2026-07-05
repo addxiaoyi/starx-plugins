@@ -9,7 +9,7 @@ import io.javalin.http.Context;
 import java.util.Map;
 import java.util.Objects;
 
-/** POST /v1/link/external-user - 关联外部网站用户 ID。 */
+/** POST /v1/admin/link-external-user - 关联外部网站用户 ID。 */
 public final class LinkExternalUserHandler implements AdminHandler {
 
   private final UserRepository users;
@@ -22,7 +22,7 @@ public final class LinkExternalUserHandler implements AdminHandler {
 
   @Override
   public void register(Javalin app) {
-    app.post("/v1/link/external-user", this::handle);
+    app.post("/v1/admin/link-external-user", this::handle);
   }
 
   private void handle(Context ctx) {

@@ -2,8 +2,9 @@ package io.github.addxiaoyi.starx.velocity.http;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
+import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import io.github.addxiaoyi.starx.velocity.http.admin.BanHandler;
 import io.github.addxiaoyi.starx.velocity.http.admin.BindEmailHandler;
@@ -18,7 +19,7 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.Objects;
 
-/** 基于 Javalin 的内部 HTTP API 服务器。 */
+/** 基于 Javalin 的内部 HTTP API 服务器，提供 VLA 协议端点供网站后端调用。 */
 public final class HttpApiServer {
 
   public static final String API_KEY_HEADER = "X-API-Key";
@@ -28,7 +29,8 @@ public final class HttpApiServer {
   private final StarxConfig config;
   private final EventBus eventBus;
   private final ProxyServer proxy;
-  private final UserRepository userRepository;
+  private final JdbiUserRepository userRepository;
+  private final AuthService authService;
   private final SkinBridgeModule skinBridge;
   private Javalin app;
 
@@ -36,27 +38,32 @@ public final class HttpApiServer {
       StarxConfig config,
       EventBus eventBus,
       ProxyServer proxy,
-      UserRepository userRepository,
+      JdbiUserRepository userRepository,
+      AuthService authService,
       SkinBridgeModule skinBridge) {
     this.config = Objects.requireNonNull(config, "config");
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
     this.proxy = Objects.requireNonNull(proxy, "proxy");
     this.userRepository = Objects.requireNonNull(userRepository, "userRepository");
+    this.authService = Objects.requireNonNull(authService, "authService");
     this.skinBridge = skinBridge;
   }
 
   public void start() {
-    app = Javalin.create(javalinConfig -> javalinConfig.showJavalinBanner = false);
+    app = Javalin.create(javalinConfig -> {
+      javalinConfig.showJavalinBanner = false;
+      javalinConfig.http.maxRequestSize = 1_048_576L;
+    });
     app.before(this::authFilter);
     app.get("/v1/health", this::health);
 
     new UserQueryHandler(userRepository).register(app);
-    new SkinRefreshHandler(userRepository, eventBus).register(app);
-    new PasswordResetHandler(userRepository, eventBus).register(app);
-    new BindEmailHandler(userRepository, eventBus).register(app);
+    new SkinRefreshHandler(skinBridge, userRepository).register(app);
+    new PasswordResetHandler(authService).register(app);
+    new BindEmailHandler(authService).register(app);
     new BanHandler(userRepository, eventBus).register(app);
     new KickHandler(proxy, eventBus).register(app);
-    new DeleteUserHandler(userRepository).register(app);
+    new DeleteUserHandler(authService).register(app);
     new LinkExternalUserHandler(userRepository, eventBus).register(app);
 
     app.start(config.http().bind(), config.http().port());
@@ -79,7 +86,7 @@ public final class HttpApiServer {
     String signature = ctx.header(SIGNATURE_HEADER);
     String timestamp = ctx.header(TIMESTAMP_HEADER);
     if (signature != null && !signature.isBlank() && timestamp != null && !timestamp.isBlank()) {
-      if (HmacSigner.verify(apiKey, timestamp, ctx.body(), signature)) {
+      if (HmacSigner.verify(apiKey, ctx.body(), signature)) {
         return;
       }
     }

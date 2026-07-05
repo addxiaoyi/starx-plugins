@@ -1,7 +1,7 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
-import io.github.addxiaoyi.starx.api.dto.UserDto;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
+import io.github.addxiaoyi.starx.common.auth.AuthResult;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.Map;
@@ -10,10 +10,10 @@ import java.util.Objects;
 /** POST /v1/admin/delete-user - 管理员删除玩家账户。 */
 public final class DeleteUserHandler implements AdminHandler {
 
-  private final UserRepository users;
+  private final AuthService authService;
 
-  public DeleteUserHandler(UserRepository users) {
-    this.users = Objects.requireNonNull(users, "users");
+  public DeleteUserHandler(AuthService authService) {
+    this.authService = Objects.requireNonNull(authService, "authService");
   }
 
   @Override
@@ -28,14 +28,12 @@ public final class DeleteUserHandler implements AdminHandler {
       return;
     }
 
-    UserDto existing = users.findByUsername(req.username).orElse(null);
-    if (existing == null) {
-      ctx.status(404).json(Map.of("error", "User not found"));
-      return;
+    AuthResult result = authService.deleteUser(req.username);
+    if (result.success()) {
+      ctx.status(200).json(Map.of("success", true));
+    } else {
+      ctx.status(400).json(Map.of("error", result.message()));
     }
-
-    users.delete(existing.uuid());
-    ctx.status(200).json(Map.of("success", true));
   }
 
   static final class DeleteUserRequest {

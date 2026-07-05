@@ -1,27 +1,24 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
-import io.github.addxiaoyi.starx.api.event.EventBus;
-import io.github.addxiaoyi.starx.api.event.EventTypes;
-import io.github.addxiaoyi.starx.api.repository.UserRepository;
+import io.github.addxiaoyi.starx.common.auth.AuthService;
+import io.github.addxiaoyi.starx.common.auth.AuthResult;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.Map;
 import java.util.Objects;
 
-/** POST /v1/admin/password - 管理员重置玩家密码。 */
+/** POST /v1/admin/reset-password - 管理员重置玩家密码。 */
 public final class PasswordResetHandler implements AdminHandler {
 
-  private final UserRepository users;
-  private final EventBus eventBus;
+  private final AuthService authService;
 
-  public PasswordResetHandler(UserRepository users, EventBus eventBus) {
-    this.users = Objects.requireNonNull(users, "users");
-    this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
+  public PasswordResetHandler(AuthService authService) {
+    this.authService = Objects.requireNonNull(authService, "authService");
   }
 
   @Override
   public void register(Javalin app) {
-    app.post("/v1/admin/password", this::handle);
+    app.post("/v1/admin/reset-password", this::handle);
   }
 
   private void handle(Context ctx) {
@@ -34,15 +31,12 @@ public final class PasswordResetHandler implements AdminHandler {
       return;
     }
 
-    if (!users.existsByUsername(req.username)) {
-      ctx.status(404).json(Map.of("error", "User not found"));
-      return;
+    AuthResult result = authService.resetPassword(req.username, req.newPassword);
+    if (result.success()) {
+      ctx.status(200).json(Map.of("success", true));
+    } else {
+      ctx.status(400).json(Map.of("error", result.message()));
     }
-
-    eventBus.publish(
-        EventTypes.ADMIN_RESET_PASSWORD,
-        Map.of("username", req.username, "newPassword", req.newPassword));
-    ctx.status(200).json(Map.of("success", true));
   }
 
   static final class PasswordResetRequest {

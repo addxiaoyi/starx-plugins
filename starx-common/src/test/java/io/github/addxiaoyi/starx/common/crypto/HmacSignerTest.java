@@ -12,11 +12,10 @@ class HmacSignerTest {
   @Test
   void signProducesExpectedHexSignature() throws Exception {
     String secret = "shhh";
-    String timestamp = "1700000000";
     String rawBody = "{\"hello\":\"world\"}";
-    String expected = hmacSha256Hex(secret, timestamp + "\n" + rawBody);
+    String expected = hmacSha256Hex(secret, rawBody);
 
-    String signature = HmacSigner.sign(secret, timestamp, rawBody);
+    String signature = HmacSigner.sign(secret, rawBody);
 
     assertThat(signature).isEqualToIgnoringCase(expected);
   }
@@ -24,20 +23,18 @@ class HmacSignerTest {
   @Test
   void verifyAcceptsValidSignature() {
     String secret = "key";
-    String timestamp = "1700000001";
     String rawBody = "{\"a\":1}";
-    String signature = HmacSigner.sign(secret, timestamp, rawBody);
+    String signature = HmacSigner.sign(secret, rawBody);
 
-    assertThat(HmacSigner.verify(secret, timestamp, rawBody, signature)).isTrue();
+    assertThat(HmacSigner.verify(secret, rawBody, signature)).isTrue();
   }
 
   @Test
   void verifyRejectsTamperedBody() {
     String secret = "key";
-    String timestamp = "1700000001";
-    String signature = HmacSigner.sign(secret, timestamp, "{\"a\":1}");
+    String signature = HmacSigner.sign(secret, "{\"a\":1}");
 
-    assertThat(HmacSigner.verify(secret, timestamp, "{\"a\":2}", signature)).isFalse();
+    assertThat(HmacSigner.verify(secret, "{\"a\":2}", signature)).isFalse();
   }
 
   private String hmacSha256Hex(String secret, String data) throws Exception {

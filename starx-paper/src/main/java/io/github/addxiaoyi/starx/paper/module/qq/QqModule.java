@@ -6,6 +6,7 @@ import io.github.addxiaoyi.starx.paper.module.PaperModule;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -58,7 +59,7 @@ public final class QqModule implements PaperModule, Listener {
     if (!enabled) {
       return;
     }
-    String deathMessage = event.getDeathMessage();
+    String deathMessage = PlainTextComponentSerializer.plainText().serialize(event.deathMessage());
     pendingNotifications.add(
         Map.of(
             "type",

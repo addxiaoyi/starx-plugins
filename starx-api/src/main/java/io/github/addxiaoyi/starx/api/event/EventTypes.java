@@ -11,6 +11,8 @@ public final class EventTypes {
   public static final String PLAYER_LOGIN_FAILED = "player:login:failed";
   public static final String PLAYER_LOGOUT = "player:logout";
   public static final String PLAYER_REGISTER = "player:register";
+  public static final String PLAYER_TOTP_ENABLED = "player:totp:enabled";
+  public static final String PLAYER_TOTP_DISABLED = "player:totp:disabled";
 
   // 安全相关
   public static final String SECURITY_ALERT = "security:alert";

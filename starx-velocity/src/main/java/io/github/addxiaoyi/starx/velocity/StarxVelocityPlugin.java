@@ -4,8 +4,6 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
-import com.velocitypowered.api.plugin.Dependency;
-import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
@@ -51,15 +49,7 @@ import io.github.addxiaoyi.starx.velocity.security.HmacWebhookSigner;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-/** StarX Velocity 代理端入口。 */
-@Plugin(
-    id = "starx",
-    name = "StarX",
-    version = "0.1.0-SNAPSHOT",
-    dependencies = {
-      @Dependency(id = "limboapi"),
-      @Dependency(id = "skinsrestorer", optional = true)
-    })
+/** StarX Velocity 代理端入口，插件元数据由 velocity-plugin.json 定义。 */
 public class StarxVelocityPlugin {
 
   private final ProxyServer proxy;
@@ -172,7 +162,7 @@ public class StarxVelocityPlugin {
             this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
 
     httpApiServer =
-        new HttpApiServer(config, eventBus, proxy, databaseManager.getUserRepository(), skinBridge);
+        new HttpApiServer(config, eventBus, proxy, authModule.userRepository(), authModule.authService(), skinBridge);
     webhookClient =
         new WebhookClient(config.webhook(), new HmacWebhookSigner(config.webhook().secret()));
     new WebhookEventPublisher(eventBus, webhookClient).register();

@@ -126,6 +126,129 @@ public class JdbiUserRepository implements UserRepository {
     return jdbi.withHandle(handle -> findFullByUuid(handle, uuid));
   }
 
+  public Optional<StarxUser> findFullByUsername(String username) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery(SELECT_BY_USERNAME)
+                .bind(0, username)
+                .map((rs, ctx) -> mapUser(rs))
+                .findOne());
+  }
+
+  public boolean existsByUuid(UUID uuid) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT 1 FROM starx_users WHERE uuid = ?")
+                .bind(0, uuid)
+                .map((rs, ctx) -> 1)
+                .findOne()
+                .isPresent());
+  }
+
+  public boolean existsByUsernameOrUuid(String username, UUID uuid) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT 1 FROM starx_users WHERE username = ? OR uuid = ?")
+                .bind(0, username)
+                .bind(1, uuid)
+                .map((rs, ctx) -> 1)
+                .findOne()
+                .isPresent());
+  }
+
+  public Optional<String> findTotpSecretByUuid(UUID uuid) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT totp_secret FROM starx_users WHERE uuid = ?")
+                .bind(0, uuid)
+                .map((rs, ctx) -> rs.getString("totp_secret"))
+                .findOne());
+  }
+
+  public Optional<String> findTrustedDevicesByUuid(UUID uuid) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT trusted_devices FROM starx_users WHERE uuid = ?")
+                .bind(0, uuid)
+                .map((rs, ctx) -> rs.getString("trusted_devices"))
+                .findOne());
+  }
+
+  public Optional<String> findPasswordHashByUuid(UUID uuid) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT password_hash FROM starx_users WHERE uuid = ?")
+                .bind(0, uuid)
+                .map((rs, ctx) -> rs.getString("password_hash"))
+                .findOne());
+  }
+
+  public void updatePasswordHash(UUID uuid, String passwordHash) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET password_hash = ? WHERE uuid = ?")
+                .bind(0, passwordHash)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updateTotpSecret(UUID uuid, String totpSecret) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET totp_secret = ? WHERE uuid = ?")
+                .bind(0, totpSecret)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updateEmail(UUID uuid, String email) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET email = ? WHERE uuid = ?")
+                .bind(0, email)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updateLastLogin(UUID uuid, java.time.Instant lastLogin) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET last_login_at = ? WHERE uuid = ?")
+                .bind(0, java.sql.Timestamp.from(lastLogin))
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updatePremium(UUID uuid, boolean premium) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET premium = ? WHERE uuid = ?")
+                .bind(0, premium)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updateTrustedDevices(UUID uuid, List<String> trustedDevices) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET trusted_devices = ? WHERE uuid = ?")
+                .bind(0, toJson(trustedDevices))
+                .bind(1, uuid)
+                .execute());
+  }
+
   private Optional<StarxUser> findFullByUuid(Handle handle, UUID uuid) {
     return handle.createQuery(SELECT_BY_UUID).bind(0, uuid).map((rs, ctx) -> mapUser(rs)).findOne();
   }

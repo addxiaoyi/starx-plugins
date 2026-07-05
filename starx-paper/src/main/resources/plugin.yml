@@ -1,7 +1,10 @@
 name: starx
 version: ${version}
+description: StarX All-in-One 插件套件 — 认证、皮肤、聊天、维护、反作弊等
+author: addxiaoyi
+website: https://github.com/addxiaoyi/starx-plugins
 main: io.github.addxiaoyi.starx.paper.StarxPaperPlugin
-api-version: "1.21.1"
+api-version: "1.21.4"
 folia-supported: true
 softdepend:
   - SkinsRestorer

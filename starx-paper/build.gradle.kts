@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     api(project(":starx-common"))
+    api(project(":starx-api"))
     compileOnly(libs.paper.api)
     implementation(libs.gson)
     implementation(libs.configurate.yaml)

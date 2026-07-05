@@ -22,7 +22,7 @@ class WebhookSignerTest {
 
     assertThat(headers).containsOnlyKeys("X-VLA-Timestamp", "X-VLA-Signature");
     assertThat(headers.get("X-VLA-Timestamp")).isEqualTo("1700000000");
-    String expected = HmacSigner.sign(secret, "1700000000", WebhookSigner.toJson(payload));
+    String expected = HmacSigner.sign(secret, WebhookSigner.toJson(payload));
     assertThat(headers.get("X-VLA-Signature")).isEqualToIgnoringCase(expected);
   }
 

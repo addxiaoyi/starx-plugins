@@ -58,6 +58,10 @@ public final class AuthModule implements VelocityModule {
     return userRepository;
   }
 
+  public AuthService authService() {
+    return authService;
+  }
+
   @Override
   public String name() {
     return "auth";
@@ -67,13 +71,16 @@ public final class AuthModule implements VelocityModule {
   public void onEnable() {
     initLimbo();
     plugin.proxy().getEventManager().register(plugin, new LoginListener());
-    new AuthCommands(plugin, commandHandler).register();
+    new AuthCommands(plugin, authService).onEnable();
   }
 
   @Override
   public void onDisable() {
     if (authLimbo != null) {
       authLimbo.dispose();
+    }
+    if (sessionManager != null) {
+      sessionManager.shutdown();
     }
     if (databaseManager != null) {
       databaseManager.close();
@@ -124,9 +131,14 @@ public final class AuthModule implements VelocityModule {
 
   private void handleAuthResult(Player player, AuthResult result) {
     if (result.success()) {
-      player.sendMessage(Component.text(result.message()));
       if (result.state() == AuthSession.State.AUTHENTICATED) {
+        player.sendMessage(Component.text("§a" + result.message() + " 正在进入服务器..."));
         sendToTargetServer(player);
+      } else if (result.state() == AuthSession.State.AUTHENTICATING) {
+        player.sendMessage(Component.text("§e" + result.message()));
+        player.sendMessage(Component.text("§7（可发送 /2fa 命令管理二步验证）"));
+      } else {
+        player.sendMessage(Component.text("§a" + result.message()));
       }
     } else {
       player.sendMessage(Component.text("§c" + result.message()));
@@ -165,7 +177,7 @@ public final class AuthModule implements VelocityModule {
         authLimbo.spawnPlayer(
             player,
             new LimboSessionListener(
-                player, commandHandler, AuthModule.this::handleAuthResult, deviceId(player)));
+                player, authService, commandHandler, AuthModule.this::handleAuthResult, deviceId(player)));
       } else {
         player.disconnect(Component.text("未安装 LimboAPI，无法认证"));
       }

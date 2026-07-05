@@ -18,8 +18,16 @@ public final class DatabaseManager implements AutoCloseable {
     hikariConfig.setJdbcUrl(config.jdbcUrl());
     hikariConfig.setUsername(config.username());
     hikariConfig.setPassword(config.password());
-    hikariConfig.setMaximumPoolSize(config.poolMaxSize());
     hikariConfig.setConnectionTimeout(config.connectionTimeoutMs());
+
+    boolean isH2 = config.jdbcUrl().startsWith("jdbc:h2:");
+    if (isH2) {
+      hikariConfig.setMaximumPoolSize(Math.min(config.poolMaxSize(), 3));
+      hikariConfig.setMinimumIdle(1);
+    } else {
+      hikariConfig.setMaximumPoolSize(config.poolMaxSize());
+      hikariConfig.setMinimumIdle(2);
+    }
     hikariConfig.setPoolName("starx-common-pool");
 
     this.dataSource = new HikariDataSource(hikariConfig);
