@@ -72,3 +72,7 @@ plugins/
 # H2 database files
 *.mv.db
 *.trace.db
+
+# Local dev artifacts
+build_output.txt
+obsidian-vault/
