@@ -33,9 +33,11 @@ dependencies {
 
 sourceSets["main"].compileClasspath += sourceSets["stubs"].output.classesDirs
 
+val currentVersion = project.version
+
 tasks.processResources {
     filesMatching("velocity-plugin.json") {
-        expand("version" to project.version)
+        expand("version" to currentVersion)
     }
 }
 

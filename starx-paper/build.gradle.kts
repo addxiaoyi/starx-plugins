@@ -29,9 +29,11 @@ tasks.test {
     reports.junitXml.outputLocation.set(layout.buildDirectory.dir("test-results-$ts/xml"))
 }
 
+val currentVersion = project.version
+
 tasks.processResources {
     filesMatching("plugin.yml") {
-        expand("version" to project.version)
+        expand("version" to currentVersion)
     }
 }
 
