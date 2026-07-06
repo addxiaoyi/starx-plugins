@@ -79,3 +79,5 @@ obsidian-vault/
 
 # LimboAPI downloads
 limboapi-plugins/
+!limboapi-plugins/
+!limboapi-plugins/*.jar

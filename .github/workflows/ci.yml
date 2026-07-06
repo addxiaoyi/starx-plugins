@@ -59,6 +59,12 @@ jobs:
           name: starx-paper
           path: starx-paper/build/libs/starx-paper-${{ steps.version.outputs.VERSION }}.jar
 
+      - name: Upload Patched LimboAPI JAR
+        uses: actions/upload-artifact@v7
+        with:
+          name: limboapi-patched
+          path: limboapi-plugins/limboapi-1.1.27-SNAPSHOT-velocity-3.5-patched.jar
+
       - name: Test Summary
         if: always()
         run: |
@@ -87,6 +93,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: starx-paper
+          path: artifacts/
+
+      - name: Download Patched LimboAPI JAR
+        uses: actions/download-artifact@v8
+        with:
+          name: limboapi-patched
           path: artifacts/
 
       - name: Publish Release
