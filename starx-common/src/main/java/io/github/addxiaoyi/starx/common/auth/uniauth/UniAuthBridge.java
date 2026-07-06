@@ -124,7 +124,13 @@ public final class UniAuthBridge {
                           null,
                           SOURCE_SYSTEM_STARVC,
                           "completed",
-                          Instant.now());
+                          Instant.now(),
+                          null,
+                          null,
+                          null,
+                          0L,
+                          null,
+                          false);
 
                   userRepository.create(newUser);
 

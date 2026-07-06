@@ -22,7 +22,8 @@ public class JdbiUserRepository implements UserRepository {
   private static final String SELECT_COLUMNS =
       "uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at,"
           + " external_user_id, trusted_devices, COALESCE(recovery_codes, '') as recovery_codes,"
-          + " source_system, migration_state, password_migrated_at";
+          + " source_system, migration_state, password_migrated_at, last_login_ip, last_login_isp,"
+          + " last_login_location, total_playtime, last_logout_at, welcome_message_shown";
   private static final String SELECT_BY_UUID =
       "SELECT " + SELECT_COLUMNS + " FROM starx_users WHERE uuid = ?";
   private static final String SELECT_BY_USERNAME =
@@ -295,6 +296,49 @@ public class JdbiUserRepository implements UserRepository {
                 .execute());
   }
 
+  public void updateLoginInfo(UUID uuid, String ip, String isp, String location) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate(
+                    "UPDATE starx_users SET last_login_ip = ?, last_login_isp = ?, last_login_location = ? WHERE uuid = ?")
+                .bind(0, ip)
+                .bind(1, isp)
+                .bind(2, location)
+                .bind(3, uuid)
+                .execute());
+  }
+
+  public void updateTotalPlaytime(UUID uuid, long additionalPlaytime) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate(
+                    "UPDATE starx_users SET total_playtime = COALESCE(total_playtime, 0) + ? WHERE uuid = ?")
+                .bind(0, additionalPlaytime)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void updateLastLogout(UUID uuid, Instant lastLogoutAt) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET last_logout_at = ? WHERE uuid = ?")
+                .bind(0, lastLogoutAt != null ? Timestamp.from(lastLogoutAt) : null)
+                .bind(1, uuid)
+                .execute());
+  }
+
+  public void markWelcomeMessageShown(UUID uuid) {
+    jdbi.useHandle(
+        handle ->
+            handle
+                .createUpdate("UPDATE starx_users SET welcome_message_shown = TRUE WHERE uuid = ?")
+                .bind(0, uuid)
+                .execute());
+  }
+
   public void updateSourceSystem(UUID uuid, String sourceSystem) {
     jdbi.useHandle(
         handle ->
@@ -465,7 +509,7 @@ public class JdbiUserRepository implements UserRepository {
   private void insert(Handle handle, StarxUser user) {
     handle
         .createUpdate(
-            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices, recovery_codes, source_system, migration_state, password_migrated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            "INSERT INTO starx_users (uuid, username, email, password_hash, totp_secret, premium, created_at, last_login_at, external_user_id, trusted_devices, recovery_codes, source_system, migration_state, password_migrated_at, last_login_ip, last_login_isp, last_login_location, total_playtime, last_logout_at, welcome_message_shown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(0, user.uuid())
         .bind(1, user.username())
         .bind(2, user.email())
@@ -482,13 +526,19 @@ public class JdbiUserRepository implements UserRepository {
         .bind(
             13,
             user.passwordMigratedAt() != null ? Timestamp.from(user.passwordMigratedAt()) : null)
+        .bind(14, user.lastLoginIp())
+        .bind(15, user.lastLoginIsp())
+        .bind(16, user.lastLoginLocation())
+        .bind(17, user.totalPlaytime())
+        .bind(18, user.lastLogoutAt() != null ? Timestamp.from(user.lastLogoutAt()) : null)
+        .bind(19, user.welcomeMessageShown())
         .execute();
   }
 
   private void update(Handle handle, StarxUser user) {
     handle
         .createUpdate(
-            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ?, trusted_devices = ?, recovery_codes = ?, source_system = ?, migration_state = ?, password_migrated_at = ? WHERE uuid = ?")
+            "UPDATE starx_users SET username = ?, email = ?, password_hash = ?, totp_secret = ?, premium = ?, created_at = ?, last_login_at = ?, external_user_id = ?, trusted_devices = ?, recovery_codes = ?, source_system = ?, migration_state = ?, password_migrated_at = ?, last_login_ip = ?, last_login_isp = ?, last_login_location = ?, total_playtime = ?, last_logout_at = ?, welcome_message_shown = ? WHERE uuid = ?")
         .bind(0, user.username())
         .bind(1, user.email())
         .bind(2, user.passwordHash())
@@ -504,7 +554,13 @@ public class JdbiUserRepository implements UserRepository {
         .bind(
             12,
             user.passwordMigratedAt() != null ? Timestamp.from(user.passwordMigratedAt()) : null)
-        .bind(13, user.uuid())
+        .bind(13, user.lastLoginIp())
+        .bind(14, user.lastLoginIsp())
+        .bind(15, user.lastLoginLocation())
+        .bind(16, user.totalPlaytime())
+        .bind(17, user.lastLogoutAt() != null ? Timestamp.from(user.lastLogoutAt()) : null)
+        .bind(18, user.welcomeMessageShown())
+        .bind(19, user.uuid())
         .execute();
   }
 
@@ -524,6 +580,7 @@ public class JdbiUserRepository implements UserRepository {
     Timestamp createdAt = rs.getTimestamp("created_at");
     Timestamp lastLoginAt = rs.getTimestamp("last_login_at");
     Timestamp passwordMigratedAt = rs.getTimestamp("password_migrated_at");
+    Timestamp lastLogoutAt = rs.getTimestamp("last_logout_at");
     return new StarxUser(
         UUID.fromString(rs.getString("uuid")),
         rs.getString("username"),
@@ -538,7 +595,13 @@ public class JdbiUserRepository implements UserRepository {
         rs.getString("recovery_codes"),
         rs.getString("source_system"),
         rs.getString("migration_state"),
-        passwordMigratedAt != null ? passwordMigratedAt.toInstant() : null);
+        passwordMigratedAt != null ? passwordMigratedAt.toInstant() : null,
+        rs.getString("last_login_ip"),
+        rs.getString("last_login_isp"),
+        rs.getString("last_login_location"),
+        rs.getLong("total_playtime"),
+        lastLogoutAt != null ? lastLogoutAt.toInstant() : null,
+        rs.getBoolean("welcome_message_shown"));
   }
 
   private String toJson(List<String> trustedDevices) {

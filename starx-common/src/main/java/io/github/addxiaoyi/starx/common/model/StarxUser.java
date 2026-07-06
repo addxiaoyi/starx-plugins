@@ -23,6 +23,12 @@ public final class StarxUser {
   private final String sourceSystem;
   private final String migrationState;
   private final Instant passwordMigratedAt;
+  private final String lastLoginIp;
+  private final String lastLoginIsp;
+  private final String lastLoginLocation;
+  private final Long totalPlaytime;
+  private final Instant lastLogoutAt;
+  private final Boolean welcomeMessageShown;
 
   public StarxUser(
       UUID uuid,
@@ -38,7 +44,13 @@ public final class StarxUser {
       String recoveryCodes,
       String sourceSystem,
       String migrationState,
-      Instant passwordMigratedAt) {
+      Instant passwordMigratedAt,
+      String lastLoginIp,
+      String lastLoginIsp,
+      String lastLoginLocation,
+      Long totalPlaytime,
+      Instant lastLogoutAt,
+      Boolean welcomeMessageShown) {
     this.uuid = uuid;
     this.username = username;
     this.email = email;
@@ -56,6 +68,12 @@ public final class StarxUser {
     this.sourceSystem = sourceSystem;
     this.migrationState = migrationState;
     this.passwordMigratedAt = passwordMigratedAt;
+    this.lastLoginIp = lastLoginIp;
+    this.lastLoginIsp = lastLoginIsp;
+    this.lastLoginLocation = lastLoginLocation;
+    this.totalPlaytime = totalPlaytime;
+    this.lastLogoutAt = lastLogoutAt;
+    this.welcomeMessageShown = welcomeMessageShown;
   }
 
   public UUID uuid() {
@@ -112,5 +130,29 @@ public final class StarxUser {
 
   public Instant passwordMigratedAt() {
     return passwordMigratedAt;
+  }
+
+  public String lastLoginIp() {
+    return lastLoginIp;
+  }
+
+  public String lastLoginIsp() {
+    return lastLoginIsp;
+  }
+
+  public String lastLoginLocation() {
+    return lastLoginLocation;
+  }
+
+  public Long totalPlaytime() {
+    return totalPlaytime;
+  }
+
+  public Instant lastLogoutAt() {
+    return lastLogoutAt;
+  }
+
+  public Boolean welcomeMessageShown() {
+    return welcomeMessageShown;
   }
 }

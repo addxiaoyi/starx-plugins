@@ -94,7 +94,13 @@ public final class AuthService {
             null,
             "local",
             "completed",
-            null);
+            null,
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
     userRepository.create(user);
     eventBus.publish(
         EventTypes.PLAYER_REGISTER,

@@ -54,6 +54,7 @@ import io.github.addxiaoyi.starx.velocity.module.security.RiskModule;
 import io.github.addxiaoyi.starx.velocity.module.security.SmartAlertModule;
 import io.github.addxiaoyi.starx.velocity.module.security.SmartRateLimitModule;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
+import io.github.addxiaoyi.starx.velocity.module.welcome.WelcomeModule;
 import io.github.addxiaoyi.starx.velocity.security.HmacWebhookSigner;
 import java.nio.file.Path;
 import java.util.logging.Logger;
@@ -192,6 +193,7 @@ public class StarxVelocityPlugin {
     moduleManager.register(
         new SocialIntegrationModule(
             this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
+    moduleManager.register(new WelcomeModule(this, userRepository));
 
     httpApiServer =
         new HttpApiServer(

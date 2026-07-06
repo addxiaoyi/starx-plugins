@@ -57,12 +57,12 @@
 ### 安装步骤
 
 1. 从 [Releases](https://github.com/addxiaoyi/starx-plugins/releases) 下载最新版本：
-   - `starx-velocity-*-all.jar` — Velocity 端
-   - `starx-paper-*-all.jar` — Paper 端
+   - `starx-velocity-*.jar` — Velocity 端
+   - `starx-paper-*.jar` — Paper 端
 
-2. **Velocity 端**：将 `starx-velocity-*-all.jar` 放入 Velocity 的 `plugins/` 目录
+2. **Velocity 端**：将 `starx-velocity-*.jar` 放入 Velocity 的 `plugins/` 目录
 
-3. **Paper 端**：将 `starx-paper-*-all.jar` 放入每个子服的 `plugins/` 目录
+3. **Paper 端**：将 `starx-paper-*.jar` 放入每个子服的 `plugins/` 目录
 
 4. 确保 `server.properties` 配置正确：
    ```properties

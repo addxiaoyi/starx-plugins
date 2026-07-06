@@ -211,7 +211,13 @@ public final class MigrationModule implements VelocityModule {
                       null,
                       "starvc",
                       "pending",
-                      null);
+                      null,
+                      null,
+                      null,
+                      null,
+                      0L,
+                      null,
+                      false);
               userRepository.create(user);
               plugin
                   .logger()

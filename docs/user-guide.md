@@ -14,9 +14,9 @@ StarX 是一体化 Minecraft 网络管理插件，在 Velocity 代理端和 Pape
 
 ### 步骤
 
-1. 从 [Releases](https://github.com/addxiaoyi/starx-plugins/releases) 下载 `starx-velocity-*-all.jar` 和 `starx-paper-*-all.jar`
-2. 将 `starx-velocity-*-all.jar` 放入 Velocity 的 `plugins/` 目录
-3. 将 `starx-paper-*-all.jar` 放入每个子服的 `plugins/` 目录
+1. 从 [Releases](https://github.com/addxiaoyi/starx-plugins/releases) 下载 `starx-velocity-*.jar` 和 `starx-paper-*.jar`
+2. 将 `starx-velocity-*.jar` 放入 Velocity 的 `plugins/` 目录
+3. 将 `starx-paper-*.jar` 放入每个子服的 `plugins/` 目录
 4. 重启服务，StarX 会自动生成默认配置
 5. 编辑 `plugins/starx/config.yml` 按需调整设置
 

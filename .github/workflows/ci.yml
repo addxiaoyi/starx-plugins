@@ -51,13 +51,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: starx-velocity
-          path: starx-velocity/build/libs/starx-velocity-*-all.jar
+          path: starx-velocity/build/libs/starx-velocity-${{ steps.version.outputs.VERSION }}.jar
 
       - name: Upload Paper JAR
         uses: actions/upload-artifact@v4
         with:
           name: starx-paper
-          path: starx-paper/build/libs/starx-paper-*-all.jar
+          path: starx-paper/build/libs/starx-paper-${{ steps.version.outputs.VERSION }}.jar
 
       - name: Test Summary
         if: always()
