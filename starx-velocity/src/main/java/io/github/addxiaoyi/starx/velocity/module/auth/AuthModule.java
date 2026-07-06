@@ -1,6 +1,7 @@
 package io.github.addxiaoyi.starx.velocity.module.auth;
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.Player;
 import io.github.addxiaoyi.starx.api.event.EventBus;
@@ -35,7 +36,7 @@ import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
 import net.elytrium.limboapi.api.player.GameMode;
 import net.kyori.adventure.text.Component;
 
-/** 认证模块：在 LimboAPI 注册阶段拦截未登录玩家并送入 Limbo。 */
+/** 认证模块：在 LimboAPI 注册阶段拦截未登录玩家并送入 Limbo；无 LimboAPI 时自动降级到直接登录。 */
 public final class AuthModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;
@@ -140,7 +141,7 @@ public final class AuthModule implements VelocityModule {
             .getPlugin("limboapi")
             .flatMap(PluginContainer::getInstance);
     if (optional.isEmpty() || !(optional.get() instanceof LimboFactory factory)) {
-      plugin.logger().log(Level.SEVERE, "LimboAPI 未找到，认证模块无法创建 Limbo");
+      plugin.logger().log(Level.INFO, "LimboAPI 未找到，将使用无 Limbo 模式");
       return;
     }
     this.limboFactory = factory;
@@ -149,13 +150,19 @@ public final class AuthModule implements VelocityModule {
             .createLimbo(factory.createVirtualWorld(Dimension.OVERWORLD, 0.5, 64, 0.5, 0.0f, 0.0f))
             .setName("starx-auth")
             .setGameMode(GameMode.ADVENTURE);
+    plugin.logger().log(Level.INFO, "LimboAPI 已加载");
   }
 
   private void sendToTargetServer(Player player) {
     if (limboFactory != null) {
       limboFactory.passLoginLimbo(player);
     } else {
-      player.disconnect(Component.text("服务器配置错误，无法完成登录"));
+      plugin
+          .proxy()
+          .getServer("lobby")
+          .ifPresentOrElse(
+              server -> player.createConnectionRequest(server).fireAndForget(),
+              () -> player.disconnect(Component.text("未找到 lobby 服务器")));
     }
   }
 
@@ -187,33 +194,48 @@ public final class AuthModule implements VelocityModule {
         : null;
   }
 
+  private void handleLogin(Player player) {
+    UUID uuid = player.getUniqueId();
+    String username = player.getUsername();
+
+    if (premiumResolver.isPremium(uuid, player.isOnlineMode())) {
+      authService.autoLogin(uuid, username, playerAddress(player));
+      sendToTargetServer(player);
+      return;
+    }
+
+    eventBus.publish(EventTypes.PLAYER_LOGIN_START, Map.of("uuid", uuid, "username", username));
+
+    if (authLimbo != null) {
+      authLimbo.spawnPlayer(
+          player,
+          new LimboSessionListener(
+              player,
+              authService,
+              commandHandler,
+              AuthModule.this::handleAuthResult,
+              deviceId(player)));
+    } else {
+      if (authService.isUserRegistered(uuid)) {
+        AuthResult result = authService.autoLogin(uuid, username, playerAddress(player));
+        handleAuthResult(player, result);
+      } else {
+        player.disconnect(Component.text("请先在网站注册账号，或安装 LimboAPI 以支持游戏内注册"));
+      }
+    }
+  }
+
   private final class LoginListener {
 
     @Subscribe
     public void onLoginLimboRegister(LoginLimboRegisterEvent event) {
-      Player player = event.getPlayer();
-      UUID uuid = player.getUniqueId();
-      String username = player.getUsername();
+      handleLogin(event.getPlayer());
+    }
 
-      if (premiumResolver.isPremium(uuid, player.isOnlineMode())) {
-        authService.autoLogin(uuid, username, playerAddress(player));
-        sendToTargetServer(player);
-        return;
-      }
-
-      eventBus.publish(EventTypes.PLAYER_LOGIN_START, Map.of("uuid", uuid, "username", username));
-
-      if (authLimbo != null) {
-        authLimbo.spawnPlayer(
-            player,
-            new LimboSessionListener(
-                player,
-                authService,
-                commandHandler,
-                AuthModule.this::handleAuthResult,
-                deviceId(player)));
-      } else {
-        player.disconnect(Component.text("未安装 LimboAPI，无法认证"));
+    @Subscribe
+    public void onLogin(LoginEvent event) {
+      if (authLimbo == null) {
+        handleLogin(event.getPlayer());
       }
     }
   }

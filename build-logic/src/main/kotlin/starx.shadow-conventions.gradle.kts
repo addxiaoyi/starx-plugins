@@ -6,7 +6,7 @@ plugins {
 }
 
 tasks.named<Jar>("jar") {
-    archiveClassifier.set("plain")
+    enabled = false
 }
 
 tasks.withType<ShadowJar>().configureEach {
