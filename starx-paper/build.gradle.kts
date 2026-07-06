@@ -12,6 +12,11 @@ dependencies {
     compileOnly(libs.paper.api)
     implementation(libs.gson)
     implementation(libs.configurate.yaml)
+    // 包含所有数据库驱动，确保它们被打包到 shadowJar
+    implementation(libs.h2)
+    implementation(libs.mysql.connector)
+    implementation(libs.postgresql)
+    implementation(libs.sqlite)
 
     testImplementation(project(":starx-testfixtures"))
     testImplementation(libs.paper.api)

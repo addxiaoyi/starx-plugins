@@ -20,6 +20,11 @@ dependencies {
     "stubsCompileOnly"(libs.velocity.api)
     implementation(libs.javalin)
     implementation(libs.micrometer.prometheus)
+    // 包含所有数据库驱动，确保它们被打包到 shadowJar
+    implementation(libs.h2)
+    implementation(libs.mysql.connector)
+    implementation(libs.postgresql)
+    implementation(libs.sqlite)
 
     testImplementation(project(":starx-testfixtures"))
     testImplementation(libs.velocity.api)
@@ -59,4 +64,8 @@ tasks.withType<ShadowJar>().configureEach {
     relocate("at.favre.lib.bytes", "io.github.addxiaoyi.starx.libs.bytes")
     relocate("at.favre.lib.hkdf", "io.github.addxiaoyi.starx.libs.hkdf")
     relocate("at.favre.lib.bcrypt", "io.github.addxiaoyi.starx.libs.bcrypt")
+    relocate("org.h2", "io.github.addxiaoyi.starx.libs.h2")
+    relocate("com.mysql", "io.github.addxiaoyi.starx.libs.mysql")
+    relocate("org.postgresql", "io.github.addxiaoyi.starx.libs.postgresql")
+    relocate("org.sqlite", "io.github.addxiaoyi.starx.libs.sqlite")
 }

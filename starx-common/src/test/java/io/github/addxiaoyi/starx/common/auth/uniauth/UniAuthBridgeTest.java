@@ -155,6 +155,47 @@ class UniAuthBridgeTest {
   }
 
   @Test
+  void authenticateWithUniAuthAndMigratePendingUserUsesStoredUuid() throws Exception {
+    UUID storedUuid = UUID.randomUUID();
+    UUID loginUuid = UUID.randomUUID();
+    String password = "validPass123";
+
+    StarxUser user =
+        new StarxUser(
+            storedUuid,
+            "testuser2",
+            "test2@example.com",
+            null,
+            null,
+            false,
+            Instant.now(),
+            null,
+            null,
+            List.of(),
+            null,
+            "starvc",
+            "pending",
+            null);
+    userRepository.saveUser(user);
+
+    when(uniAuthClient.login(anyString(), anyString()))
+        .thenReturn(
+            CompletableFuture.completedFuture(
+                new UniAuthClient.LoginResponse(true, "Success", "user-2", "test2@example.com")));
+
+    UniAuthBridge.BridgeResult result =
+        uniAuthBridge.authenticate(loginUuid, "testuser2", password).get();
+
+    assertThat(result.success()).isTrue();
+
+    StarxUser updatedUser = userRepository.findFullByUuid(storedUuid).orElseThrow();
+    assertThat(updatedUser.migrationState()).isEqualTo("completed");
+    assertThat(updatedUser.passwordHash()).isNotNull();
+    assertThat(updatedUser.passwordMigratedAt()).isNotNull();
+    assertThat(userRepository.findFullByUuid(loginUuid)).isEmpty();
+  }
+
+  @Test
   void authenticateWithUniAuthAndCreateNewUser() throws Exception {
     UUID uuid = UUID.randomUUID();
     String password = "validPass123";

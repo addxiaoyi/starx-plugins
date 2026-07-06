@@ -73,9 +73,10 @@ public final class UniAuthBridge {
               if (response.success()) {
                 try {
                   String hashedPassword = PasswordHasher.hash(password);
-                  userRepository.updatePassword(uuid, hashedPassword);
-                  userRepository.updateMigrationState(uuid, "completed");
-                  userRepository.updatePasswordMigratedAt(uuid, Instant.now());
+                  UUID targetUuid = existingUser.uuid();
+                  userRepository.updatePassword(targetUuid, hashedPassword);
+                  userRepository.updateMigrationState(targetUuid, "completed");
+                  userRepository.updatePasswordMigratedAt(targetUuid, Instant.now());
 
                   Optional<StarxUser> updatedUserOpt = userRepository.findFullByUsername(username);
                   StarxUser updatedUser = updatedUserOpt.orElse(null);

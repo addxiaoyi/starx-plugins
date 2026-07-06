@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -142,32 +143,48 @@ public final class MigrationModule implements VelocityModule {
     int errors = 0;
 
     try (Connection sourceConn = getSourceConnection()) {
-      // TODO: 根据实际 StarVC 数据库表结构调整查询
-      String query = "SELECT uuid, username, email FROM starvc_users"; // 示例查询，请根据实际表结构调整
+      String schemaMode = config.schemaMode();
+      String tablePrefix = config.tablePrefix();
+      
+      plugin.logger().log(Level.INFO, "开始从 StarVC 导入用户元数据 (schema={0}, prefix={1}, dryRun={2})", 
+          new Object[]{schemaMode, tablePrefix, dryRun});
+
+      // 根据 schema 模式选择查询语句
+      String query = buildStarVCQuery(schemaMode, tablePrefix);
+      plugin.logger().log(Level.FINE, "执行查询: {0}", query);
+
       try (PreparedStatement st = sourceConn.prepareStatement(query);
           ResultSet rs = st.executeQuery()) {
+        
+        // 先检测表是否存在
+        if (!rs.isBeforeFirst()) {
+          plugin.logger().log(Level.WARNING, "未找到任何用户数据，请检查表名和连接配置是否正确");
+        }
+
         while (rs.next()) {
           total++;
           try {
-            String uuidStr = rs.getString("uuid");
-            String username = rs.getString("username");
-            String email = rs.getString("email");
+            StarVCUserEntry entry = parseStarVCUserEntry(rs, schemaMode);
 
-            if (username == null || username.isBlank()) {
+            if (entry.username() == null || entry.username().isBlank()) {
               skippedInvalid++;
+              plugin.logger().log(Level.FINE, "跳过无效用户: 用户名缺失");
               continue;
             }
 
             UUID uuid;
             try {
-              uuid = UUID.fromString(uuidStr);
+              uuid = entry.uuid();
             } catch (Exception e) {
               skippedInvalid++;
+              plugin.logger().log(Level.FINE, "跳过无效用户: UUID 解析失败 - {0}", entry.uuidStr());
               continue;
             }
 
-            if (userRepository.existsByUuid(uuid) || userRepository.existsByUsername(username)) {
+            if (userRepository.existsByUuid(uuid) || userRepository.existsByUsername(entry.username())) {
               skippedExisting++;
+              plugin.logger().log(Level.FINE, "跳过已存在用户: {0} ({1})", 
+                  new Object[]{entry.username(), uuid});
               continue;
             }
 
@@ -176,11 +193,11 @@ public final class MigrationModule implements VelocityModule {
               var user =
                   new io.github.addxiaoyi.starx.common.model.StarxUser(
                       uuid,
-                      username,
-                      email,
+                      entry.username(),
+                      entry.email(),
                       null, // 密码哈希暂时为空
                       null,
-                      false,
+                      entry.premium(),
                       java.time.Instant.now(),
                       null,
                       null,
@@ -190,14 +207,24 @@ public final class MigrationModule implements VelocityModule {
                       "pending",
                       null);
               userRepository.create(user);
+              plugin.logger().log(Level.FINE, "成功导入用户: {0} ({1})", 
+                  new Object[]{entry.username(), uuid});
+            } else {
+              plugin.logger().log(Level.FINE, "[dry-run] 预导入用户: {0} ({1})", 
+                  new Object[]{entry.username(), uuid});
             }
             imported++;
           } catch (Exception e) {
             errors++;
-            plugin.logger().log(Level.WARNING, "导入用户失败: " + e.getMessage(), e);
+            plugin.logger().log(Level.WARNING, "导入用户 #{0} 失败: {1}", 
+                new Object[]{total, e.getMessage()});
+            plugin.logger().log(Level.FINE, "详细错误", e);
           }
         }
       }
+
+      plugin.logger().log(Level.INFO, "StarVC 导入完成: 总计={0}, 导入={1}, 跳过已存在={2}, 跳过无效={3}, 错误={4}", 
+          new Object[]{total, imported, skippedExisting, skippedInvalid, errors});
     } catch (Exception e) {
       plugin.logger().log(Level.SEVERE, "从 StarVC 导入失败: " + e.getMessage(), e);
       errors++;
@@ -208,6 +235,89 @@ public final class MigrationModule implements VelocityModule {
     long duration = System.currentTimeMillis() - start;
     return new MigrationResult(
         total, imported, skippedExisting, skippedInvalid, errors, duration, dryRun);
+  }
+
+  /** 从 StarVC 解析的用户条目 */
+  private record StarVCUserEntry(
+      String uuidStr,
+      UUID uuid,
+      String username,
+      String email,
+      boolean premium
+  ) {}
+
+  /** 根据 schema 模式构建查询语句 */
+  private String buildStarVCQuery(String schemaMode, String tablePrefix) {
+    String tableName = tablePrefix + switch (schemaMode.toLowerCase()) {
+      case "authme" -> "authme";
+      case "authlib" -> "users";
+      case "luckperms" -> "luckperms_players";
+      default -> "starvc_users";
+    };
+
+    return switch (schemaMode.toLowerCase()) {
+      case "authme" -> String.format("SELECT realname AS username, uuid, email, is_premium AS premium FROM %s", tableName);
+      case "authlib" -> String.format("SELECT username, uuid, email, premium FROM %s", tableName);
+      case "luckperms" -> String.format("SELECT username, uuid FROM %s", tableName);
+      default -> String.format("SELECT uuid, username, email, premium FROM %s", tableName);
+    };
+  }
+
+  /** 从 ResultSet 解析 StarVC 用户条目 */
+  private StarVCUserEntry parseStarVCUserEntry(ResultSet rs, String schemaMode) throws SQLException {
+    String uuidStr;
+    String username;
+    String email = null;
+    boolean premium = false;
+
+    switch (schemaMode.toLowerCase()) {
+      case "authme" -> {
+        username = rs.getString("username");
+        uuidStr = rs.getString("uuid");
+        email = rs.getString("email");
+        premium = rs.getBoolean("premium");
+      }
+      case "authlib" -> {
+        username = rs.getString("username");
+        uuidStr = rs.getString("uuid");
+        email = rs.getString("email");
+        premium = rs.getBoolean("premium");
+      }
+      case "luckperms" -> {
+        username = rs.getString("username");
+        uuidStr = rs.getString("uuid");
+      }
+      default -> {
+        uuidStr = rs.getString("uuid");
+        username = rs.getString("username");
+        email = rs.getString("email");
+        try {
+          premium = rs.getBoolean("premium");
+        } catch (SQLException e) {
+          // premium 字段可能不存在，忽略
+        }
+      }
+    }
+
+    // 尝试解析 UUID，支持多种格式
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(uuidStr);
+    } catch (IllegalArgumentException e) {
+      // 尝试处理不带连字符的 UUID
+      if (uuidStr != null && uuidStr.length() == 32) {
+        uuid = UUID.fromString(
+            uuidStr.substring(0, 8) + "-" +
+            uuidStr.substring(8, 12) + "-" +
+            uuidStr.substring(12, 16) + "-" +
+            uuidStr.substring(16, 20) + "-" +
+            uuidStr.substring(20));
+      } else {
+        throw e;
+      }
+    }
+
+    return new StarVCUserEntry(uuidStr, uuid, username, email, premium);
   }
 
   private MigrationResult migrateFromMultiLogin(boolean dryRun) throws Exception {
@@ -309,6 +419,12 @@ public final class MigrationModule implements VelocityModule {
 
     Map<String, Object> connection();
 
+    /** StarVC 特定配置：表名前缀 */
+    default String tablePrefix() { return ""; }
+
+    /** StarVC 特定配置：表结构模式 (starvc, authme, authlib) */
+    default String schemaMode() { return "starvc"; }
+
     static Config defaultConfig() {
       return new Config() {
         @Override
@@ -318,22 +434,28 @@ public final class MigrationModule implements VelocityModule {
 
         @Override
         public String source() {
-          return "multilogin";
+          return "starvc";
         }
 
         @Override
         public String backend() {
-          return "mysql";
+          return "sqlite";
         }
 
         @Override
         public Map<String, Object> connection() {
           return Map.of(
-              "host", "localhost",
-              "port", 3306,
-              "database", "multilogin",
-              "username", "root",
-              "password", "");
+              "path", "plugins/StarVC/starvc.db");
+        }
+
+        @Override
+        public String tablePrefix() {
+          return "";
+        }
+
+        @Override
+        public String schemaMode() {
+          return "starvc";
         }
       };
     }

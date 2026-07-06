@@ -25,10 +25,10 @@ public record DatabaseConfig(
     long connectionTimeoutMs) {
 
   public DatabaseConfig {
-    type = type == null || type.isBlank() ? "h2" : type;
+    type = type == null || type.isBlank() ? "sqlite" : type;
     host = host == null ? "" : host;
     port = port <= 0 ? 3306 : port;
-    database = database == null || database.isBlank() ? "starx" : database;
+    database = database == null || database.isBlank() ? "plugins/starx/starx.db" : database;
     username = username == null ? "starx" : username;
     password = password == null ? "" : password;
     url = url == null ? "" : url;
@@ -37,7 +37,7 @@ public record DatabaseConfig(
   }
 
   public static DatabaseConfig defaults() {
-    return new DatabaseConfig("h2", "", 3306, "starx", "starx", "", "", 10, 30_000L);
+    return new DatabaseConfig("sqlite", "", 3306, "plugins/starx/starx.db", "starx", "", "", 10, 30_000L);
   }
 
   public boolean hasUrl() {

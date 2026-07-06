@@ -4,7 +4,10 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.Enumeration;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
@@ -16,6 +19,9 @@ public final class DatabaseManager implements AutoCloseable {
   private final Jdbi jdbi;
 
   public DatabaseManager(DatabaseConfig config) {
+    // 手动加载被 relocate 的 JDBC 驱动，避免 DriverManager 找不到
+    loadJdbcDrivers();
+
     HikariConfig hikariConfig = new HikariConfig();
     hikariConfig.setJdbcUrl(config.jdbcUrl());
     hikariConfig.setUsername(config.username());
@@ -44,6 +50,26 @@ public final class DatabaseManager implements AutoCloseable {
     }
 
     migrate();
+  }
+
+  /** 手动加载可能被 relocate 的 JDBC 驱动类。 */
+  private static void loadJdbcDrivers() {
+    try {
+      Class.forName("io.github.addxiaoyi.starx.libs.h2.Driver");
+    } catch (ClassNotFoundException ignored) {
+    }
+    try {
+      Class.forName("io.github.addxiaoyi.starx.libs.mysql.cj.jdbc.Driver");
+    } catch (ClassNotFoundException ignored) {
+    }
+    try {
+      Class.forName("io.github.addxiaoyi.starx.libs.postgresql.Driver");
+    } catch (ClassNotFoundException ignored) {
+    }
+    try {
+      Class.forName("io.github.addxiaoyi.starx.libs.sqlite.JDBC");
+    } catch (ClassNotFoundException ignored) {
+    }
   }
 
   private void configureSqlite() {

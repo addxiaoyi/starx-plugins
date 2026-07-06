@@ -28,14 +28,14 @@ public final class ConfigLoader {
         secret: ""
 
       database:
-        type: "h2"
+        type: "sqlite"
         host: ""
         port: 3306
-        database: "starx"
+        database: "plugins/starx/data.db"
         username: "starx"
         password: ""
         url: ""
-        pool-max-size: 10
+        pool-max-size: 2
         connection-timeout-ms: 30000
 
       uniauth:

@@ -351,6 +351,24 @@ public class JdbiUserRepository implements UserRepository {
   }
 
   /**
+   * 统计指定来源系统和迁移状态的用户数量。
+   *
+   * @param sourceSystem 来源系统
+   * @param migrationState 迁移状态
+   * @return 用户数量
+   */
+  public int countBySourceSystemAndMigrationState(String sourceSystem, String migrationState) {
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery("SELECT COUNT(*) FROM starx_users WHERE source_system = ? AND migration_state = ?")
+                .bind(0, sourceSystem)
+                .bind(1, migrationState)
+                .mapTo(Integer.class)
+                .one());
+  }
+
+  /**
    * 获取所有用户数量。
    *
    * @return 用户总数
