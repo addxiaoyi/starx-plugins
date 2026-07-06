@@ -52,19 +52,7 @@ public final class DatabaseManager implements AutoCloseable {
   /** 手动加载可能被 relocate 的 JDBC 驱动类。 */
   private static void loadJdbcDrivers() {
     try {
-      Class.forName("io.github.addxiaoyi.starx.libs.h2.Driver");
-    } catch (ClassNotFoundException ignored) {
-    }
-    try {
-      Class.forName("io.github.addxiaoyi.starx.libs.mysql.cj.jdbc.Driver");
-    } catch (ClassNotFoundException ignored) {
-    }
-    try {
-      Class.forName("io.github.addxiaoyi.starx.libs.postgresql.Driver");
-    } catch (ClassNotFoundException ignored) {
-    }
-    try {
-      Class.forName("io.github.addxiaoyi.starx.libs.sqlite.JDBC");
+      Class.forName("org.sqlite.JDBC");
     } catch (ClassNotFoundException ignored) {
     }
   }

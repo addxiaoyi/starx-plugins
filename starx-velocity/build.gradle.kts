@@ -20,10 +20,8 @@ dependencies {
     "stubsCompileOnly"(libs.velocity.api)
     implementation(libs.javalin)
     implementation(libs.micrometer.prometheus)
-    // 包含所有数据库驱动，确保它们被打包到 shadowJar
-    implementation(libs.h2)
-    implementation(libs.mysql.connector)
-    implementation(libs.postgresql)
+    // 只保留 SQLite，这是默认本地数据库
+    // 需要外置数据库的用户可以自己提供驱动
     implementation(libs.sqlite)
 
     testImplementation(project(":starx-testfixtures"))
@@ -64,8 +62,6 @@ tasks.withType<ShadowJar>().configureEach {
     relocate("at.favre.lib.bytes", "io.github.addxiaoyi.starx.libs.bytes")
     relocate("at.favre.lib.hkdf", "io.github.addxiaoyi.starx.libs.hkdf")
     relocate("at.favre.lib.bcrypt", "io.github.addxiaoyi.starx.libs.bcrypt")
-    relocate("org.h2", "io.github.addxiaoyi.starx.libs.h2")
-    relocate("com.mysql", "io.github.addxiaoyi.starx.libs.mysql")
-    relocate("org.postgresql", "io.github.addxiaoyi.starx.libs.postgresql")
-    relocate("org.sqlite", "io.github.addxiaoyi.starx.libs.sqlite")
+    // SQLite 不 relocate，因为它包含原生库
+    // 如果 relocate，它会找不到自己的原生库文件
 }
