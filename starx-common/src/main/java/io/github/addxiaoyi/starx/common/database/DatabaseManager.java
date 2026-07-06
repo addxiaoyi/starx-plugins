@@ -73,8 +73,10 @@ public final class DatabaseManager implements AutoCloseable {
                   + "last_login_isp VARCHAR(255), last_login_location VARCHAR(255), "
                   + "total_playtime BIGINT DEFAULT 0, last_logout_at TIMESTAMP, "
                   + "welcome_message_shown BOOLEAN DEFAULT FALSE)");
-          stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_username ON starx_users(username)");
-          stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_email ON starx_users(email)");
+          stmt.execute(
+              "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_username ON starx_users(username)");
+          stmt.execute(
+              "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_email ON starx_users(email)");
         }
         LOG.info("starx_users table created via direct fallback");
       } else {
@@ -110,8 +112,11 @@ public final class DatabaseManager implements AutoCloseable {
       Flyway flyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
       var result = flyway.migrate();
-      LOG.info("Flyway migration completed: {} applied, {} pending, {} failed",
-          result.migrationsExecuted, result.migrationsPending, result.migrations.size() - result.migrationsExecuted);
+      LOG.info(
+          "Flyway migration completed: {} applied, {} pending, {} failed",
+          result.migrationsExecuted,
+          result.migrationsPending,
+          result.migrations.size() - result.migrationsExecuted);
     } catch (Exception e) {
       LOG.error("Flyway migration failed", e);
       throw e;
