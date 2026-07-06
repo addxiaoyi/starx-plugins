@@ -89,55 +89,57 @@ public final class MigrationCommands implements VelocityModule {
     }
 
     private void handleMigrateStatus(Invocation invocation) {
-    if (userRepository == null) {
-      invocation.source().sendMessage(Component.text("用户仓库不可用", NamedTextColor.RED));
-      return;
-    }
+      if (userRepository == null) {
+        invocation.source().sendMessage(Component.text("用户仓库不可用", NamedTextColor.RED));
+        return;
+      }
 
-    try {
-      int total = userRepository.countAll();
-      int starvcUsers = userRepository.countBySourceSystem("starvc");
-      int starvcPending = userRepository.countBySourceSystemAndMigrationState("starvc", "pending");
-      int starvcCompleted = userRepository.countBySourceSystemAndMigrationState("starvc", "completed");
+      try {
+        int total = userRepository.countAll();
+        int starvcUsers = userRepository.countBySourceSystem("starvc");
+        int starvcPending =
+            userRepository.countBySourceSystemAndMigrationState("starvc", "pending");
+        int starvcCompleted =
+            userRepository.countBySourceSystemAndMigrationState("starvc", "completed");
 
-      invocation.source().sendMessage(Component.text("===== 迁移状态 =====", NamedTextColor.GOLD));
-      invocation
-          .source()
-          .sendMessage(
-              Component.text("总用户数: ", NamedTextColor.WHITE)
-                  .append(Component.text(total, NamedTextColor.AQUA)));
-      invocation
-          .source()
-          .sendMessage(
-              Component.text("StarVC 用户: ", NamedTextColor.WHITE)
-                  .append(Component.text(starvcUsers, NamedTextColor.AQUA)));
-      invocation
-          .source()
-          .sendMessage(
-              Component.text("StarVC 待迁移: ", NamedTextColor.WHITE)
-                  .append(Component.text(starvcPending, NamedTextColor.YELLOW)));
-      invocation
-          .source()
-          .sendMessage(
-              Component.text("StarVC 已迁移: ", NamedTextColor.WHITE)
-                  .append(Component.text(starvcCompleted, NamedTextColor.GREEN)));
-
-      if (starvcUsers > 0) {
-        double progress = ((double) starvcCompleted / starvcUsers) * 100;
+        invocation.source().sendMessage(Component.text("===== 迁移状态 =====", NamedTextColor.GOLD));
         invocation
             .source()
             .sendMessage(
-                Component.text("StarVC 迁移进度: ", NamedTextColor.WHITE)
-                    .append(
-                        Component.text(String.format("%.1f%%", progress), NamedTextColor.GREEN)));
+                Component.text("总用户数: ", NamedTextColor.WHITE)
+                    .append(Component.text(total, NamedTextColor.AQUA)));
+        invocation
+            .source()
+            .sendMessage(
+                Component.text("StarVC 用户: ", NamedTextColor.WHITE)
+                    .append(Component.text(starvcUsers, NamedTextColor.AQUA)));
+        invocation
+            .source()
+            .sendMessage(
+                Component.text("StarVC 待迁移: ", NamedTextColor.WHITE)
+                    .append(Component.text(starvcPending, NamedTextColor.YELLOW)));
+        invocation
+            .source()
+            .sendMessage(
+                Component.text("StarVC 已迁移: ", NamedTextColor.WHITE)
+                    .append(Component.text(starvcCompleted, NamedTextColor.GREEN)));
+
+        if (starvcUsers > 0) {
+          double progress = ((double) starvcCompleted / starvcUsers) * 100;
+          invocation
+              .source()
+              .sendMessage(
+                  Component.text("StarVC 迁移进度: ", NamedTextColor.WHITE)
+                      .append(
+                          Component.text(String.format("%.1f%%", progress), NamedTextColor.GREEN)));
+        }
+      } catch (Exception e) {
+        invocation
+            .source()
+            .sendMessage(Component.text("获取迁移状态失败: " + e.getMessage(), NamedTextColor.RED));
+        plugin.logger().log(java.util.logging.Level.SEVERE, "获取迁移状态失败", e);
       }
-    } catch (Exception e) {
-      invocation
-          .source()
-          .sendMessage(Component.text("获取迁移状态失败: " + e.getMessage(), NamedTextColor.RED));
-      plugin.logger().log(java.util.logging.Level.SEVERE, "获取迁移状态失败", e);
     }
-  }
 
     private void handleMigrate(Invocation invocation, String[] args) {
       if (args.length < 2) {
@@ -245,15 +247,18 @@ public final class MigrationCommands implements VelocityModule {
           .sendMessage(
               Component.text("耗时: ", NamedTextColor.WHITE)
                   .append(Component.text(result.durationMs() + "ms", NamedTextColor.AQUA)));
-      
+
       // 计算成功率
       if (result.total() > 0) {
-        double successRate = ((double) (result.imported() + result.skippedExisting())) / result.total() * 100;
+        double successRate =
+            ((double) (result.imported() + result.skippedExisting())) / result.total() * 100;
         invocation
             .source()
             .sendMessage(
                 Component.text("成功率: ", NamedTextColor.WHITE)
-                    .append(Component.text(String.format("%.1f%%", successRate), NamedTextColor.GREEN)));
+                    .append(
+                        Component.text(
+                            String.format("%.1f%%", successRate), NamedTextColor.GREEN)));
       }
     }
   }

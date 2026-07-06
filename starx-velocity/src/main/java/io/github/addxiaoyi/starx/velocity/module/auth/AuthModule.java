@@ -101,7 +101,17 @@ public final class AuthModule implements VelocityModule {
 
   private void initDatabase() {
     Path dbPath = plugin.dataDirectory().resolve("data.db");
-    DatabaseConfig config = new DatabaseConfig("sqlite", "", 0, dbPath.toAbsolutePath().toString().replace("\\", "/"), "starx", "", "", 2, 5_000L);
+    DatabaseConfig config =
+        new DatabaseConfig(
+            "sqlite",
+            "",
+            0,
+            dbPath.toAbsolutePath().toString().replace("\\", "/"),
+            "starx",
+            "",
+            "",
+            2,
+            5_000L);
     this.databaseManager = new DatabaseManager(config);
     this.userRepository = new JdbiUserRepository(databaseManager.getJdbi());
   }

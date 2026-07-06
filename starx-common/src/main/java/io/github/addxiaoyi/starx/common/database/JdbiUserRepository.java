@@ -361,7 +361,8 @@ public class JdbiUserRepository implements UserRepository {
     return jdbi.withHandle(
         handle ->
             handle
-                .createQuery("SELECT COUNT(*) FROM starx_users WHERE source_system = ? AND migration_state = ?")
+                .createQuery(
+                    "SELECT COUNT(*) FROM starx_users WHERE source_system = ? AND migration_state = ?")
                 .bind(0, sourceSystem)
                 .bind(1, migrationState)
                 .mapTo(Integer.class)

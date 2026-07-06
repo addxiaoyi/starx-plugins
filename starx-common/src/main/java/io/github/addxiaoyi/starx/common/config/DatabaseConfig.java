@@ -37,7 +37,8 @@ public record DatabaseConfig(
   }
 
   public static DatabaseConfig defaults() {
-    return new DatabaseConfig("sqlite", "", 3306, "plugins/starx/starx.db", "starx", "", "", 10, 30_000L);
+    return new DatabaseConfig(
+        "sqlite", "", 3306, "plugins/starx/starx.db", "starx", "", "", 10, 30_000L);
   }
 
   public boolean hasUrl() {

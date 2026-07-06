@@ -145,9 +145,13 @@ public final class MigrationModule implements VelocityModule {
     try (Connection sourceConn = getSourceConnection()) {
       String schemaMode = config.schemaMode();
       String tablePrefix = config.tablePrefix();
-      
-      plugin.logger().log(Level.INFO, "开始从 StarVC 导入用户元数据 (schema={0}, prefix={1}, dryRun={2})", 
-          new Object[]{schemaMode, tablePrefix, dryRun});
+
+      plugin
+          .logger()
+          .log(
+              Level.INFO,
+              "开始从 StarVC 导入用户元数据 (schema={0}, prefix={1}, dryRun={2})",
+              new Object[] {schemaMode, tablePrefix, dryRun});
 
       // 根据 schema 模式选择查询语句
       String query = buildStarVCQuery(schemaMode, tablePrefix);
@@ -155,7 +159,7 @@ public final class MigrationModule implements VelocityModule {
 
       try (PreparedStatement st = sourceConn.prepareStatement(query);
           ResultSet rs = st.executeQuery()) {
-        
+
         // 先检测表是否存在
         if (!rs.isBeforeFirst()) {
           plugin.logger().log(Level.WARNING, "未找到任何用户数据，请检查表名和连接配置是否正确");
@@ -181,10 +185,12 @@ public final class MigrationModule implements VelocityModule {
               continue;
             }
 
-            if (userRepository.existsByUuid(uuid) || userRepository.existsByUsername(entry.username())) {
+            if (userRepository.existsByUuid(uuid)
+                || userRepository.existsByUsername(entry.username())) {
               skippedExisting++;
-              plugin.logger().log(Level.FINE, "跳过已存在用户: {0} ({1})", 
-                  new Object[]{entry.username(), uuid});
+              plugin
+                  .logger()
+                  .log(Level.FINE, "跳过已存在用户: {0} ({1})", new Object[] {entry.username(), uuid});
               continue;
             }
 
@@ -207,24 +213,34 @@ public final class MigrationModule implements VelocityModule {
                       "pending",
                       null);
               userRepository.create(user);
-              plugin.logger().log(Level.FINE, "成功导入用户: {0} ({1})", 
-                  new Object[]{entry.username(), uuid});
+              plugin
+                  .logger()
+                  .log(Level.FINE, "成功导入用户: {0} ({1})", new Object[] {entry.username(), uuid});
             } else {
-              plugin.logger().log(Level.FINE, "[dry-run] 预导入用户: {0} ({1})", 
-                  new Object[]{entry.username(), uuid});
+              plugin
+                  .logger()
+                  .log(
+                      Level.FINE,
+                      "[dry-run] 预导入用户: {0} ({1})",
+                      new Object[] {entry.username(), uuid});
             }
             imported++;
           } catch (Exception e) {
             errors++;
-            plugin.logger().log(Level.WARNING, "导入用户 #{0} 失败: {1}", 
-                new Object[]{total, e.getMessage()});
+            plugin
+                .logger()
+                .log(Level.WARNING, "导入用户 #{0} 失败: {1}", new Object[] {total, e.getMessage()});
             plugin.logger().log(Level.FINE, "详细错误", e);
           }
         }
       }
 
-      plugin.logger().log(Level.INFO, "StarVC 导入完成: 总计={0}, 导入={1}, 跳过已存在={2}, 跳过无效={3}, 错误={4}", 
-          new Object[]{total, imported, skippedExisting, skippedInvalid, errors});
+      plugin
+          .logger()
+          .log(
+              Level.INFO,
+              "StarVC 导入完成: 总计={0}, 导入={1}, 跳过已存在={2}, 跳过无效={3}, 错误={4}",
+              new Object[] {total, imported, skippedExisting, skippedInvalid, errors});
     } catch (Exception e) {
       plugin.logger().log(Level.SEVERE, "从 StarVC 导入失败: " + e.getMessage(), e);
       errors++;
@@ -239,24 +255,23 @@ public final class MigrationModule implements VelocityModule {
 
   /** 从 StarVC 解析的用户条目 */
   private record StarVCUserEntry(
-      String uuidStr,
-      UUID uuid,
-      String username,
-      String email,
-      boolean premium
-  ) {}
+      String uuidStr, UUID uuid, String username, String email, boolean premium) {}
 
   /** 根据 schema 模式构建查询语句 */
   private String buildStarVCQuery(String schemaMode, String tablePrefix) {
-    String tableName = tablePrefix + switch (schemaMode.toLowerCase()) {
-      case "authme" -> "authme";
-      case "authlib" -> "users";
-      case "luckperms" -> "luckperms_players";
-      default -> "starvc_users";
-    };
+    String tableName =
+        tablePrefix
+            + switch (schemaMode.toLowerCase()) {
+              case "authme" -> "authme";
+              case "authlib" -> "users";
+              case "luckperms" -> "luckperms_players";
+              default -> "starvc_users";
+            };
 
     return switch (schemaMode.toLowerCase()) {
-      case "authme" -> String.format("SELECT realname AS username, uuid, email, is_premium AS premium FROM %s", tableName);
+      case "authme" ->
+          String.format(
+              "SELECT realname AS username, uuid, email, is_premium AS premium FROM %s", tableName);
       case "authlib" -> String.format("SELECT username, uuid, email, premium FROM %s", tableName);
       case "luckperms" -> String.format("SELECT username, uuid FROM %s", tableName);
       default -> String.format("SELECT uuid, username, email, premium FROM %s", tableName);
@@ -264,7 +279,8 @@ public final class MigrationModule implements VelocityModule {
   }
 
   /** 从 ResultSet 解析 StarVC 用户条目 */
-  private StarVCUserEntry parseStarVCUserEntry(ResultSet rs, String schemaMode) throws SQLException {
+  private StarVCUserEntry parseStarVCUserEntry(ResultSet rs, String schemaMode)
+      throws SQLException {
     String uuidStr;
     String username;
     String email = null;
@@ -306,12 +322,17 @@ public final class MigrationModule implements VelocityModule {
     } catch (IllegalArgumentException e) {
       // 尝试处理不带连字符的 UUID
       if (uuidStr != null && uuidStr.length() == 32) {
-        uuid = UUID.fromString(
-            uuidStr.substring(0, 8) + "-" +
-            uuidStr.substring(8, 12) + "-" +
-            uuidStr.substring(12, 16) + "-" +
-            uuidStr.substring(16, 20) + "-" +
-            uuidStr.substring(20));
+        uuid =
+            UUID.fromString(
+                uuidStr.substring(0, 8)
+                    + "-"
+                    + uuidStr.substring(8, 12)
+                    + "-"
+                    + uuidStr.substring(12, 16)
+                    + "-"
+                    + uuidStr.substring(16, 20)
+                    + "-"
+                    + uuidStr.substring(20));
       } else {
         throw e;
       }
@@ -420,10 +441,14 @@ public final class MigrationModule implements VelocityModule {
     Map<String, Object> connection();
 
     /** StarVC 特定配置：表名前缀 */
-    default String tablePrefix() { return ""; }
+    default String tablePrefix() {
+      return "";
+    }
 
     /** StarVC 特定配置：表结构模式 (starvc, authme, authlib) */
-    default String schemaMode() { return "starvc"; }
+    default String schemaMode() {
+      return "starvc";
+    }
 
     static Config defaultConfig() {
       return new Config() {
@@ -444,8 +469,7 @@ public final class MigrationModule implements VelocityModule {
 
         @Override
         public Map<String, Object> connection() {
-          return Map.of(
-              "path", "plugins/StarVC/starvc.db");
+          return Map.of("path", "plugins/StarVC/starvc.db");
         }
 
         @Override
