@@ -79,6 +79,12 @@ class UserQueryHandlerTest {
             null,
             null,
             "completed",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             null);
     when(jdbiUserRepository.findFullByUsername("henry")).thenReturn(Optional.of(user));
 

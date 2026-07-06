@@ -19,7 +19,6 @@ dependencies {
     compileOnly(libs.jdbi.sqlobject)
     "stubsCompileOnly"(libs.velocity.api)
     implementation(libs.javalin)
-    implementation(libs.micrometer.prometheus)
     // 只保留 SQLite，这是默认本地数据库
     // 需要外置数据库的用户可以自己提供驱动
     implementation(libs.sqlite)
@@ -64,4 +63,26 @@ tasks.withType<ShadowJar>().configureEach {
     relocate("at.favre.lib.bcrypt", "io.github.addxiaoyi.starx.libs.bcrypt")
     // SQLite 不 relocate，因为它包含原生库
     // 如果 relocate，它会找不到自己的原生库文件
+    
+    // 只保留 Windows 平台的 SQLite 原生库，减小体积
+    exclude("org/sqlite/native/Linux/**")
+    exclude("org/sqlite/native/Linux-Android/**")
+    exclude("org/sqlite/native/Linux-Musl/**")
+    exclude("org/sqlite/native/Mac/**")
+    exclude("org/sqlite/native/FreeBSD/**")
+    exclude("org/sqlite/native/Windows/arm/**")
+    exclude("org/sqlite/native/Windows/armv7/**")
+    exclude("org/sqlite/native/Windows/x86/**")
+    // 只保留 Windows x86_64 和 aarch64（覆盖大多数 Windows 用户）
+    
+    // 排除不需要的 servlet XSD 文件（Velocity 插件不需要）
+    exclude("javax/servlet/resources/*.xsd")
+    exclude("jakarta/servlet/resources/*.xsd")
+    
+    // 排除不必要的 META-INF 文件
+    exclude("META-INF/maven/**")
+    exclude("META-INF/LICENSE*")
+    exclude("META-INF/NOTICE*")
+    exclude("META-INF/versions/**")
+    exclude("META-INF/*.kotlin_module")
 }

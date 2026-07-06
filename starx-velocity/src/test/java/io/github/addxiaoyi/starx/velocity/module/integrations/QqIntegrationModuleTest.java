@@ -131,6 +131,16 @@ class QqIntegrationModuleTest {
   }
 
   @Test
+  void shouldAllowMissingWebhookClientWhenDisabled() {
+    QqIntegrationModule module = new QqIntegrationModule(plugin, null, disabledConfig);
+    PlayerChatEvent event = mock(PlayerChatEvent.class);
+
+    module.onPlayerChat(event);
+
+    verify(proxy, never()).getAllPlayers();
+  }
+
+  @Test
   void shouldBroadcastIncomingQqMessageToServer() {
     QqIntegrationModule module = new QqIntegrationModule(plugin, webhookClient, enabledConfig);
     Player player1 = mock(Player.class);

@@ -21,8 +21,12 @@ public final class QqIntegrationModule implements VelocityModule {
   public QqIntegrationModule(
       StarxVelocityPlugin plugin, WebhookClient webhookClient, Config config) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
-    this.webhookClient = Objects.requireNonNull(webhookClient, "webhookClient");
     this.config = Objects.requireNonNull(config, "config");
+    if (config.enabled()) {
+      this.webhookClient = Objects.requireNonNull(webhookClient, "webhookClient");
+    } else {
+      this.webhookClient = webhookClient;
+    }
   }
 
   @Override
@@ -39,6 +43,7 @@ public final class QqIntegrationModule implements VelocityModule {
     if (!config.enabled()) {
       return;
     }
+    Objects.requireNonNull(webhookClient, "webhookClient");
     Player player = event.getPlayer();
     String formatted =
         config

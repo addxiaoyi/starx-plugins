@@ -185,6 +185,12 @@ class HttpApiServerTest {
             null,
             null,
             "completed",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             null);
     when(jdbiUserRepository.findFullByUsername("alice")).thenReturn(Optional.of(user));
 

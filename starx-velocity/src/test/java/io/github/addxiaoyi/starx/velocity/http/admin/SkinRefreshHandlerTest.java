@@ -69,6 +69,12 @@ class SkinRefreshHandlerTest {
             null,
             null,
             "completed",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             null);
     when(jdbiUserRepository.findFullByUsername("grace")).thenReturn(Optional.of(user));
 

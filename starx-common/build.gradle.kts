@@ -11,11 +11,9 @@ dependencies {
     implementation(libs.bundles.database)
     implementation(libs.bcrypt)
     implementation(libs.totp)
-    implementation(libs.micrometer.core)
 
-    runtimeOnly(libs.h2)
-    runtimeOnly(libs.mysql.connector)
-    runtimeOnly(libs.postgresql)
+    // 只保留 SQLite 作为默认本地数据库
+    // 需要外置数据库的用户可以自己提供驱动
     runtimeOnly(libs.sqlite)
 
     testImplementation(project(":starx-testfixtures"))
