@@ -64,16 +64,17 @@ tasks.withType<ShadowJar>().configureEach {
     // SQLite 不 relocate，因为它包含原生库
     // 如果 relocate，它会找不到自己的原生库文件
     
-    // 只保留 Windows 平台的 SQLite 原生库，减小体积
-    exclude("org/sqlite/native/Linux/**")
+    // 只保留常用平台（Linux/Windows x86_64 + aarch64），减小体积
     exclude("org/sqlite/native/Linux-Android/**")
     exclude("org/sqlite/native/Linux-Musl/**")
+    exclude("org/sqlite/native/Linux/arm/**")
+    exclude("org/sqlite/native/Linux/armv7/**")
     exclude("org/sqlite/native/Mac/**")
     exclude("org/sqlite/native/FreeBSD/**")
     exclude("org/sqlite/native/Windows/arm/**")
     exclude("org/sqlite/native/Windows/armv7/**")
     exclude("org/sqlite/native/Windows/x86/**")
-    // 只保留 Windows x86_64 和 aarch64（覆盖大多数 Windows 用户）
+    // 保留 Linux x86_64 & aarch64, Windows x86_64 & aarch64
     
     // 排除不需要的 servlet XSD 文件（Velocity 插件不需要）
     exclude("javax/servlet/resources/*.xsd")
