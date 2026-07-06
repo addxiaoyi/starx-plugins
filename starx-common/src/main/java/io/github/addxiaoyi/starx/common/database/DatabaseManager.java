@@ -116,8 +116,7 @@ public final class DatabaseManager implements AutoCloseable {
               .classLoader(getClass().getClassLoader())
               .load();
       var result = flyway.migrate();
-      LOG.info(
-          "Flyway migration completed: {} migrations applied", result.migrations.size());
+      LOG.info("Flyway migration completed: {} migrations applied", result.migrations.size());
     } catch (Exception e) {
       LOG.error("Flyway migration failed", e);
       throw e;
