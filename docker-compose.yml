@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: starx_root
+      MYSQL_DATABASE: starx
+      MYSQL_USER: starx
+      MYSQL_PASSWORD: starx_pass
+    ports:
+      - "3306:3306"
+    tmpfs: /var/lib/mysql
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: starx
+      POSTGRES_USER: starx
+      POSTGRES_PASSWORD: starx_pass
+    ports:
+      - "5432:5432"
+    tmpfs: /var/lib/postgresql/data

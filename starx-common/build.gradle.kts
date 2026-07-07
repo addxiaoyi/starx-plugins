@@ -20,6 +20,11 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.bundles.test)
     testImplementation(libs.h2)
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.core)
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.mysql)
+    testImplementation(libs.testcontainers.postgres)
     testRuntimeOnly(libs.junit.launcher)
 }
 

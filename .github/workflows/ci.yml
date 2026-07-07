@@ -44,8 +44,12 @@ jobs:
       - name: Check code style
         run: ./gradlew spotlessJavaCheck --no-daemon
 
-      - name: Build (skip tests)
-        run: ./gradlew build -x test -Pversion=${{ steps.version.outputs.VERSION }} --no-daemon
+      - name: Build and run tests
+        run: ./gradlew build -Pversion=${{ steps.version.outputs.VERSION }} --no-daemon
+
+      - name: Generate coverage report
+        if: always()
+        run: ./gradlew jacocoTestReport --no-daemon || true
 
       - name: Upload Velocity JAR
         uses: actions/upload-artifact@v7
@@ -69,8 +73,11 @@ jobs:
         if: always()
         run: |
           echo '## Test Results' >> $GITHUB_STEP_SUMMARY
-          find . -path '*/build/test-results*/**/TEST-*.xml' -exec sh -c 'grep -oP "tests=\"\K[^\"]+" "$1" | head -1' _ {} \; | while read -r line; do
-            echo "- $line tests" >> $GITHUB_STEP_SUMMARY
+          find . -path '*/build/test-results/test/*.xml' -exec grep -l 'testsuite' {} \; | while read -r f; do
+            name=$(basename "$f" .xml | sed 's/.*\.//')
+            total=$(grep -oP 'tests="\K[^"]+' "$f")
+            fail=$(grep -oP 'failures="\K[^"]+' "$f")
+            echo "- **$name**: $total tests, $fail failures" >> $GITHUB_STEP_SUMMARY
           done || echo 'No test results found' >> $GITHUB_STEP_SUMMARY
 
   release:

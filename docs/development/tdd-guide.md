@@ -84,29 +84,51 @@ void shouldPublishLoginSuccessEvent() {
 
 ## 数据库集成测试
 
+集成测试使用 Testcontainers 自动管理 MySQL/PostgreSQL 容器。
+
 ```java
+@Tag("integration")
 @Testcontainers
-class UserRepositoryIntegrationTest {
+class MySqlUserRepositoryIT {
 
   @Container
   static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
       .withDatabaseName("starx");
 
   @Test
-  void shouldPersistUserInMySQL() {
-    // 初始化仓库并执行测试
+  void shouldPersistAndFindUserInMySql() {
+    DatabaseConfig config = new DatabaseConfig("mysql",
+        mysql.getHost(), mysql.getFirstMappedPort(),
+        "starx", "starx", "starx_pass", mysql.getJdbcUrl(), 5, 5_000L);
+    try (DatabaseManager manager = new DatabaseManager(config)) {
+      JdbiUserRepository repo = new JdbiUserRepository(manager.getJdbi());
+      // 执行测试
+    }
   }
 }
+```
+
+集成测试默认不执行，需要手动触发：
+
+```bash
+# 运行集成测试（需要 Docker）
+./gradlew :starx-common:integrationTest
 ```
 
 ## 运行测试
 
 ```bash
-# 运行所有测试
+# 运行所有单元测试（默认跳过集成测试）
 ./gradlew test
 
 # 运行指定模块测试
 ./gradlew :starx-common:test
+
+# 运行压力测试
+./gradlew test --tests "*stress.*"
+
+# 运行集成测试（需要 Docker）
+./gradlew integrationTest
 
 # 持续测试
 ./gradlew test --continuous
@@ -114,13 +136,13 @@ class UserRepositoryIntegrationTest {
 
 ## 代码覆盖率
 
-项目已配置 Jacoco，运行：
+JaCoCo 已配置，运行测试后自动生成覆盖率报告：
 
 ```bash
-./gradlew jacocoTestReport
+./gradlew test
 ```
 
-报告位于各模块 `build/reports/jacoco/test/html/index.html`。根项目通过 `jacoco-report-aggregation` 聚合所有模块覆盖率。
+报告位于各模块 `build/reports/jacoco/test/html/index.html`。
 
 ## 代码格式化
 
@@ -147,12 +169,12 @@ Spotless 配置覆盖：
 CI 会执行以下命令：
 
 ```bash
-./gradlew build
-./gradlew spotlessCheck
+./gradlew spotlessJavaCheck
+./gradlew build           # 含单元测试 + shadowJar
 ./gradlew jacocoTestReport
 ```
 
-任何一步失败都会阻止合并。
+任何一步失败都会阻止合并。集成测试（需要 Docker）不在 CI 中执行。
 
 ## 测试命名规范
 
