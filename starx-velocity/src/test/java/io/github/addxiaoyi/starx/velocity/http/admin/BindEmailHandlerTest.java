@@ -6,8 +6,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.common.auth.AuthResult;
 import io.github.addxiaoyi.starx.common.auth.AuthService;
-import io.javalin.Javalin;
-import java.io.IOException;
+import io.github.addxiaoyi.starx.velocity.http.TestHttpServer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -26,7 +25,7 @@ class BindEmailHandlerTest {
   @Mock private AuthService authService;
 
   private AutoCloseable mocks;
-  private Javalin app;
+  private TestHttpServer server;
   private HttpClient client;
 
   @BeforeEach
@@ -37,8 +36,8 @@ class BindEmailHandlerTest {
 
   @AfterEach
   void tearDown() throws Exception {
-    if (app != null) {
-      app.stop();
+    if (server != null) {
+      server.stop();
     }
     if (mocks != null) {
       mocks.close();
@@ -49,9 +48,9 @@ class BindEmailHandlerTest {
   void shouldUpdateEmailAndPublishEvent() throws Exception {
     when(authService.bindEmail("bob", "bob@example.com")).thenReturn(AuthResult.success("邮箱已绑定"));
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new BindEmailHandler(authService).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new BindEmailHandler(authService).register(server);
+    server.start();
 
     HttpResponse<String> response =
         post("/v1/admin/bind-email", "{\"username\":\"bob\",\"email\":\"bob@example.com\"}");
@@ -62,7 +61,7 @@ class BindEmailHandlerTest {
   }
 
   private HttpResponse<String> post(String path, String body)
-      throws IOException, InterruptedException {
+      throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
             .header("Content-Type", "application/json")

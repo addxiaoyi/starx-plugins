@@ -4,11 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
+import io.github.addxiaoyi.starx.velocity.http.TestHttpServer;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
-import io.javalin.Javalin;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -29,10 +28,10 @@ class SkinRefreshHandlerTest {
   private static final int PORT = 18796;
 
   @Mock private SkinBridgeModule skinBridge;
-  @Mock private JdbiUserRepository jdbiUserRepository;
+  @Mock private JdbcUserRepository jdbiUserRepository;
 
   private AutoCloseable mocks;
-  private Javalin app;
+  private TestHttpServer server;
   private HttpClient client;
 
   @BeforeEach
@@ -43,8 +42,8 @@ class SkinRefreshHandlerTest {
 
   @AfterEach
   void tearDown() throws Exception {
-    if (app != null) {
-      app.stop();
+    if (server != null) {
+      server.stop();
     }
     if (mocks != null) {
       mocks.close();
@@ -78,9 +77,9 @@ class SkinRefreshHandlerTest {
             null);
     when(jdbiUserRepository.findFullByUsername("grace")).thenReturn(Optional.of(user));
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new SkinRefreshHandler(skinBridge, jdbiUserRepository).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new SkinRefreshHandler(skinBridge, jdbiUserRepository).register(server);
+    server.start();
 
     HttpResponse<String> response = post("/v1/admin/skin-refresh", "{\"username\":\"grace\"}");
 
@@ -92,9 +91,9 @@ class SkinRefreshHandlerTest {
   void shouldReturn404ForUnknownUsername() throws Exception {
     when(jdbiUserRepository.findFullByUsername("unknown")).thenReturn(Optional.empty());
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new SkinRefreshHandler(skinBridge, jdbiUserRepository).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new SkinRefreshHandler(skinBridge, jdbiUserRepository).register(server);
+    server.start();
 
     HttpResponse<String> response = post("/v1/admin/skin-refresh", "{\"username\":\"unknown\"}");
 
@@ -102,7 +101,7 @@ class SkinRefreshHandlerTest {
   }
 
   private HttpResponse<String> post(String path, String body)
-      throws IOException, InterruptedException {
+      throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
             .header("Content-Type", "application/json")

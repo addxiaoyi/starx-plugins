@@ -23,7 +23,7 @@ public final class FloodgateModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth.floodgate";
+    return "starx.auth.floodgate";
   }
 
   @Override
@@ -106,7 +106,7 @@ public final class FloodgateModule implements VelocityModule {
 
         @Override
         public String prefix() {
-          return ".";
+          return "starx..";
         }
       };
     }

@@ -2,14 +2,13 @@ package io.github.addxiaoyi.starx.common.config;
 
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import org.yaml.snakeyaml.Yaml;
 
-/** 基于 Configurate 读取 {@code config.yml} 并返回 {@link StarxConfig}。 */
 public final class ConfigLoader {
 
   private ConfigLoader() {}
@@ -19,55 +18,93 @@ public final class ConfigLoader {
       return StarxConfig.defaults();
     }
 
-    YamlConfigurationLoader loader = YamlConfigurationLoader.builder().path(path).build();
-    ConfigurationNode root = loader.load();
+    Map<String, Object> root;
+    try (InputStream in = Files.newInputStream(path)) {
+      root = new Yaml().load(in);
+    }
+    if (root == null) {
+      root = Map.of();
+    }
 
-    HttpApiConfig httpApi = loadHttpApi(root.node("http-api"));
-    DatabaseConfig database = loadDatabase(root.node("database"));
-    UniAuthConfig uniauth = loadUniAuth(root.node("uniauth"));
-    Map<String, ModuleConfig> modules = loadModules(root.node("modules"));
+    HttpApiConfig httpApi = loadHttpApi(child(root, "http-api"));
+    DatabaseConfig database = loadDatabase(child(root, "database"));
+    UniAuthConfig uniauth = loadUniAuth(child(root, "uniauth"));
+    Map<String, ModuleConfig> modules = loadModules(child(root, "modules"));
 
     return new StarxConfig(httpApi, database, uniauth, modules);
   }
 
-  private static UniAuthConfig loadUniAuth(ConfigurationNode node) {
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> child(Map<String, Object> parent, String key) {
+    Object value = parent.get(key);
+    return value instanceof Map ? (Map<String, Object>) value : Map.of();
+  }
+
+  private static String str(Map<String, Object> map, String key, String def) {
+    Object v = map.get(key);
+    return v != null ? v.toString() : def;
+  }
+
+  private static int integer(Map<String, Object> map, String key, int def) {
+    Object v = map.get(key);
+    if (v instanceof Number n) return n.intValue();
+    if (v != null) try { return Integer.parseInt(v.toString()); } catch (NumberFormatException e) { }
+    return def;
+  }
+
+  private static long longVal(Map<String, Object> map, String key, long def) {
+    Object v = map.get(key);
+    if (v instanceof Number n) return n.longValue();
+    if (v != null) try { return Long.parseLong(v.toString()); } catch (NumberFormatException e) { }
+    return def;
+  }
+
+  private static boolean bool(Map<String, Object> map, String key, boolean def) {
+    Object v = map.get(key);
+    return v instanceof Boolean ? (Boolean) v : def;
+  }
+
+  private static UniAuthConfig loadUniAuth(Map<String, Object> node) {
     UniAuthConfig defaults = UniAuthConfig.defaults();
-    boolean enabled = node.node("enabled").getBoolean(defaults.enabled());
-    String apiUrl = node.node("api-url").getString(defaults.apiUrl());
-    String apiKey = node.node("api-key").getString(defaults.apiKey());
-    int timeoutMs = node.node("timeout-ms").getInt(defaults.timeoutMs());
-    boolean bridgeMode = node.node("bridge-mode").getBoolean(defaults.bridgeMode());
-    return new UniAuthConfig(enabled, apiUrl, apiKey, timeoutMs, bridgeMode);
+    return new UniAuthConfig(
+        bool(node, "enabled", defaults.enabled()),
+        str(node, "api-url", defaults.apiUrl()),
+        str(node, "api-key", defaults.apiKey()),
+        integer(node, "timeout-ms", defaults.timeoutMs()),
+        bool(node, "bridge-mode", defaults.bridgeMode()));
   }
 
-  private static HttpApiConfig loadHttpApi(ConfigurationNode node) {
-    String bind = node.node("bind").getString(HttpApiConfig.defaults().bind());
-    int port = node.node("port").getInt(HttpApiConfig.defaults().port());
-    String apiKey = node.node("api-key").getString(HttpApiConfig.defaults().apiKey());
-    return new HttpApiConfig(bind, port, apiKey);
+  private static HttpApiConfig loadHttpApi(Map<String, Object> node) {
+    HttpApiConfig defaults = HttpApiConfig.defaults();
+    return new HttpApiConfig(
+        str(node, "bind", defaults.bind()),
+        integer(node, "port", defaults.port()),
+        str(node, "api-key", defaults.apiKey()));
   }
 
-  private static DatabaseConfig loadDatabase(ConfigurationNode node) {
+  private static DatabaseConfig loadDatabase(Map<String, Object> node) {
     DatabaseConfig defaults = DatabaseConfig.defaults();
-    String type = node.node("type").getString(defaults.type());
-    String host = node.node("host").getString(defaults.host());
-    int port = node.node("port").getInt(defaults.port());
-    String database = node.node("database").getString(defaults.database());
-    String username = node.node("username").getString(defaults.username());
-    String password = node.node("password").getString(defaults.password());
-    String url = node.node("url").getString(defaults.url());
-    int poolMaxSize = node.node("pool-max-size").getInt(defaults.poolMaxSize());
-    long connectionTimeoutMs =
-        node.node("connection-timeout-ms").getLong(defaults.connectionTimeoutMs());
     return new DatabaseConfig(
-        type, host, port, database, username, password, url, poolMaxSize, connectionTimeoutMs);
+        str(node, "type", defaults.type()),
+        str(node, "host", defaults.host()),
+        integer(node, "port", defaults.port()),
+        str(node, "database", defaults.database()),
+        str(node, "username", defaults.username()),
+        str(node, "password", defaults.password()),
+        str(node, "url", defaults.url()),
+        integer(node, "pool-max-size", defaults.poolMaxSize()),
+        longVal(node, "connection-timeout-ms", defaults.connectionTimeoutMs()));
   }
 
-  private static Map<String, ModuleConfig> loadModules(ConfigurationNode node) {
+  @SuppressWarnings("unchecked")
+  private static Map<String, ModuleConfig> loadModules(Map<String, Object> node) {
     Map<String, ModuleConfig> modules = new HashMap<>();
-    for (Map.Entry<Object, ? extends ConfigurationNode> entry : node.childrenMap().entrySet()) {
-      String name = String.valueOf(entry.getKey());
-      boolean enabled = entry.getValue().node("enabled").getBoolean(false);
+    for (Map.Entry<String, Object> entry : node.entrySet()) {
+      String name = entry.getKey();
+      boolean enabled = false;
+      if (entry.getValue() instanceof Map) {
+        enabled = bool((Map<String, Object>) entry.getValue(), "enabled", false);
+      }
       modules.put(name, new ModuleConfig(enabled));
     }
     return modules;

@@ -33,7 +33,7 @@ public final class YggdrasilModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth.yggdrasil";
+    return "starx.auth.yggdrasil";
   }
 
   @Override

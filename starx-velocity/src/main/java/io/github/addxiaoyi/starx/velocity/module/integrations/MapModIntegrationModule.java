@@ -26,7 +26,7 @@ public final class MapModIntegrationModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "integrations.mapmod";
+    return "starx.integrations.mapmod";
   }
 
   @Override

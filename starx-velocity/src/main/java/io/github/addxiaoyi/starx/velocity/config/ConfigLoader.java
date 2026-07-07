@@ -3,15 +3,14 @@ package io.github.addxiaoyi.starx.velocity.config;
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import org.yaml.snakeyaml.Yaml;
 
-/** 基于 Configurate-YAML 的配置加载器。 */
 public final class ConfigLoader {
 
   private static final String DEFAULT_CONFIG =
@@ -46,126 +45,177 @@ public final class ConfigLoader {
         bridge-mode: false
 
       modules:
-        auth:
+        starx.auth:
           enabled: true
-        auth.yggdrasil:
+        starx.auth.yggdrasil:
           enabled: true
-        auth.uniauth:
+        starx.auth.uniauth:
           enabled: false
-        auth.floodgate:
+        starx.auth.floodgate:
           enabled: true
-        auth.tab:
+        starx.auth.tab:
           enabled: true
-        auth.migration:
+        starx.auth.migration:
           enabled: false
-        skin-bridge:
+        starx.skin-bridge:
           enabled: true
-        messaging:
+        starx.chat:
           enabled: true
-        proxytools.maintenance:
+        starx.maintenance:
           enabled: true
-        proxytools.motd:
+        starx.motd:
           enabled: true
-        proxytools.chat:
+        starx.redirect:
           enabled: true
-        proxytools.redirect:
+        starx.queue:
           enabled: true
-        proxytools.queue:
+        starx.limbo:
           enabled: true
-        proxytools.limbo:
+        starx.reconnect:
           enabled: true
-        proxytools.reconnect:
+        starx.info:
           enabled: true
-        proxytools.info:
-          enabled: true
-        proxytools.forge:
+        starx.forge:
           enabled: false
-        proxytools.raknet:
+        starx.proxytools.raknet:
           enabled: false
-        proxytools.online:
+        starx.online:
           enabled: true
-        proxytools.enhanced:
+        starx.enhanced:
           enabled: true
-        proxytools.filecleaner:
+        starx.proxytools.filecleaner:
           enabled: false
-        security.bot:
+        starx.security.bot:
           enabled: true
-        security.crash:
+        starx.security.crash:
           enabled: true
-        security.risk:
+        starx.security.risk:
           enabled: true
-        security.anticheat:
+        starx.security.anticheat:
           enabled: true
-        integrations.qq:
+        starx.integrations.qq:
           enabled: false
-        integrations.plan:
+        starx.integrations.plan:
           enabled: false
-        integrations.mapmod:
+        starx.integrations.mapmod:
           enabled: false
-        integrations.social:
+        starx.integrations.social:
           enabled: false
+        starx.integrations.napcat:
+          enabled: false
+        starx.vote:
+          enabled: true
+
+      napcat:
+        enabled: false
+        ws-url: "ws://127.0.0.1:6700"
+        http-url: "http://127.0.0.1:3000"
+        qq-group-id: 0
+        forward-format: "[MC] {player}: {message}"
       """;
 
   private ConfigLoader() {}
 
+  @SuppressWarnings("unchecked")
   public static StarxConfig load(Path path) throws IOException {
     if (!Files.exists(path)) {
       Files.createDirectories(path.getParent());
       Files.writeString(path, DEFAULT_CONFIG, StandardCharsets.UTF_8);
     }
 
-    YamlConfigurationLoader loader = YamlConfigurationLoader.builder().path(path).build();
-    ConfigurationNode root = loader.load();
+    Map<String, Object> root;
+    try (InputStream in = Files.newInputStream(path)) {
+      root = new Yaml().load(in);
+    }
+    if (root == null) root = Map.of();
 
-    String apiKey = root.node("api-key").getString("");
+    String apiKey = str(root, "api-key", "");
 
-    ConfigurationNode httpNode = root.node("http");
-    StarxConfig.HttpConfig http =
-        new StarxConfig.HttpConfig(
-            httpNode.node("bind").getString("127.0.0.1"), httpNode.node("port").getInt(8788));
+    Map<String, Object> httpNode = child(root, "http");
+    StarxConfig.HttpConfig http = new StarxConfig.HttpConfig(
+        str(httpNode, "bind", "127.0.0.1"),
+        integer(httpNode, "port", 8788));
 
-    ConfigurationNode webhookNode = root.node("webhook");
-    StarxConfig.WebhookConfig webhook =
-        new StarxConfig.WebhookConfig(
-            webhookNode.node("url").getString(""), webhookNode.node("secret").getString(""));
+    Map<String, Object> webhookNode = child(root, "webhook");
+    StarxConfig.WebhookConfig webhook = new StarxConfig.WebhookConfig(
+        str(webhookNode, "url", ""),
+        str(webhookNode, "secret", ""));
 
     Map<String, StarxConfig.ModuleConfig> modules = new HashMap<>();
-    ConfigurationNode modulesNode = root.node("modules");
-    if (!modulesNode.virtual() && modulesNode.isMap()) {
-      for (Map.Entry<Object, ? extends ConfigurationNode> entry :
-          modulesNode.childrenMap().entrySet()) {
-        String name = entry.getKey().toString();
-        boolean enabled = entry.getValue().node("enabled").getBoolean(false);
-        modules.put(name, new StarxConfig.ModuleConfig(enabled));
+    Map<String, Object> modulesNode = child(root, "modules");
+    for (Map.Entry<String, Object> entry : modulesNode.entrySet()) {
+      String name = entry.getKey();
+      boolean enabled = false;
+      if (entry.getValue() instanceof Map) {
+        enabled = bool((Map<String, Object>) entry.getValue(), "enabled", false);
       }
+      modules.put(name, new StarxConfig.ModuleConfig(enabled));
     }
 
-    DatabaseConfig database = parseDatabaseConfig(root.node("database"));
-    UniAuthConfig uniauth = parseUniAuthConfig(root.node("uniauth"));
+    DatabaseConfig database = parseDatabaseConfig(child(root, "database"));
+    UniAuthConfig uniauth = parseUniAuthConfig(child(root, "uniauth"));
+    StarxConfig.NapcatConfig napcat = parseNapcatConfig(child(root, "napcat"));
 
-    return new StarxConfig(apiKey, http, webhook, database, uniauth, modules);
+    return new StarxConfig(apiKey, http, webhook, database, uniauth, napcat, modules);
   }
 
-  private static UniAuthConfig parseUniAuthConfig(ConfigurationNode node) {
-    boolean enabled = node.node("enabled").getBoolean(false);
-    String apiUrl = node.node("api-url").getString("https://api.example.com/uniauth/");
-    String apiKey = node.node("api-key").getString("");
-    int timeoutMs = node.node("timeout-ms").getInt(5000);
-    boolean bridgeMode = node.node("bridge-mode").getBoolean(false);
-    return new UniAuthConfig(enabled, apiUrl, apiKey, timeoutMs, bridgeMode);
+  private static Map<String, Object> child(Map<String, Object> parent, String key) {
+    Object v = parent.get(key);
+    return v instanceof Map ? (Map<String, Object>) v : Map.of();
   }
 
-  private static DatabaseConfig parseDatabaseConfig(ConfigurationNode node) {
-    String type = node.node("type").getString("h2");
-    String host = node.node("host").getString("");
-    int port = node.node("port").getInt(3306);
-    String database = node.node("database").getString("starx");
-    String username = node.node("username").getString("starx");
-    String password = node.node("password").getString("");
-    String url = node.node("url").getString("");
-    int poolMaxSize = node.node("pool-max-size").getInt(10);
-    long connectionTimeoutMs = node.node("connection-timeout-ms").getLong(30_000L);
+  private static String str(Map<String, Object> map, String key, String def) {
+    Object v = map.get(key);
+    return v != null ? v.toString() : def;
+  }
+
+  private static int integer(Map<String, Object> map, String key, int def) {
+    Object v = map.get(key);
+    if (v instanceof Number n) return n.intValue();
+    if (v != null) try { return Integer.parseInt(v.toString()); } catch (NumberFormatException e) {}
+    return def;
+  }
+
+  private static long longVal(Map<String, Object> map, String key, long def) {
+    Object v = map.get(key);
+    if (v instanceof Number n) return n.longValue();
+    if (v != null) try { return Long.parseLong(v.toString()); } catch (NumberFormatException e) {}
+    return def;
+  }
+
+  private static boolean bool(Map<String, Object> map, String key, boolean def) {
+    Object v = map.get(key);
+    return v instanceof Boolean ? (Boolean) v : def;
+  }
+
+  private static UniAuthConfig parseUniAuthConfig(Map<String, Object> node) {
+    return new UniAuthConfig(
+        bool(node, "enabled", false),
+        str(node, "api-url", "https://api.example.com/uniauth/"),
+        str(node, "api-key", ""),
+        integer(node, "timeout-ms", 5000),
+        bool(node, "bridge-mode", false));
+  }
+
+  private static StarxConfig.NapcatConfig parseNapcatConfig(Map<String, Object> node) {
+    return new StarxConfig.NapcatConfig(
+        bool(node, "enabled", false),
+        str(node, "ws-url", "ws://127.0.0.1:6700"),
+        str(node, "http-url", "http://127.0.0.1:3000"),
+        longVal(node, "qq-group-id", 0),
+        str(node, "forward-format", "[MC] {player}: {message}"));
+  }
+
+  private static DatabaseConfig parseDatabaseConfig(Map<String, Object> node) {
     return new DatabaseConfig(
-        type, host, port, database, username, password, url, poolMaxSize, connectionTimeoutMs);
+        str(node, "type", "h2"),
+        str(node, "host", ""),
+        integer(node, "port", 3306),
+        str(node, "database", "starx"),
+        str(node, "username", "starx"),
+        str(node, "password", ""),
+        str(node, "url", ""),
+        integer(node, "pool-max-size", 10),
+        longVal(node, "connection-timeout-ms", 30_000L));
   }
 }

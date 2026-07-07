@@ -40,7 +40,7 @@ public final class MaintenanceModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "maintenance";
+    return "starx.maintenance";
   }
 
   @Override

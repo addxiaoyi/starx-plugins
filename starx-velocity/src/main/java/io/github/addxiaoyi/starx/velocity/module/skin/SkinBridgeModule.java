@@ -54,7 +54,7 @@ public final class SkinBridgeModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "skin-bridge";
+    return "starx.skin-bridge";
   }
 
   @Override

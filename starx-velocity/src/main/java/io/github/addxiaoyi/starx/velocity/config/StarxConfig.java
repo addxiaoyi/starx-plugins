@@ -13,6 +13,7 @@ public final class StarxConfig {
   private final WebhookConfig webhook;
   private final DatabaseConfig database;
   private final UniAuthConfig uniauth;
+  private final NapcatConfig napcat;
   private final Map<String, ModuleConfig> modules;
 
   public StarxConfig(
@@ -21,12 +22,14 @@ public final class StarxConfig {
       WebhookConfig webhook,
       DatabaseConfig database,
       UniAuthConfig uniauth,
+      NapcatConfig napcat,
       Map<String, ModuleConfig> modules) {
     this.apiKey = apiKey;
     this.http = Objects.requireNonNull(http, "http");
     this.webhook = Objects.requireNonNull(webhook, "webhook");
     this.database = database == null ? DatabaseConfig.defaults() : database;
     this.uniauth = uniauth == null ? UniAuthConfig.defaults() : uniauth;
+    this.napcat = napcat == null ? NapcatConfig.defaults() : napcat;
     this.modules = modules == null ? Map.of() : Map.copyOf(modules);
   }
 
@@ -48,6 +51,10 @@ public final class StarxConfig {
 
   public UniAuthConfig uniauth() {
     return uniauth;
+  }
+
+  public NapcatConfig napcat() {
+    return napcat;
   }
 
   public Map<String, ModuleConfig> modules() {
@@ -96,6 +103,32 @@ public final class StarxConfig {
 
     public boolean isConfigured() {
       return url != null && !url.isBlank();
+    }
+  }
+
+  public static final class NapcatConfig {
+    private final boolean enabled;
+    private final String wsUrl;
+    private final String httpUrl;
+    private final long qqGroupId;
+    private final String forwardFormat;
+
+    public NapcatConfig(boolean enabled, String wsUrl, String httpUrl, long qqGroupId, String forwardFormat) {
+      this.enabled = enabled;
+      this.wsUrl = wsUrl == null || wsUrl.isBlank() ? "ws://127.0.0.1:6700" : wsUrl;
+      this.httpUrl = httpUrl;
+      this.qqGroupId = qqGroupId;
+      this.forwardFormat = forwardFormat == null || forwardFormat.isBlank() ? "[MC] {player}: {message}" : forwardFormat;
+    }
+
+    public boolean enabled() { return enabled; }
+    public String wsUrl() { return wsUrl; }
+    public String httpUrl() { return httpUrl; }
+    public long qqGroupId() { return qqGroupId; }
+    public String forwardFormat() { return forwardFormat; }
+
+    public static NapcatConfig defaults() {
+      return new NapcatConfig(false, "ws://127.0.0.1:6700", "", 0, "[MC] {player}: {message}");
     }
   }
 

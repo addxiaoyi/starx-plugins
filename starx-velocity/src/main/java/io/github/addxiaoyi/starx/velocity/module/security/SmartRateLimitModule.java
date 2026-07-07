@@ -54,7 +54,7 @@ public final class SmartRateLimitModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.smart-rate";
+    return "starx.security.smart-rate";
   }
 
   @Override

@@ -23,7 +23,7 @@ public final class AuthCommands implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth-commands";
+    return "starx.auth-commands";
   }
 
   @Override

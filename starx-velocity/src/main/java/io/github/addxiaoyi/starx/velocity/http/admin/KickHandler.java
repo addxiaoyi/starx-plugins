@@ -4,14 +4,14 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
+import io.github.addxiaoyi.starx.velocity.http.JsonHttpExchange;
+import io.github.addxiaoyi.starx.velocity.http.RouteRegistrar;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import net.kyori.adventure.text.Component;
 
-/** POST /v1/admin/kick-online - 管理员踢出在线玩家。 */
 public final class KickHandler implements AdminHandler {
 
   private final ProxyServer proxy;
@@ -23,11 +23,11 @@ public final class KickHandler implements AdminHandler {
   }
 
   @Override
-  public void register(Javalin app) {
-    app.post("/v1/admin/kick-online", this::handle);
+  public void register(RouteRegistrar routes) {
+    routes.post("/v1/admin/kick-online", this::handle);
   }
 
-  private void handle(Context ctx) {
+  private void handle(JsonHttpExchange ctx) throws IOException {
     KickRequest req = ctx.bodyAsClass(KickRequest.class);
     if (req.username == null || req.username.isBlank()) {
       ctx.status(400).json(Map.of("error", "username is required"));

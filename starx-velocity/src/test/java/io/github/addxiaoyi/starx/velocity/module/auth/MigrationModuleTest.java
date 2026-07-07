@@ -37,12 +37,12 @@ class MigrationModuleTest {
 
           @Override
           public String source() {
-            return "multilogin";
+            return "starx.multilogin";
           }
 
           @Override
           public String backend() {
-            return "mysql";
+            return "starx.mysql";
           }
 
           @Override
@@ -60,13 +60,13 @@ class MigrationModuleTest {
   @Test
   void shouldReturnCorrectModuleName() {
     MigrationModule module = new MigrationModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("auth.migration");
+    assertThat(module.name()).isEqualTo("starx.auth.migration");
   }
 
   @Test
   void shouldSupportMultipleSources() {
     MigrationModule.Config multiLoginConfig = config;
-    assertThat(multiLoginConfig.source()).isEqualTo("multilogin");
+    assertThat(multiLoginConfig.source()).isEqualTo("starx.multilogin");
 
     MigrationModule.Config authmeConfig =
         new MigrationModule.Config() {
@@ -77,12 +77,12 @@ class MigrationModuleTest {
 
           @Override
           public String source() {
-            return "authme";
+            return "starx.authme";
           }
 
           @Override
           public String backend() {
-            return "sqlite";
+            return "starx.sqlite";
           }
 
           @Override
@@ -90,8 +90,8 @@ class MigrationModuleTest {
             return Map.of("path", "/data/authme.db");
           }
         };
-    assertThat(authmeConfig.source()).isEqualTo("authme");
-    assertThat(authmeConfig.backend()).isEqualTo("sqlite");
+    assertThat(authmeConfig.source()).isEqualTo("starx.authme");
+    assertThat(authmeConfig.backend()).isEqualTo("starx.sqlite");
   }
 
   @Test

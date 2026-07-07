@@ -11,8 +11,7 @@ import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
 import io.github.addxiaoyi.starx.api.event.StarxEvent;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
-import io.javalin.Javalin;
-import java.io.IOException;
+import io.github.addxiaoyi.starx.velocity.http.TestHttpServer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -31,7 +30,7 @@ class KickHandlerTest {
 
   private final ProxyServer proxy = mock(ProxyServer.class);
   private final EventBus eventBus = new VelocityEventBus();
-  private Javalin app;
+  private TestHttpServer server;
   private HttpClient client;
 
   @BeforeEach
@@ -41,8 +40,8 @@ class KickHandlerTest {
 
   @AfterEach
   void tearDown() {
-    if (app != null) {
-      app.stop();
+    if (server != null) {
+      server.stop();
     }
   }
 
@@ -54,9 +53,9 @@ class KickHandlerTest {
     AtomicReference<StarxEvent> captured = new AtomicReference<>();
     eventBus.subscribe(EventTypes.ADMIN_KICK_PLAYER, captured::set);
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new KickHandler(proxy, eventBus).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new KickHandler(proxy, eventBus).register(server);
+    server.start();
 
     HttpResponse<String> response =
         post("/v1/admin/kick-online", "{\"username\":\"frank\",\"reason\":\"afk\"}");
@@ -73,9 +72,9 @@ class KickHandlerTest {
   void shouldReturn404WhenPlayerNotOnline() throws Exception {
     when(proxy.getPlayer("ghost")).thenReturn(Optional.empty());
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new KickHandler(proxy, eventBus).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new KickHandler(proxy, eventBus).register(server);
+    server.start();
 
     HttpResponse<String> response =
         post("/v1/admin/kick-online", "{\"username\":\"ghost\",\"reason\":\"afk\"}");
@@ -84,7 +83,7 @@ class KickHandlerTest {
   }
 
   private HttpResponse<String> post(String path, String body)
-      throws IOException, InterruptedException {
+      throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
             .header("Content-Type", "application/json")

@@ -33,7 +33,7 @@ public final class BlossomGuardModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.blossom";
+    return "starx.security.blossom";
   }
 
   @Override

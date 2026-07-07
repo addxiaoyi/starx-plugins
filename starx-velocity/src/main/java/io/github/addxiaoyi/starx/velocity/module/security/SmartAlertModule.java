@@ -60,7 +60,7 @@ public final class SmartAlertModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.smart-alert";
+    return "starx.security.smart-alert";
   }
 
   @Override

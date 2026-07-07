@@ -8,9 +8,8 @@ import io.github.addxiaoyi.starx.api.event.EventTypes;
 import io.github.addxiaoyi.starx.api.event.StarxEvent;
 import io.github.addxiaoyi.starx.api.repository.UserRepository;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
+import io.github.addxiaoyi.starx.velocity.http.TestHttpServer;
 import io.github.addxiaoyi.starx.velocity.repository.InMemoryUserRepository;
-import io.javalin.Javalin;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -27,9 +26,8 @@ class BanHandlerTest {
 
   private final UserRepository users = new InMemoryUserRepository();
   private final EventBus eventBus = new VelocityEventBus();
-  private Javalin app;
+  private TestHttpServer server;
   private HttpClient client;
-  private int port;
 
   @BeforeEach
   void setUp() {
@@ -38,8 +36,8 @@ class BanHandlerTest {
 
   @AfterEach
   void tearDown() {
-    if (app != null) {
-      app.stop();
+    if (server != null) {
+      server.stop();
     }
   }
 
@@ -50,10 +48,9 @@ class BanHandlerTest {
     AtomicReference<StarxEvent> captured = new AtomicReference<>();
     eventBus.subscribe(EventTypes.ADMIN_BAN_PLAYER, captured::set);
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new BanHandler(users, eventBus).register(app);
-    app.start(0);
-    port = app.port();
+    server = new TestHttpServer(0);
+    new BanHandler(users, eventBus).register(server);
+    server.start();
 
     HttpResponse<String> response =
         post("/v1/admin/ban", "{\"username\":\"charlie\",\"reason\":\"cheating\"}");
@@ -67,9 +64,9 @@ class BanHandlerTest {
   }
 
   private HttpResponse<String> post(String path, String body)
-      throws IOException, InterruptedException {
+      throws Exception {
     HttpRequest request =
-        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
+        HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + server.port() + path))
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build();

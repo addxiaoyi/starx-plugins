@@ -32,7 +32,7 @@ class SmartRateLimitModuleTest {
   @Test
   void shouldReturnCorrectName() {
     SmartRateLimitModule module = new SmartRateLimitModule(plugin, eventBus);
-    assertThat(module.name()).isEqualTo("security.smart-rate");
+    assertThat(module.name()).isEqualTo("starx.security.smart-rate");
   }
 
   @Test

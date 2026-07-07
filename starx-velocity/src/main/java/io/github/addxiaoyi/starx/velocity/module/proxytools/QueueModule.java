@@ -33,7 +33,7 @@ public final class QueueModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "queue";
+    return "starx.queue";
   }
 
   @Override

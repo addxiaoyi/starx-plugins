@@ -17,7 +17,7 @@ import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.database.DatabaseManager;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.net.InetAddress;
@@ -44,7 +44,7 @@ public final class AuthModule implements VelocityModule {
   private final UniAuthConfig uniauthConfig;
 
   private DatabaseManager databaseManager;
-  private JdbiUserRepository userRepository;
+  private JdbcUserRepository userRepository;
   private SessionManager sessionManager;
   private PremiumResolver premiumResolver;
   private AuthService authService;
@@ -67,7 +67,7 @@ public final class AuthModule implements VelocityModule {
     initAuthService();
   }
 
-  public JdbiUserRepository userRepository() {
+  public JdbcUserRepository userRepository() {
     return userRepository;
   }
 
@@ -77,7 +77,7 @@ public final class AuthModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth";
+    return "starx.auth";
   }
 
   @Override
@@ -114,7 +114,7 @@ public final class AuthModule implements VelocityModule {
             2,
             5_000L);
     this.databaseManager = new DatabaseManager(config);
-    this.userRepository = new JdbiUserRepository(databaseManager.getJdbi());
+    this.userRepository = new JdbcUserRepository(databaseManager.getDataSource());
   }
 
   private void initUniAuth() {

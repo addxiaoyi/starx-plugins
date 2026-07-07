@@ -1,7 +1,7 @@
 package io.github.addxiaoyi.starx.common.auth.uniauth;
 
 import io.github.addxiaoyi.starx.common.crypto.PasswordHasher;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import java.time.Instant;
 import java.util.Objects;
@@ -23,10 +23,10 @@ public final class UniAuthBridge {
 
   private final UniAuthConfig config;
   private final UniAuthClient client;
-  private final JdbiUserRepository userRepository;
+  private final JdbcUserRepository userRepository;
 
   public UniAuthBridge(
-      UniAuthConfig config, UniAuthClient client, JdbiUserRepository userRepository) {
+      UniAuthConfig config, UniAuthClient client, JdbcUserRepository userRepository) {
     this.config = Objects.requireNonNull(config, "config");
     this.client = Objects.requireNonNull(client, "client");
     this.userRepository = Objects.requireNonNull(userRepository, "userRepository");

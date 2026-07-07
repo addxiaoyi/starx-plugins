@@ -47,7 +47,7 @@ class TabIntegrationModuleTest {
   @Test
   void shouldReturnCorrectModuleName() {
     TabIntegrationModule module = new TabIntegrationModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("auth.tab");
+    assertThat(module.name()).isEqualTo("starx.auth.tab");
   }
 
   @Test

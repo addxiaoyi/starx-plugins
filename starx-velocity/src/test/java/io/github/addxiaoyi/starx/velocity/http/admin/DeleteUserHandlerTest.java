@@ -6,8 +6,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.common.auth.AuthResult;
 import io.github.addxiaoyi.starx.common.auth.AuthService;
-import io.javalin.Javalin;
-import java.io.IOException;
+import io.github.addxiaoyi.starx.velocity.http.TestHttpServer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -26,7 +25,7 @@ class DeleteUserHandlerTest {
   @Mock private AuthService authService;
 
   private AutoCloseable mocks;
-  private Javalin app;
+  private TestHttpServer server;
   private HttpClient client;
 
   @BeforeEach
@@ -37,8 +36,8 @@ class DeleteUserHandlerTest {
 
   @AfterEach
   void tearDown() throws Exception {
-    if (app != null) {
-      app.stop();
+    if (server != null) {
+      server.stop();
     }
     if (mocks != null) {
       mocks.close();
@@ -49,9 +48,9 @@ class DeleteUserHandlerTest {
   void shouldDeleteUser() throws Exception {
     when(authService.deleteUser("dave")).thenReturn(AuthResult.success("用户已删除"));
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new DeleteUserHandler(authService).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new DeleteUserHandler(authService).register(server);
+    server.start();
 
     HttpResponse<String> response = post("/v1/admin/delete-user", "{\"username\":\"dave\"}");
 
@@ -60,7 +59,7 @@ class DeleteUserHandlerTest {
   }
 
   private HttpResponse<String> post(String path, String body)
-      throws IOException, InterruptedException {
+      throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
             .header("Content-Type", "application/json")

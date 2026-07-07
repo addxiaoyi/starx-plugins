@@ -53,7 +53,7 @@ public final class SmartQueueModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "proxytools.smart-queue";
+    return "starx.proxytools.smart-queue";
   }
 
   @Override

@@ -43,7 +43,7 @@ class RiskModuleTest {
   @Test
   void shouldReturnCorrectName() {
     RiskModule module = new RiskModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("security.risk");
+    assertThat(module.name()).isEqualTo("starx.security.risk");
   }
 
   @Test

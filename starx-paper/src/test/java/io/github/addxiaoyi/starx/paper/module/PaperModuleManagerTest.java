@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
+import io.github.addxiaoyi.starx.paper.messaging.PaperMessageBridge;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -24,6 +25,7 @@ class PaperModuleManagerTest {
 
   @Mock StarxPaperPlugin plugin;
   @Mock PaperConfigLoader configLoader;
+  @Mock PaperMessageBridge messageBridge;
   @Mock Server server;
   @Mock PluginManager pluginManager;
   Logger logger = Logger.getLogger(PaperModuleManagerTest.class.getName());
@@ -40,7 +42,7 @@ class PaperModuleManagerTest {
     lenient().when(configLoader.isModuleEnabled("maintenance")).thenReturn(true);
     lenient().when(configLoader.isModuleEnabled("chat")).thenReturn(true);
 
-    PaperModuleManager manager = new PaperModuleManager(plugin, configLoader);
+    PaperModuleManager manager = new PaperModuleManager(plugin, configLoader, messageBridge);
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
       when(pluginManager.getPlugin("SkinsRestorer")).thenReturn(null);
@@ -59,7 +61,7 @@ class PaperModuleManagerTest {
     lenient().when(configLoader.isModuleEnabled("chat")).thenReturn(false);
     lenient().when(configLoader.isModuleEnabled("skin")).thenReturn(true);
 
-    PaperModuleManager manager = new PaperModuleManager(plugin, configLoader);
+    PaperModuleManager manager = new PaperModuleManager(plugin, configLoader, messageBridge);
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
       when(pluginManager.getPlugin("SkinsRestorer")).thenReturn(mock(Plugin.class));
@@ -74,7 +76,7 @@ class PaperModuleManagerTest {
     lenient().when(configLoader.isModuleEnabled("maintenance")).thenReturn(false);
     lenient().when(configLoader.isModuleEnabled("chat")).thenReturn(false);
 
-    PaperModuleManager manager = new PaperModuleManager(plugin, configLoader);
+    PaperModuleManager manager = new PaperModuleManager(plugin, configLoader, messageBridge);
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
       when(pluginManager.getPlugin("SkinsRestorer")).thenReturn(null);

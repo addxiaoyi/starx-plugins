@@ -35,4 +35,7 @@ public final class EventTypes {
   // 代理/后端通信
   public static final String SYNC_PLAYER_STATE = "sync:player:state";
   public static final String SYNC_CONFIG = "sync:config";
+
+  // 统计报告
+  public static final String PLAN_STATS_REPORT = "plan:stats:report";
 }

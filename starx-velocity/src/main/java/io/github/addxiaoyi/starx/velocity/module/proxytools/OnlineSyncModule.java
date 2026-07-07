@@ -34,7 +34,7 @@ public final class OnlineSyncModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "online";
+    return "starx.online";
   }
 
   @Override

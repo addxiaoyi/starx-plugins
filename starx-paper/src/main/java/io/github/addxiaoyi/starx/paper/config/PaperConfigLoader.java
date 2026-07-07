@@ -3,14 +3,14 @@ package io.github.addxiaoyi.starx.paper.config;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
-import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import java.util.Map;
+import org.yaml.snakeyaml.Yaml;
 
-/** 加载 plugins/starx/config.yml 并返回 starx-common 兼容的 {@link ConfigurationNode}。 */
 public final class PaperConfigLoader {
 
   private static final String DEFAULT_CONFIG =
@@ -69,59 +69,78 @@ public final class PaperConfigLoader {
           + "        size: -1\n";
 
   private final StarxPaperPlugin plugin;
-  private ConfigurationNode root;
+  private Map<String, Object> root;
 
   public PaperConfigLoader(StarxPaperPlugin plugin) {
     this.plugin = plugin;
   }
 
-  public void load() throws ConfigurateException {
+  @SuppressWarnings("unchecked")
+  public void load() {
     File configDir = new File(plugin.getDataFolder().getParentFile(), "starx");
     File configFile = new File(configDir, "config.yml");
     if (!configFile.exists()) {
       configDir.mkdirs();
       saveDefault(configFile);
     }
-    YamlConfigurationLoader loader =
-        YamlConfigurationLoader.builder().path(configFile.toPath()).build();
-    root = loader.load();
-  }
-
-  public ConfigurationNode root() {
-    return root;
+    try (InputStream in = Files.newInputStream(configFile.toPath())) {
+      root = new Yaml().load(in);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load config from " + configFile, e);
+    }
   }
 
   public boolean isModuleEnabled(String module) {
-    if (root == null) {
-      return false;
-    }
-    return root.node("modules", module, "enabled").getBoolean(true);
+    return bool(nested("modules", module), "enabled", true);
   }
 
   public String getChatFormat() {
-    if (root == null) {
-      return "<{player}> {message}";
-    }
-    return root.node("modules", "chat", "format").getString("<{player}> {message}");
+    return str(nested("modules", "chat"), "format", "<{player}> {message}");
   }
 
   @SuppressWarnings("unchecked")
   public List<String> getEnabledChecks() {
-    if (root == null) {
-      return List.of("speed", "break", "interact");
+    Map<String, Object> anticheat = nested("modules", "anticheat");
+    if (anticheat.containsKey("enabled_checks")) {
+      Object checks = anticheat.get("enabled_checks");
+      if (checks instanceof List) {
+        List<String> result = new ArrayList<>();
+        for (Object item : (List<Object>) checks) {
+          result.add(item.toString());
+        }
+        return result;
+      }
     }
-    try {
-      return root.node("modules", "anticheat", "enabled_checks").getList(String.class);
-    } catch (Exception e) {
-      return List.of("speed", "break", "interact");
-    }
+    return List.of("speed", "break", "interact");
   }
 
-  private void saveDefault(File configFile) throws ConfigurateException {
+  private void saveDefault(File configFile) {
     try {
       Files.writeString(configFile.toPath(), DEFAULT_CONFIG, StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new ConfigurateException("Failed to write default config to " + configFile, e);
+      throw new RuntimeException("Failed to write default config to " + configFile, e);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> nested(String... keys) {
+    if (root == null) return Map.of();
+    Map<String, Object> current = root;
+    for (String key : keys) {
+      Object v = current.get(key);
+      if (!(v instanceof Map)) return Map.of();
+      current = (Map<String, Object>) v;
+    }
+    return current;
+  }
+
+  private static String str(Map<String, Object> map, String key, String def) {
+    Object v = map.get(key);
+    return v != null ? v.toString() : def;
+  }
+
+  private static boolean bool(Map<String, Object> map, String key, boolean def) {
+    Object v = map.get(key);
+    return v instanceof Boolean ? (Boolean) v : def;
   }
 }

@@ -48,7 +48,7 @@ class LimboHubModuleTest {
 
           @Override
           public String hubServerName() {
-            return "lobby";
+            return "starx.lobby";
           }
         };
     disabledConfig =
@@ -60,7 +60,7 @@ class LimboHubModuleTest {
 
           @Override
           public String hubServerName() {
-            return "lobby";
+            return "starx.lobby";
           }
         };
   }

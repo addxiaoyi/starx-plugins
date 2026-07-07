@@ -4,7 +4,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.proxy.Player;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import io.github.addxiaoyi.starx.common.security.HttpClient;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
@@ -40,18 +40,18 @@ public class WelcomeModule implements VelocityModule {
   private static final TextColor BORDER = TextColor.color(51, 65, 85);
 
   private final StarxVelocityPlugin plugin;
-  private final JdbiUserRepository userRepository;
+  private final JdbcUserRepository userRepository;
   private final Map<UUID, Instant> loginTimestamps = new HashMap<>();
   private final Config config;
 
-  public WelcomeModule(StarxVelocityPlugin plugin, JdbiUserRepository userRepository) {
+  public WelcomeModule(StarxVelocityPlugin plugin, JdbcUserRepository userRepository) {
     this.plugin = plugin;
     this.userRepository = userRepository;
     this.config = Config.defaultConfig();
   }
 
   public WelcomeModule(
-      StarxVelocityPlugin plugin, JdbiUserRepository userRepository, Config config) {
+      StarxVelocityPlugin plugin, JdbcUserRepository userRepository, Config config) {
     this.plugin = plugin;
     this.userRepository = userRepository;
     this.config = config;
@@ -59,7 +59,7 @@ public class WelcomeModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "welcome";
+    return "starx.welcome";
   }
 
   @Override
@@ -108,7 +108,7 @@ public class WelcomeModule implements VelocityModule {
     if (address != null && address.getAddress() != null) {
       return address.getAddress().getHostAddress();
     }
-    return "unknown";
+    return "starx.unknown";
   }
 
   private void fetchAndSaveIpInfo(UUID uuid, String ip) {

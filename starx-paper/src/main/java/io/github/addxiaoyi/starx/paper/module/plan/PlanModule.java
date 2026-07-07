@@ -1,35 +1,46 @@
 package io.github.addxiaoyi.starx.paper.module.plan;
 
+import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
+import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
+import io.github.addxiaoyi.starx.paper.messaging.PaperMessageBridge;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
 import io.github.addxiaoyi.starx.paper.scheduler.SchedulerAdapter;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
-/** 统计上报模块：定时收集服务器 TPS、玩家活动、区块加载等数据，通过 Plugin Messaging 上报。 */
 public final class PlanModule implements PaperModule, Listener {
 
   private static final long COLLECT_INTERVAL_SECONDS = 60;
 
   private final StarxPaperPlugin plugin;
   private final PaperConfigLoader configLoader;
+  private final PaperMessageBridge messageBridge;
   private boolean enabled;
   private Map<String, Object> lastStats;
 
-  public PlanModule(StarxPaperPlugin plugin, PaperConfigLoader configLoader) {
-    this.plugin = plugin;
-    this.configLoader = configLoader;
+  public PlanModule(
+      StarxPaperPlugin plugin,
+      PaperConfigLoader configLoader,
+      PaperMessageBridge messageBridge) {
+    this.plugin = Objects.requireNonNull(plugin, "plugin");
+    this.configLoader = Objects.requireNonNull(configLoader, "configLoader");
+    this.messageBridge = Objects.requireNonNull(messageBridge, "messageBridge");
   }
 
   @Override
   public String getName() {
-    return "plan";
+    return "starx.plan";
   }
 
   @Override
@@ -39,57 +50,96 @@ public final class PlanModule implements PaperModule, Listener {
 
   @Override
   public void onEnable() {
-    plugin.getServer().getPluginManager().registerEvents(this, plugin);
     enabled = configLoader.isModuleEnabled("plan");
+    plugin.getServer().getPluginManager().registerEvents(this, plugin);
     if (enabled) {
       scheduleStatsCollection();
     }
     plugin.getLogger().info("Plan module enabled state: " + enabled);
   }
 
-  /** 获取最近一次统计数据（测试用）。 */
+  @Override
+  public void onDisable() {
+    enabled = false;
+  }
+
+  @Override
+  public void onPluginMessage(PluginMessage message) {
+    if (!PluginMessageChannels.CMD_PLAN_STATS.equals(message.command())) {
+      return;
+    }
+    collectAndSend();
+  }
+
   public Map<String, Object> getLastStats() {
     return lastStats;
   }
 
-  /** 收集服务器统计数据（测试用）。 */
   public void collectStats() {
+    int onlinePlayers = Bukkit.getOnlinePlayers().size();
+    int maxPlayers = Bukkit.getMaxPlayers();
+    long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    long maxMemory = Runtime.getRuntime().maxMemory();
+    double tps = 20.0;
+    try {
+      double[] tpsArr = Bukkit.getTPS();
+      if (tpsArr != null && tpsArr.length > 0) {
+        tps = tpsArr[0];
+      }
+    } catch (Exception ignored) {
+    }
+    int loadedChunks = 0;
+    int entities = 0;
+    for (World world : Bukkit.getWorlds()) {
+      loadedChunks += world.getLoadedChunks().length;
+      entities += world.getEntities().size();
+    }
+    Map<String, Object> stats = new LinkedHashMap<>();
+    stats.put("timestamp", Instant.now().toString());
+    stats.put("onlinePlayers", onlinePlayers);
+    stats.put("maxPlayers", maxPlayers);
+    stats.put("tps", Math.round(tps * 100.0) / 100.0);
+    stats.put("usedMemory", usedMemory);
+    stats.put("maxMemory", maxMemory);
+    stats.put("loadedChunks", loadedChunks);
+    stats.put("entities", entities);
+    lastStats = stats;
+  }
+
+  public void collectAndSend() {
     if (!enabled) {
       return;
     }
-    lastStats =
-        Map.of(
-            "onlinePlayers", Bukkit.getOnlinePlayers().size(),
-            "maxPlayers", Bukkit.getMaxPlayers(),
-            "timestamp", System.currentTimeMillis());
-    // TODO: 通过 Plugin Messaging 向 Velocity 上报统计数据
-    // TODO: 添加 TPS、区块加载、实体数量等详细统计
+    try {
+      collectStats();
+    } catch (Exception e) {
+      plugin.getLogger().log(Level.WARNING, "Failed to collect server stats", e);
+      return;
+    }
+    Player anyOnline = null;
+    for (Player player : Bukkit.getOnlinePlayers()) {
+      anyOnline = player;
+      break;
+    }
+    if (anyOnline == null) {
+      return;
+    }
+    messageBridge.send(
+        anyOnline,
+        new PluginMessage(PluginMessageChannels.CMD_PLAN_STATS, lastStats));
   }
 
   private void scheduleStatsCollection() {
     SchedulerAdapter scheduler = plugin.getSchedulerAdapter();
     scheduler.runAsyncDelayed(
         () -> {
-          collectStats();
+          if (!enabled) {
+            return;
+          }
+          collectAndSend();
           scheduleStatsCollection();
         },
         COLLECT_INTERVAL_SECONDS,
         TimeUnit.SECONDS);
-  }
-
-  @EventHandler
-  public void onJoin(PlayerJoinEvent event) {
-    if (!enabled) {
-      return;
-    }
-    // TODO: 记录玩家加入数据
-  }
-
-  @EventHandler
-  public void onQuit(PlayerQuitEvent event) {
-    if (!enabled) {
-      return;
-    }
-    // TODO: 记录玩家离开数据
   }
 }

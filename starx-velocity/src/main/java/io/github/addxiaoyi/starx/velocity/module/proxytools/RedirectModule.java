@@ -21,7 +21,7 @@ public final class RedirectModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "redirect";
+    return "starx.redirect";
   }
 
   @Override

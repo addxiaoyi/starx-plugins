@@ -52,7 +52,7 @@ class EnhancedProxyModuleTest {
   @Test
   void shouldHaveCorrectModuleName() {
     EnhancedProxyModule module = new EnhancedProxyModule(plugin, config);
-    assertEquals("enhanced", module.name());
+    assertEquals("starx.enhanced", module.name());
   }
 
   @Test

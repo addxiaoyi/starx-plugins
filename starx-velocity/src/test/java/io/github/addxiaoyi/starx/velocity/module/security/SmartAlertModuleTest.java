@@ -29,7 +29,7 @@ class SmartAlertModuleTest {
   @Test
   void shouldReturnCorrectName() {
     SmartAlertModule module = new SmartAlertModule(plugin, eventBus);
-    assertThat(module.name()).isEqualTo("security.smart-alert");
+    assertThat(module.name()).isEqualTo("starx.security.smart-alert");
   }
 
   @Test

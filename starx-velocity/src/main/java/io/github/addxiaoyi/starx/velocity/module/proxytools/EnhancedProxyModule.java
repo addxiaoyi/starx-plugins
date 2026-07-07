@@ -46,7 +46,7 @@ public final class EnhancedProxyModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "enhanced";
+    return "starx.enhanced";
   }
 
   @Override
@@ -607,7 +607,7 @@ public final class EnhancedProxyModule implements VelocityModule {
 
         @Override
         public String notComplete() {
-          return ".";
+          return "starx..";
         }
       };
     }

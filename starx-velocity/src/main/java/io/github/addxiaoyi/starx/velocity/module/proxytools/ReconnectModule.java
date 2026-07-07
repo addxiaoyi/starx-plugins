@@ -33,7 +33,7 @@ public final class ReconnectModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "reconnect";
+    return "starx.reconnect";
   }
 
   @Override

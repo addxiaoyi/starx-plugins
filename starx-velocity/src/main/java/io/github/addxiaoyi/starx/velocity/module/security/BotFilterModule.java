@@ -30,7 +30,7 @@ public final class BotFilterModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.bot";
+    return "starx.security.bot";
   }
 
   @Override

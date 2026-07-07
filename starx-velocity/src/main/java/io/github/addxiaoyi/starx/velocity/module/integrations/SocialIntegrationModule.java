@@ -29,7 +29,7 @@ public final class SocialIntegrationModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "integrations.social";
+    return "starx.integrations.social";
   }
 
   @Override

@@ -7,7 +7,7 @@ import io.github.addxiaoyi.starx.common.auth.AuthSession;
 import io.github.addxiaoyi.starx.common.auth.SessionManager;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.database.DatabaseManager;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.event.LocalEventBus;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -38,7 +38,7 @@ class AuthServiceStressTest {
             10,
             10_000L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
-      JdbiUserRepository repo = new JdbiUserRepository(manager.getJdbi());
+      JdbcUserRepository repo = new JdbcUserRepository(manager.getDataSource());
       LocalEventBus bus = new LocalEventBus();
       SessionManager sessions = new SessionManager(Duration.ofMillis(300_000), Instant::now);
       AuthService auth = new AuthService(repo, bus, sessions);
@@ -103,7 +103,7 @@ class AuthServiceStressTest {
             5,
             5_000L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
-      JdbiUserRepository repo = new JdbiUserRepository(manager.getJdbi());
+      JdbcUserRepository repo = new JdbcUserRepository(manager.getDataSource());
       LocalEventBus bus = new LocalEventBus();
       SessionManager sessions = new SessionManager(Duration.ofMillis(300_000), Instant::now);
       AuthService auth = new AuthService(repo, bus, sessions);

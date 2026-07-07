@@ -26,11 +26,10 @@ public class StarxPaperPlugin extends JavaPlugin {
     }
 
     scheduler = new SchedulerAdapter(this);
-    moduleManager = new PaperModuleManager(this, configLoader);
-    moduleManager.loadModules();
-
     messageBridge = new PaperMessageBridge(this, this::handlePluginMessage);
     messageBridge.register();
+    moduleManager = new PaperModuleManager(this, configLoader, messageBridge);
+    moduleManager.loadModules();
 
     getLogger().info("StarX Paper backend enabled.");
   }
@@ -54,6 +53,10 @@ public class StarxPaperPlugin extends JavaPlugin {
 
   public SchedulerAdapter getSchedulerAdapter() {
     return scheduler;
+  }
+
+  public PaperMessageBridge getMessageBridge() {
+    return messageBridge;
   }
 
   public PaperModuleManager getModuleManager() {

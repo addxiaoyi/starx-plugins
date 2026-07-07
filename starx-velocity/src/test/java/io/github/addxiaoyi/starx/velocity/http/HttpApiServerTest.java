@@ -7,8 +7,15 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.common.auth.AuthService;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
+import io.github.addxiaoyi.starx.common.auth.BindingVerificationService;
 import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcAnnouncementRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcBindingRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcPunishmentRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcReportRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcStaffNoteRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcVoteRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
@@ -27,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 class HttpApiServerTest {
@@ -37,7 +45,15 @@ class HttpApiServerTest {
   @Mock SkinBridgeModule skinBridge;
   @Mock ProxyServer proxy;
   @Mock AuthService authService;
-  @Mock JdbiUserRepository jdbiUserRepository;
+  @Mock JdbcUserRepository jdbiUserRepository;
+
+  private JdbcPunishmentRepository punishmentRepo;
+  private JdbcStaffNoteRepository staffNoteRepo;
+  private JdbcReportRepository reportRepo;
+  private JdbcAnnouncementRepository announcementRepo;
+  private JdbcBindingRepository bindingRepo;
+  private JdbcVoteRepository voteRepo;
+  private BindingVerificationService bindingVerification;
 
   private AutoCloseable mocks;
   private HttpApiServer server;
@@ -47,6 +63,13 @@ class HttpApiServerTest {
   @BeforeEach
   void setUp() {
     mocks = MockitoAnnotations.openMocks(this);
+    punishmentRepo = Mockito.mock(JdbcPunishmentRepository.class, Mockito.RETURNS_DEFAULTS);
+    staffNoteRepo = Mockito.mock(JdbcStaffNoteRepository.class, Mockito.RETURNS_DEFAULTS);
+    reportRepo = Mockito.mock(JdbcReportRepository.class, Mockito.RETURNS_DEFAULTS);
+    announcementRepo = Mockito.mock(JdbcAnnouncementRepository.class, Mockito.RETURNS_DEFAULTS);
+    bindingRepo = Mockito.mock(JdbcBindingRepository.class, Mockito.RETURNS_DEFAULTS);
+    voteRepo = Mockito.mock(JdbcVoteRepository.class, Mockito.RETURNS_DEFAULTS);
+    bindingVerification = new BindingVerificationService();
     client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     eventBus = new VelocityEventBus();
   }
@@ -65,7 +88,8 @@ class HttpApiServerTest {
   void shouldReturn503WhenApiKeyNotConfigured() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(null), eventBus, proxy, jdbiUserRepository, authService, skinBridge);
+            configWithApiKey(null), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", null);
@@ -78,12 +102,8 @@ class HttpApiServerTest {
   void shouldReturn401WhenApiKeyIsWrong() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY),
-            eventBus,
-            proxy,
-            jdbiUserRepository,
-            authService,
-            skinBridge);
+            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", "wrong");
@@ -98,9 +118,8 @@ class HttpApiServerTest {
             configWithApiKey(API_KEY),
             eventBus,
             proxy,
-            jdbiUserRepository,
-            authService,
-            skinBridge);
+            jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", API_KEY);
@@ -113,12 +132,8 @@ class HttpApiServerTest {
   void shouldAuthenticateWithValidHmacSignature() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY),
-            eventBus,
-            proxy,
-            jdbiUserRepository,
-            authService,
-            skinBridge);
+            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     String timestamp = String.valueOf(System.currentTimeMillis());
@@ -134,12 +149,8 @@ class HttpApiServerTest {
   void shouldReturn401ForInvalidHmacSignature() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY),
-            eventBus,
-            proxy,
-            jdbiUserRepository,
-            authService,
-            skinBridge);
+            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     HttpResponse<String> response = getHmac("/v1/health", "123", "invalid-signature");
@@ -153,12 +164,8 @@ class HttpApiServerTest {
 
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY),
-            eventBus,
-            proxy,
-            jdbiUserRepository,
-            authService,
-            skinBridge);
+            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/user/exists?name=test", API_KEY);
@@ -196,12 +203,8 @@ class HttpApiServerTest {
 
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY),
-            eventBus,
-            proxy,
-            jdbiUserRepository,
-            authService,
-            skinBridge);
+            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
+            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
     server.start();
 
     HttpResponse<String> response =
@@ -217,6 +220,7 @@ class HttpApiServerTest {
         new StarxConfig.WebhookConfig("", ""),
         DatabaseConfig.defaults(),
         io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig.defaults(),
+        StarxConfig.NapcatConfig.defaults(),
         java.util.Map.of());
   }
 

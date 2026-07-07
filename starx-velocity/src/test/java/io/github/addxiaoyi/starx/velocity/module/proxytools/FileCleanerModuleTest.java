@@ -88,7 +88,7 @@ class FileCleanerModuleTest {
   @Test
   void shouldHaveCorrectModuleName() {
     FileCleanerModule module = new FileCleanerModule(plugin, enabledConfig);
-    assertThat(module.name()).isEqualTo("proxytools.filecleaner");
+    assertThat(module.name()).isEqualTo("starx.proxytools.filecleaner");
   }
 
   @Test

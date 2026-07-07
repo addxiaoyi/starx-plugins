@@ -28,7 +28,7 @@ public final class LimboHubModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "limbo";
+    return "starx.limbo";
   }
 
   @Override
@@ -92,7 +92,7 @@ public final class LimboHubModule implements VelocityModule {
 
         @Override
         public String hubServerName() {
-          return "lobby";
+          return "starx.lobby";
         }
       };
     }

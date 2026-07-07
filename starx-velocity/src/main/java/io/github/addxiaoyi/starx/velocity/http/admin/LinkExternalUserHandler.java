@@ -4,12 +4,12 @@ import io.github.addxiaoyi.starx.api.dto.UserDto;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
 import io.github.addxiaoyi.starx.api.repository.UserRepository;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
+import io.github.addxiaoyi.starx.velocity.http.JsonHttpExchange;
+import io.github.addxiaoyi.starx.velocity.http.RouteRegistrar;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-/** POST /v1/admin/link-external-user - 关联外部网站用户 ID。 */
 public final class LinkExternalUserHandler implements AdminHandler {
 
   private final UserRepository users;
@@ -21,11 +21,11 @@ public final class LinkExternalUserHandler implements AdminHandler {
   }
 
   @Override
-  public void register(Javalin app) {
-    app.post("/v1/admin/link-external-user", this::handle);
+  public void register(RouteRegistrar routes) {
+    routes.post("/v1/admin/link-external-user", this::handle);
   }
 
-  private void handle(Context ctx) {
+  private void handle(JsonHttpExchange ctx) throws IOException {
     LinkExternalUserRequest req = ctx.bodyAsClass(LinkExternalUserRequest.class);
     if (req.username == null
         || req.username.isBlank()

@@ -25,7 +25,7 @@ public final class UniAuthModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth.uniauth";
+    return "starx.auth.uniauth";
   }
 
   @Override

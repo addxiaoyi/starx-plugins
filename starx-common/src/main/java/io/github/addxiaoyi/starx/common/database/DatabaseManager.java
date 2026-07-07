@@ -4,21 +4,15 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.Statement;
-import org.flywaydb.core.Flyway;
-import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 管理 HikariCP 连接池、JDBI 与 Flyway 数据库迁移。 */
 public final class DatabaseManager implements AutoCloseable {
 
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseManager.class);
 
   private final HikariDataSource dataSource;
-  private final Jdbi jdbi;
 
   public DatabaseManager(DatabaseConfig config) {
     loadJdbcDrivers();
@@ -49,49 +43,91 @@ public final class DatabaseManager implements AutoCloseable {
       configureSqlite();
     }
 
-    migrate();
-    verifyTables();
-
-    this.jdbi = Jdbi.create(this.dataSource).installPlugin(new SqlObjectPlugin());
+    ensureTables();
   }
 
-  private void verifyTables() {
+  private void ensureTables() {
     try (Connection conn = dataSource.getConnection();
-        ResultSet rs = conn.getMetaData().getTables(null, null, "starx_users", null)) {
-      if (!rs.next()) {
-        LOG.warn("starx_users table not found after Flyway migration, creating directly");
-        try (Statement stmt = conn.createStatement()) {
-          stmt.execute(
-              "CREATE TABLE IF NOT EXISTS starx_users ("
-                  + "uuid VARCHAR(36) PRIMARY KEY, username VARCHAR(255) NOT NULL, "
-                  + "email VARCHAR(255), password_hash VARCHAR(255), totp_secret VARCHAR(255), "
-                  + "premium BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMP NOT NULL, "
-                  + "last_login_at TIMESTAMP, external_user_id VARCHAR(255), "
-                  + "trusted_devices TEXT, recovery_codes VARCHAR(512) DEFAULT NULL, "
-                  + "source_system VARCHAR(50), migration_state VARCHAR(20), "
-                  + "password_migrated_at TIMESTAMP, last_login_ip VARCHAR(255), "
-                  + "last_login_isp VARCHAR(255), last_login_location VARCHAR(255), "
-                  + "total_playtime BIGINT DEFAULT 0, last_logout_at TIMESTAMP, "
-                  + "welcome_message_shown BOOLEAN DEFAULT FALSE)");
-          stmt.execute(
-              "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_username ON starx_users(username)");
-          stmt.execute(
-              "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_email ON starx_users(email)");
-        }
-        LOG.info("starx_users table created via direct fallback");
-      } else {
-        LOG.info("starx_users table exists after Flyway migration");
-      }
+        Statement stmt = conn.createStatement()) {
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_users ("
+              + "uuid VARCHAR(36) PRIMARY KEY, username VARCHAR(255) NOT NULL, "
+              + "email VARCHAR(255), password_hash VARCHAR(255), totp_secret VARCHAR(255), "
+              + "premium BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMP NOT NULL, "
+              + "last_login_at TIMESTAMP, external_user_id VARCHAR(255), "
+              + "trusted_devices TEXT, recovery_codes VARCHAR(512) DEFAULT NULL, "
+              + "source_system VARCHAR(50), migration_state VARCHAR(20), "
+              + "password_migrated_at TIMESTAMP, last_login_ip VARCHAR(255), "
+              + "last_login_isp VARCHAR(255), last_login_location VARCHAR(255), "
+              + "total_playtime BIGINT DEFAULT 0, last_logout_at TIMESTAMP, "
+              + "welcome_message_shown BOOLEAN DEFAULT FALSE)");
+      stmt.execute(
+          "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_username ON starx_users(username)");
+      stmt.execute(
+          "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_email ON starx_users(email)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_punishments ("
+          + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
+          + "target_name VARCHAR(16) NOT NULL, type VARCHAR(16) NOT NULL, "
+          + "reason VARCHAR(512), staff_uuid VARCHAR(36) NOT NULL, "
+          + "staff_name VARCHAR(16) NOT NULL, created_at BIGINT NOT NULL, "
+          + "expires_at BIGINT, active BOOLEAN NOT NULL DEFAULT TRUE)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_staff_notes ("
+          + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
+          + "note VARCHAR(1024) NOT NULL, severity VARCHAR(16) NOT NULL, "
+          + "staff_uuid VARCHAR(36) NOT NULL, created_at BIGINT NOT NULL)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_reports ("
+          + "id VARCHAR(36) PRIMARY KEY, reporter_uuid VARCHAR(36) NOT NULL, "
+          + "target_uuid VARCHAR(36) NOT NULL, category VARCHAR(32) NOT NULL, "
+          + "details VARCHAR(512), status VARCHAR(16) NOT NULL DEFAULT 'PENDING', "
+          + "resolved_by VARCHAR(36), resolved_at BIGINT)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_announcements ("
+          + "id VARCHAR(36) PRIMARY KEY, title VARCHAR(128) NOT NULL, "
+          + "content VARCHAR(2048) NOT NULL, created_by VARCHAR(36) NOT NULL, "
+          + "created_at BIGINT NOT NULL, expires_at BIGINT)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_announcement_reads ("
+          + "announcement_id VARCHAR(36) NOT NULL, player_uuid VARCHAR(36) NOT NULL, "
+          + "read_at BIGINT NOT NULL, "
+          + "PRIMARY KEY (announcement_id, player_uuid))");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_player_bindings ("
+          + "player_uuid VARCHAR(36) PRIMARY KEY, qq_id VARCHAR(64), "
+          + "discord_id VARCHAR(64), created_at BIGINT NOT NULL)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_staff_votes ("
+          + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
+          + "target_name VARCHAR(16) NOT NULL, reason VARCHAR(512), "
+          + "vote_type VARCHAR(32) NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE', "
+          + "initiator_uuid VARCHAR(36) NOT NULL, initiator_name VARCHAR(16) NOT NULL, "
+          + "yes_votes INT DEFAULT 0, no_votes INT DEFAULT 0, required_yes INT DEFAULT 3, "
+          + "expires_at BIGINT NOT NULL, created_at BIGINT NOT NULL, resolved_at BIGINT)");
+      stmt.execute(
+          "CREATE TABLE IF NOT EXISTS starx_staff_vote_records ("
+          + "vote_id VARCHAR(36) NOT NULL, voter_uuid VARCHAR(36) NOT NULL, "
+          + "vote VARCHAR(4) NOT NULL, voted_at BIGINT NOT NULL, "
+          + "PRIMARY KEY (vote_id, voter_uuid))");
+
+      LOG.info("Database tables verified/created");
     } catch (Exception e) {
-      LOG.error("Failed to verify database tables", e);
+      LOG.error("Failed to ensure database tables", e);
+      throw new RuntimeException("Failed to initialize database tables", e);
     }
   }
 
-  /** 手动加载可能被 relocate 的 JDBC 驱动类。 */
   private static void loadJdbcDrivers() {
-    try {
-      Class.forName("org.sqlite.JDBC");
-    } catch (ClassNotFoundException ignored) {
+    for (String driver : new String[]{
+        "org.sqlite.JDBC",
+        "com.mysql.cj.jdbc.Driver",
+        "org.postgresql.Driver"
+    }) {
+      try {
+        Class.forName(driver);
+      } catch (ClassNotFoundException ignored) {
+      }
     }
   }
 
@@ -107,23 +143,7 @@ public final class DatabaseManager implements AutoCloseable {
     }
   }
 
-  private void migrate() {
-    try {
-      Flyway flyway =
-          Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-      var result = flyway.migrate();
-      LOG.info("Flyway migration completed: {} migrations applied", result.migrations.size());
-    } catch (Exception e) {
-      LOG.error("Flyway migration failed", e);
-      throw e;
-    }
-  }
-
-  public Jdbi getJdbi() {
-    return jdbi;
-  }
-
-  public HikariDataSource getDataSource() {
+  public javax.sql.DataSource getDataSource() {
     return dataSource;
   }
 

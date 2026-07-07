@@ -38,7 +38,7 @@ public final class RiskModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.risk";
+    return "starx.security.risk";
   }
 
   @Override

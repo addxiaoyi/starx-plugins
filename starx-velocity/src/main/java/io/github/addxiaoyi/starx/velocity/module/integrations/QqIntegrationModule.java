@@ -31,7 +31,7 @@ public final class QqIntegrationModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "integrations.qq";
+    return "starx.integrations.qq";
   }
 
   @Override

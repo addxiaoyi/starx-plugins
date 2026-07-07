@@ -16,6 +16,7 @@ dependencyResolutionManagement {
         maven("https://repo.elytrium.xyz/snapshots/")
         maven("https://repo.elytrium.xyz/releases/")
         maven("https://repo.skinsrestorer.net/repository/maven-public/")
+        maven("https://repo.luckperms.net/")
     }
 }
 

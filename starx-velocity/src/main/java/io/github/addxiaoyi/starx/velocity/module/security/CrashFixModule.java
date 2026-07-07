@@ -24,7 +24,7 @@ public final class CrashFixModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.crash";
+    return "starx.security.crash";
   }
 
   @Override

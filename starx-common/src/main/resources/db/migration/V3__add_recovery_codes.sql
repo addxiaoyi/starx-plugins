@@ -1,1 +1,0 @@
-ALTER TABLE starx_users ADD COLUMN recovery_codes VARCHAR(512) DEFAULT NULL;

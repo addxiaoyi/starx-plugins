@@ -95,7 +95,7 @@ class MapModIntegrationModuleTest {
   @Test
   void shouldHaveCorrectModuleName() {
     MapModIntegrationModule module = new MapModIntegrationModule(plugin, enabledConfig);
-    assertThat(module.name()).isEqualTo("integrations.mapmod");
+    assertThat(module.name()).isEqualTo("starx.integrations.mapmod");
   }
 
   @Test

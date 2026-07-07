@@ -3,6 +3,7 @@ package io.github.addxiaoyi.starx.paper.module;
 import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
 import io.github.addxiaoyi.starx.paper.StarxPaperPlugin;
 import io.github.addxiaoyi.starx.paper.config.PaperConfigLoader;
+import io.github.addxiaoyi.starx.paper.messaging.PaperMessageBridge;
 import io.github.addxiaoyi.starx.paper.module.anticheat.AnticheatModule;
 import io.github.addxiaoyi.starx.paper.module.chat.ChatModule;
 import io.github.addxiaoyi.starx.paper.module.crashfix.CrashFixModule;
@@ -25,11 +26,13 @@ public final class PaperModuleManager {
 
   private final StarxPaperPlugin plugin;
   private final PaperConfigLoader configLoader;
+  private final PaperMessageBridge messageBridge;
   private final List<PaperModule> modules = new ArrayList<>();
 
-  public PaperModuleManager(StarxPaperPlugin plugin, PaperConfigLoader configLoader) {
+  public PaperModuleManager(StarxPaperPlugin plugin, PaperConfigLoader configLoader, PaperMessageBridge messageBridge) {
     this.plugin = plugin;
     this.configLoader = configLoader;
+    this.messageBridge = messageBridge;
   }
 
   public void loadModules() {
@@ -55,7 +58,7 @@ public final class PaperModuleManager {
       modules.add(new QqModule(plugin, configLoader));
     }
     if (configLoader.isModuleEnabled("plan")) {
-      modules.add(new PlanModule(plugin, configLoader));
+      modules.add(new PlanModule(plugin, configLoader, messageBridge));
     }
     if (configLoader.isModuleEnabled("filecleaner")) {
       modules.add(new FileCleanerModule(plugin, configLoader));

@@ -88,7 +88,7 @@ class QqIntegrationModuleTest {
   @Test
   void shouldHaveCorrectModuleName() {
     QqIntegrationModule module = new QqIntegrationModule(plugin, webhookClient, enabledConfig);
-    assertThat(module.name()).isEqualTo("integrations.qq");
+    assertThat(module.name()).isEqualTo("starx.integrations.qq");
   }
 
   @Test

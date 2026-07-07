@@ -19,7 +19,7 @@ public final class RakNetModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "proxytools.raknet";
+    return "starx.proxytools.raknet";
   }
 
   @Override

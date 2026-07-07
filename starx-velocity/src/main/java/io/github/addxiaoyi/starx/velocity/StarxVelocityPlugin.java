@@ -7,9 +7,16 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
+import io.github.addxiaoyi.starx.common.auth.BindingVerificationService;
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcAnnouncementRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcBindingRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcPunishmentRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcReportRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcStaffNoteRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcVoteRepository;
 import io.github.addxiaoyi.starx.velocity.config.ConfigLoader;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
 import io.github.addxiaoyi.starx.velocity.database.DatabaseManager;
@@ -25,11 +32,15 @@ import io.github.addxiaoyi.starx.velocity.module.auth.MigrationCommands;
 import io.github.addxiaoyi.starx.velocity.module.auth.MigrationModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.TabIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.UniAuthModule;
+import io.github.addxiaoyi.starx.velocity.module.admin.AdminCommandsModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.YggdrasilModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.MapModIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.PlanIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.QqIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.SocialIntegrationModule;
+import io.github.addxiaoyi.starx.velocity.module.integrations.napcat.NapCatModule;
+import io.github.addxiaoyi.starx.velocity.module.vote.VoteModule;
+import io.github.addxiaoyi.starx.velocity.context.BindingContextCalculator;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.ChatModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.EnhancedProxyModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.FileCleanerModule;
@@ -132,8 +143,8 @@ public class StarxVelocityPlugin {
     AuthModule authModule = new AuthModule(this, eventBus, config.uniauth());
     VelocityMessageBridge messageBridge = new VelocityMessageBridge(this, proxy, eventBus);
 
-    // 获取 JdbiUserRepository
-    JdbiUserRepository userRepository = authModule.userRepository();
+    // 获取 JdbcUserRepository
+    JdbcUserRepository userRepository = authModule.userRepository();
 
     moduleManager.register(authModule);
     moduleManager.register(skinBridge);
@@ -195,6 +206,21 @@ public class StarxVelocityPlugin {
             this, eventBus, SocialIntegrationModule.Config.defaultConfig()));
     moduleManager.register(new WelcomeModule(this, userRepository));
 
+    var dataSource = databaseManager.commonManager().getDataSource();
+    var punishmentRepo = new JdbcPunishmentRepository(dataSource);
+    var staffNoteRepo = new JdbcStaffNoteRepository(dataSource);
+    var reportRepo = new JdbcReportRepository(dataSource);
+    var announcementRepo = new JdbcAnnouncementRepository(dataSource);
+    var bindingRepo = new JdbcBindingRepository(dataSource);
+    var bindingVerification = new BindingVerificationService();
+    var voteRepo = new JdbcVoteRepository(dataSource);
+
+    registerLuckPermsContext(bindingRepo);
+
+    moduleManager.register(
+        new NapCatModule(this, bindingRepo, bindingVerification, config.napcat()));
+    moduleManager.register(new VoteModule(this, voteRepo));
+
     httpApiServer =
         new HttpApiServer(
             config,
@@ -202,7 +228,18 @@ public class StarxVelocityPlugin {
             proxy,
             authModule.userRepository(),
             authModule.authService(),
-            skinBridge);
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
+
+    moduleManager.register(
+        new AdminCommandsModule(this, userRepository, punishmentRepo, staffNoteRepo,
+            reportRepo, announcementRepo, bindingRepo, bindingVerification));
     webhookClient =
         new WebhookClient(config.webhook(), new HmacWebhookSigner(config.webhook().secret()));
     new WebhookEventPublisher(eventBus, webhookClient).register();
@@ -211,6 +248,10 @@ public class StarxVelocityPlugin {
     httpApiServer.start();
 
     logger.info("StarX Velocity 初始化完成");
+  }
+
+  private void registerLuckPermsContext(JdbcBindingRepository bindingRepo) {
+    new BindingContextCalculator(bindingRepo).register();
   }
 
   @Subscribe

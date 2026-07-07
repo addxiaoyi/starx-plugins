@@ -2,6 +2,8 @@ package io.github.addxiaoyi.starx.velocity.module.integrations;
 
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import io.github.addxiaoyi.starx.api.event.EventBus;
+import io.github.addxiaoyi.starx.api.event.EventTypes;
+import io.github.addxiaoyi.starx.api.event.StarxEvent;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.messaging.VelocityMessageBridge;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
@@ -12,10 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Plan 统计集成模块：定时收集代理端统计数据并对外提供查询端点。 */
 public final class PlanIntegrationModule implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;
@@ -25,6 +27,7 @@ public final class PlanIntegrationModule implements VelocityModule {
   private final AtomicBoolean collecting = new AtomicBoolean(false);
   private final List<Map<String, Object>> dataPoints =
       Collections.synchronizedList(new ArrayList<>());
+  private final Map<String, Map<String, Object>> backendStats = new ConcurrentHashMap<>();
   private ScheduledTask scheduledTask;
 
   public PlanIntegrationModule(
@@ -40,7 +43,7 @@ public final class PlanIntegrationModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "integrations.plan";
+    return "starx.integrations.plan";
   }
 
   @Override
@@ -49,6 +52,7 @@ public final class PlanIntegrationModule implements VelocityModule {
       return;
     }
     collecting.set(true);
+    eventBus.subscribe(EventTypes.PLAN_STATS_REPORT, this::onBackendStats);
     scheduledTask =
         plugin
             .proxy()
@@ -65,19 +69,26 @@ public final class PlanIntegrationModule implements VelocityModule {
       scheduledTask.cancel();
       scheduledTask = null;
     }
+    backendStats.clear();
   }
 
   public boolean isCollecting() {
     return collecting.get();
   }
 
-  /** 执行一次数据收集。 */
+  void onBackendStats(StarxEvent event) {
+    Map<String, Object> payload = event.payload();
+    String serverName = String.valueOf(payload.getOrDefault("server", "unknown"));
+    backendStats.put(serverName, payload);
+  }
+
   public void collectDataPoint() {
     int onlinePlayers = plugin.proxy().getPlayerCount();
     Map<String, Object> point = new LinkedHashMap<>();
     point.put("timestamp", Instant.now().toString());
     point.put("online_players", onlinePlayers);
     point.put("server_count", plugin.proxy().getAllServers().size());
+    point.put("backend_stats", new LinkedHashMap<>(backendStats));
     dataPoints.add(point);
     if (dataPoints.size() > config.maxDataPoints()) {
       int excess = dataPoints.size() - config.maxDataPoints();
@@ -85,24 +96,24 @@ public final class PlanIntegrationModule implements VelocityModule {
         dataPoints.subList(0, excess).clear();
       }
     }
-    // TODO: 通过 Plugin Messaging 从 Paper 后端收集 TPS、内存使用等数据
-    // TODO: 使用 eventBus.publish 将数据发送到统计前端
   }
 
-  /** 获取所有收集的数据点（不可变副本）。 */
   public List<Map<String, Object>> getDataPoints() {
     synchronized (dataPoints) {
       return List.copyOf(dataPoints);
     }
   }
 
-  /** 获取当前快照，供 HTTP 端点使用。 */
+  public Map<String, Map<String, Object>> getBackendStats() {
+    return Map.copyOf(backendStats);
+  }
+
   public Map<String, Object> getSnapshot() {
     Map<String, Object> snapshot = new LinkedHashMap<>();
     snapshot.put("online_players", plugin.proxy().getPlayerCount());
     snapshot.put("data_points", getDataPoints());
     snapshot.put("collect_interval_sec", config.collectIntervalSec());
-    // TODO: 添加 TPS、内存使用等更丰富的数据
+    snapshot.put("backends", getBackendStats());
     return snapshot;
   }
 

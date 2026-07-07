@@ -54,7 +54,7 @@ public final class AnticheatModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "security.anticheat";
+    return "starx.security.anticheat";
   }
 
   @Override

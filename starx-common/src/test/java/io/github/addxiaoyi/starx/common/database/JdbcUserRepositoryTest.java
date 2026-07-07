@@ -13,10 +13,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class JdbiUserRepositoryTest {
+class JdbcUserRepositoryTest {
 
   private DatabaseManager manager;
-  private JdbiUserRepository repository;
+  private JdbcUserRepository repository;
 
   @BeforeEach
   void setUp() {
@@ -33,7 +33,7 @@ class JdbiUserRepositoryTest {
             5,
             5_000L);
     manager = new DatabaseManager(config);
-    repository = new JdbiUserRepository(manager.getJdbi());
+    repository = new JdbcUserRepository(manager.getDataSource());
   }
 
   @AfterEach

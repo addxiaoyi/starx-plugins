@@ -7,7 +7,7 @@ import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig;
 import io.github.addxiaoyi.starx.common.crypto.PasswordHasher;
 import io.github.addxiaoyi.starx.common.crypto.RecoveryCodeGenerator;
 import io.github.addxiaoyi.starx.common.crypto.TotpGenerator;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import io.github.addxiaoyi.starx.common.security.BruteForceProtector;
 import io.github.addxiaoyi.starx.common.security.PasswordValidator;
@@ -27,7 +27,7 @@ public final class AuthService {
 
   private static final Logger logger = Logger.getLogger(AuthService.class.getName());
 
-  private final JdbiUserRepository userRepository;
+  private final JdbcUserRepository userRepository;
   private final EventBus eventBus;
   private final SessionManager sessionManager;
   private final BruteForceProtector bruteForceProtector;
@@ -35,7 +35,7 @@ public final class AuthService {
   private final UniAuthBridge uniauthBridge;
 
   public AuthService(
-      JdbiUserRepository userRepository,
+      JdbcUserRepository userRepository,
       EventBus eventBus,
       SessionManager sessionManager,
       UniAuthConfig uniauthConfig,
@@ -49,7 +49,7 @@ public final class AuthService {
   }
 
   public AuthService(
-      JdbiUserRepository userRepository, EventBus eventBus, SessionManager sessionManager) {
+      JdbcUserRepository userRepository, EventBus eventBus, SessionManager sessionManager) {
     this.userRepository = userRepository;
     this.eventBus = eventBus;
     this.sessionManager = sessionManager;

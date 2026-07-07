@@ -1,29 +1,29 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
+import io.github.addxiaoyi.starx.velocity.http.JsonHttpExchange;
+import io.github.addxiaoyi.starx.velocity.http.RouteRegistrar;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** GET /v1/user/exists /v1/user/detail - 查询玩家是否存在和详情。 */
 public final class UserQueryHandler implements AdminHandler {
 
-  private final JdbiUserRepository users;
+  private final JdbcUserRepository users;
 
-  public UserQueryHandler(JdbiUserRepository users) {
+  public UserQueryHandler(JdbcUserRepository users) {
     this.users = Objects.requireNonNull(users, "users");
   }
 
   @Override
-  public void register(Javalin app) {
-    app.get("/v1/user/exists", this::handleExists);
-    app.get("/v1/user/detail", this::handleDetail);
+  public void register(RouteRegistrar routes) {
+    routes.get("/v1/user/exists", this::handleExists);
+    routes.get("/v1/user/detail", this::handleDetail);
   }
 
-  private void handleExists(Context ctx) {
+  private void handleExists(JsonHttpExchange ctx) throws IOException {
     String name = ctx.queryParam("name");
     if (name == null || name.isBlank()) {
       ctx.status(400).json(Map.of("error", "name is required"));
@@ -33,7 +33,7 @@ public final class UserQueryHandler implements AdminHandler {
     ctx.status(200).json(Map.of("exists", exists, "name", name));
   }
 
-  private void handleDetail(Context ctx) {
+  private void handleDetail(JsonHttpExchange ctx) throws IOException {
     String name = ctx.queryParam("name");
     if (name == null || name.isBlank()) {
       ctx.status(400).json(Map.of("error", "name is required"));

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.addxiaoyi.starx.api.dto.UserDto;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -39,12 +39,12 @@ class DatabaseManagerTest {
   }
 
   @Test
-  @DisplayName("should provide JdbiUserRepository")
-  void shouldProvideJdbiUserRepository() {
+  @DisplayName("should provide JdbcUserRepository")
+  void shouldProvideJdbcUserRepository() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
 
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     assertThat(repo).isNotNull();
   }
@@ -54,7 +54,7 @@ class DatabaseManagerTest {
   void shouldSaveAndFindByUuid() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     UUID uuid = UUID.randomUUID();
     UserDto user =
@@ -77,7 +77,7 @@ class DatabaseManagerTest {
   void shouldFindByUsername() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     UUID uuid = UUID.randomUUID();
     UserDto user =
@@ -100,7 +100,7 @@ class DatabaseManagerTest {
   void shouldFindByEmail() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     UUID uuid = UUID.randomUUID();
     UserDto user =
@@ -123,7 +123,7 @@ class DatabaseManagerTest {
   void shouldCheckExistenceByUsername() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     UUID uuid = UUID.randomUUID();
     UserDto user =
@@ -146,7 +146,7 @@ class DatabaseManagerTest {
   void shouldDeleteUser() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     UUID uuid = UUID.randomUUID();
     UserDto user =
@@ -184,7 +184,7 @@ class DatabaseManagerTest {
   void shouldThrowWhenClosed() {
     DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
-    JdbiUserRepository repo = databaseManager.getUserRepository();
+    JdbcUserRepository repo = databaseManager.getUserRepository();
 
     databaseManager.close();
 

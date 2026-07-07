@@ -37,7 +37,7 @@ class CrashFixModuleTest {
   @Test
   void shouldReturnCorrectName() {
     CrashFixModule module = new CrashFixModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("security.crash");
+    assertThat(module.name()).isEqualTo("starx.security.crash");
   }
 
   @Test

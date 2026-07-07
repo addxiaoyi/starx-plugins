@@ -1,31 +1,31 @@
 package io.github.addxiaoyi.starx.velocity.http.admin;
 
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
+import io.github.addxiaoyi.starx.velocity.http.JsonHttpExchange;
+import io.github.addxiaoyi.starx.velocity.http.RouteRegistrar;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** POST /v1/admin/skin-refresh - 请求刷新玩家皮肤。 */
 public final class SkinRefreshHandler implements AdminHandler {
 
   private final SkinBridgeModule skinBridge;
-  private final JdbiUserRepository users;
+  private final JdbcUserRepository users;
 
-  public SkinRefreshHandler(SkinBridgeModule skinBridge, JdbiUserRepository users) {
+  public SkinRefreshHandler(SkinBridgeModule skinBridge, JdbcUserRepository users) {
     this.skinBridge = Objects.requireNonNull(skinBridge, "skinBridge");
     this.users = Objects.requireNonNull(users, "users");
   }
 
   @Override
-  public void register(Javalin app) {
-    app.post("/v1/admin/skin-refresh", this::handle);
+  public void register(RouteRegistrar routes) {
+    routes.post("/v1/admin/skin-refresh", this::handle);
   }
 
-  private void handle(Context ctx) {
+  private void handle(JsonHttpExchange ctx) throws IOException {
     SkinRefreshRequest req = ctx.bodyAsClass(SkinRefreshRequest.class);
     if (req.username == null || req.username.isBlank()) {
       ctx.status(400).json(Map.of("error", "username is required"));

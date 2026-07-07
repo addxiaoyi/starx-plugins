@@ -2,7 +2,7 @@ package io.github.addxiaoyi.starx.velocity.module.auth;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import net.kyori.adventure.text.Component;
@@ -12,13 +12,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 public final class MigrationCommands implements VelocityModule {
 
   private final StarxVelocityPlugin plugin;
-  private final JdbiUserRepository userRepository;
+  private final JdbcUserRepository userRepository;
   private final MigrationModule migrationModule;
   private final UniAuthClient uniAuthClient;
 
   public MigrationCommands(
       StarxVelocityPlugin plugin,
-      JdbiUserRepository userRepository,
+      JdbcUserRepository userRepository,
       MigrationModule migrationModule,
       UniAuthClient uniAuthClient) {
     this.plugin = plugin;
@@ -29,7 +29,7 @@ public final class MigrationCommands implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth.migration.commands";
+    return "starx.auth.migration.commands";
   }
 
   @Override

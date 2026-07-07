@@ -80,7 +80,7 @@ class RakNetModuleTest {
   @Test
   void shouldHaveCorrectModuleName() {
     RakNetModule module = new RakNetModule(plugin, enabledConfig);
-    assertThat(module.name()).isEqualTo("proxytools.raknet");
+    assertThat(module.name()).isEqualTo("starx.proxytools.raknet");
   }
 
   @Test

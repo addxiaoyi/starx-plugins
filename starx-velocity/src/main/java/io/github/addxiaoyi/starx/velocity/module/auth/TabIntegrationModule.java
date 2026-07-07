@@ -25,7 +25,7 @@ public final class TabIntegrationModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth.tab";
+    return "starx.auth.tab";
   }
 
   @Override

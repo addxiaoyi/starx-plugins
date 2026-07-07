@@ -32,7 +32,7 @@ public final class ProxyInfoModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "info";
+    return "starx.info";
   }
 
   @Override

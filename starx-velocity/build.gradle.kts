@@ -15,10 +15,9 @@ sourceSets {
 dependencies {
     api(project(":starx-common"))
     compileOnly(libs.velocity.api)
-    compileOnly(libs.jdbi.core)
-    compileOnly(libs.jdbi.sqlobject)
     "stubsCompileOnly"(libs.velocity.api)
-    implementation(libs.javalin)
+    implementation(libs.gson)
+    implementation(libs.snakeyaml)
     // 只保留 SQLite，这是默认本地数据库
     // 需要外置数据库的用户可以自己提供驱动
     implementation(libs.sqlite)
@@ -27,9 +26,7 @@ dependencies {
     testImplementation(libs.velocity.api)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.bundles.test)
-    testImplementation(libs.bundles.database)
     testImplementation(libs.h2)
-    testImplementation(libs.flyway.core)
     testRuntimeOnly(libs.junit.launcher)
 }
 
@@ -47,13 +44,11 @@ tasks.test {
     val ts = System.currentTimeMillis()
     binaryResultsDirectory.set(layout.buildDirectory.dir("test-results-$ts/binary"))
     reports.junitXml.outputLocation.set(layout.buildDirectory.dir("test-results-$ts/xml"))
+    jvmArgs("-Dfile.encoding=GBK")
 }
 
 tasks.withType<ShadowJar>().configureEach {
-    relocate("io.javalin", "io.github.addxiaoyi.starx.libs.javalin")
     relocate("com.google.gson", "io.github.addxiaoyi.starx.libs.gson")
-    relocate("org.flywaydb", "io.github.addxiaoyi.starx.libs.flyway")
-    relocate("org.jdbi", "io.github.addxiaoyi.starx.libs.jdbi")
     relocate("com.zaxxer", "io.github.addxiaoyi.starx.libs.hikaricp")
     relocate("at.favre.lib.bytes", "io.github.addxiaoyi.starx.libs.bytes")
     relocate("at.favre.lib.hkdf", "io.github.addxiaoyi.starx.libs.hkdf")
@@ -61,9 +56,10 @@ tasks.withType<ShadowJar>().configureEach {
     // SQLite 不 relocate，因为它包含原生库
     // 如果 relocate，它会找不到自己的原生库文件
     
-    // SQLite: 只保留最常用的平台（Linux/Windows x86_64 + aarch64）
+    // SQLite: 只保留最常用平台 x86_64（Linux + Windows），去掉其他所有平台
     exclude("org/sqlite/native/Linux-Android/**")
     exclude("org/sqlite/native/Linux-Musl/**")
+    exclude("org/sqlite/native/Linux/aarch64/**")
     exclude("org/sqlite/native/Linux/arm/**")
     exclude("org/sqlite/native/Linux/armv6/**")
     exclude("org/sqlite/native/Linux/armv7/**")
@@ -72,6 +68,7 @@ tasks.withType<ShadowJar>().configureEach {
     exclude("org/sqlite/native/Linux/riscv64/**")
     exclude("org/sqlite/native/Mac/**")
     exclude("org/sqlite/native/FreeBSD/**")
+    exclude("org/sqlite/native/Windows/aarch64/**")
     exclude("org/sqlite/native/Windows/arm/**")
     exclude("org/sqlite/native/Windows/armv7/**")
     exclude("org/sqlite/native/Windows/x86/**")

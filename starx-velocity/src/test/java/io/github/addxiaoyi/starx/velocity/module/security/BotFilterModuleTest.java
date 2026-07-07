@@ -46,7 +46,7 @@ class BotFilterModuleTest {
   @Test
   void shouldReturnCorrectName() {
     BotFilterModule module = new BotFilterModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("security.bot");
+    assertThat(module.name()).isEqualTo("starx.security.bot");
   }
 
   @Test

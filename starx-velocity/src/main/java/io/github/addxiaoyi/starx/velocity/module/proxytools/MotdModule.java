@@ -25,7 +25,7 @@ public final class MotdModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "motd";
+    return "starx.motd";
   }
 
   @Override

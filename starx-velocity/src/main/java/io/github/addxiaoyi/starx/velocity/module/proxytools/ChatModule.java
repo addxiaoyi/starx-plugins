@@ -29,7 +29,7 @@ public final class ChatModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "chat";
+    return "starx.chat";
   }
 
   @Override

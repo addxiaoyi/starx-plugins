@@ -3,10 +3,9 @@ package io.github.addxiaoyi.starx.velocity.http.admin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
-import io.javalin.Javalin;
-import java.io.IOException;
+import io.github.addxiaoyi.starx.velocity.http.TestHttpServer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -26,10 +25,10 @@ class UserQueryHandlerTest {
 
   private static final int PORT = 18797;
 
-  @Mock private JdbiUserRepository jdbiUserRepository;
+  @Mock private JdbcUserRepository jdbiUserRepository;
 
   private AutoCloseable mocks;
-  private Javalin app;
+  private TestHttpServer server;
   private HttpClient client;
 
   @BeforeEach
@@ -40,8 +39,8 @@ class UserQueryHandlerTest {
 
   @AfterEach
   void tearDown() throws Exception {
-    if (app != null) {
-      app.stop();
+    if (server != null) {
+      server.stop();
     }
     if (mocks != null) {
       mocks.close();
@@ -52,9 +51,9 @@ class UserQueryHandlerTest {
   void shouldReturnExistsTrue() throws Exception {
     when(jdbiUserRepository.existsByUsername("henry")).thenReturn(true);
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new UserQueryHandler(jdbiUserRepository).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new UserQueryHandler(jdbiUserRepository).register(server);
+    server.start();
 
     HttpResponse<String> response = get("/v1/user/exists?name=henry");
 
@@ -88,9 +87,9 @@ class UserQueryHandlerTest {
             null);
     when(jdbiUserRepository.findFullByUsername("henry")).thenReturn(Optional.of(user));
 
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new UserQueryHandler(jdbiUserRepository).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new UserQueryHandler(jdbiUserRepository).register(server);
+    server.start();
 
     HttpResponse<String> response = get("/v1/user/detail?name=henry");
 
@@ -100,16 +99,16 @@ class UserQueryHandlerTest {
 
   @Test
   void shouldReturnBanPlaceholder() throws Exception {
-    app = Javalin.create(config -> config.showJavalinBanner = false);
-    new UserQueryHandler(jdbiUserRepository).register(app);
-    app.start("127.0.0.1", PORT);
+    server = new TestHttpServer(PORT);
+    new UserQueryHandler(jdbiUserRepository).register(server);
+    server.start();
 
     HttpResponse<String> response = get("/v1/ban?name=henry");
 
     assertThat(response.statusCode()).isEqualTo(404);
   }
 
-  private HttpResponse<String> get(String path) throws IOException, InterruptedException {
+  private HttpResponse<String> get(String path) throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path)).GET().build();
     return client.send(request, HttpResponse.BodyHandlers.ofString());

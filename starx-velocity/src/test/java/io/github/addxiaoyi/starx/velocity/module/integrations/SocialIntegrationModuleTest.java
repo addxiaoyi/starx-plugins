@@ -44,7 +44,7 @@ class SocialIntegrationModuleTest {
 
               @Override
               public String token() {
-                return "test-token";
+                return "starx.test-token";
               }
             };
           }
@@ -166,7 +166,7 @@ class SocialIntegrationModuleTest {
   @Test
   void shouldHaveCorrectModuleName() {
     SocialIntegrationModule module = new SocialIntegrationModule(plugin, eventBus, enabledConfig);
-    assertThat(module.name()).isEqualTo("integrations.social");
+    assertThat(module.name()).isEqualTo("starx.integrations.social");
   }
 
   @Test

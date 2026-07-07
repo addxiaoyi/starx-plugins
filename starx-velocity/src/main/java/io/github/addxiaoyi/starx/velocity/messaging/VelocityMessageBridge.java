@@ -13,6 +13,7 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
 import io.github.addxiaoyi.starx.api.messaging.PluginMessage;
+import io.github.addxiaoyi.starx.api.messaging.PluginMessageChannels;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +38,7 @@ public final class VelocityMessageBridge implements VelocityModule {
 
   @Override
   public String name() {
-    return "messaging";
+    return "starx.messaging";
   }
 
   @Override
@@ -78,11 +79,15 @@ public final class VelocityMessageBridge implements VelocityModule {
       Map<String, Object> payload =
           gson.fromJson(new String(payloadBytes, StandardCharsets.UTF_8), Map.class);
       PluginMessage message = new PluginMessage(command, payload);
-      eventBus.publish(
-          EventTypes.SYNC_PLAYER_STATE,
-          Map.of(
-              "command", message.command(),
-              "payload", message.payload()));
+      if (PluginMessageChannels.CMD_PLAN_STATS.equals(command)) {
+        eventBus.publish(EventTypes.PLAN_STATS_REPORT, payload);
+      } else {
+        eventBus.publish(
+            EventTypes.SYNC_PLAYER_STATE,
+            Map.of(
+                "command", message.command(),
+                "payload", message.payload()));
+      }
     }
   }
 }

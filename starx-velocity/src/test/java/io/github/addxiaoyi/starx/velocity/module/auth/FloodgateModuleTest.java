@@ -41,7 +41,7 @@ class FloodgateModuleTest {
 
           @Override
           public String prefix() {
-            return ".";
+            return "starx..";
           }
         };
   }
@@ -49,7 +49,7 @@ class FloodgateModuleTest {
   @Test
   void shouldReturnCorrectModuleName() {
     FloodgateModule module = new FloodgateModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("auth.floodgate");
+    assertThat(module.name()).isEqualTo("starx.auth.floodgate");
   }
 
   @Test
@@ -61,7 +61,7 @@ class FloodgateModuleTest {
   @Test
   void shouldDefaultPrefixBeDot() {
     FloodgateModule.Config defaultConfig = FloodgateModule.Config.defaultConfig();
-    assertThat(defaultConfig.prefix()).isEqualTo(".");
+    assertThat(defaultConfig.prefix()).isEqualTo("starx..");
   }
 
   @Test

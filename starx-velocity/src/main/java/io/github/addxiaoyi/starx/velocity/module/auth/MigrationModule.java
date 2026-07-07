@@ -2,7 +2,7 @@ package io.github.addxiaoyi.starx.velocity.module.auth;
 
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthClient;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.velocity.StarxVelocityPlugin;
 import io.github.addxiaoyi.starx.velocity.module.VelocityModule;
 import java.nio.ByteBuffer;
@@ -26,14 +26,14 @@ public final class MigrationModule implements VelocityModule {
   private final StarxVelocityPlugin plugin;
   private final EventBus eventBus;
   private final Config config;
-  private final JdbiUserRepository userRepository;
+  private final JdbcUserRepository userRepository;
   private final UniAuthClient uniAuthClient;
 
   public MigrationModule(
       StarxVelocityPlugin plugin,
       EventBus eventBus,
       Config config,
-      JdbiUserRepository userRepository,
+      JdbcUserRepository userRepository,
       UniAuthClient uniAuthClient) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
     this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
@@ -52,7 +52,7 @@ public final class MigrationModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "auth.migration";
+    return "starx.auth.migration";
   }
 
   @Override
@@ -453,7 +453,7 @@ public final class MigrationModule implements VelocityModule {
 
     /** StarVC 特定配置：表结构模式 (starvc, authme, authlib) */
     default String schemaMode() {
-      return "starvc";
+      return "starx.starvc";
     }
 
     static Config defaultConfig() {
@@ -465,12 +465,12 @@ public final class MigrationModule implements VelocityModule {
 
         @Override
         public String source() {
-          return "starvc";
+          return "starx.starvc";
         }
 
         @Override
         public String backend() {
-          return "sqlite";
+          return "starx.sqlite";
         }
 
         @Override
@@ -485,7 +485,7 @@ public final class MigrationModule implements VelocityModule {
 
         @Override
         public String schemaMode() {
-          return "starvc";
+          return "starx.starvc";
         }
       };
     }

@@ -11,7 +11,7 @@ dependencies {
     api(project(":starx-api"))
     compileOnly(libs.paper.api)
     implementation(libs.gson)
-    implementation(libs.configurate.yaml)
+    implementation(libs.snakeyaml)
     // 只保留 SQLite 作为默认本地数据库
     // 需要外置数据库的用户可以自己提供驱动
     implementation(libs.sqlite)
@@ -43,8 +43,6 @@ tasks.processResources {
 
 tasks.withType<ShadowJar>().configureEach {
     relocate("com.google.gson", "io.github.addxiaoyi.starx.libs.gson")
-    relocate("org.flywaydb", "io.github.addxiaoyi.starx.libs.flyway")
-    relocate("org.jdbi", "io.github.addxiaoyi.starx.libs.jdbi")
     relocate("com.zaxxer", "io.github.addxiaoyi.starx.libs.hikaricp")
     relocate("at.favre.lib.bytes", "io.github.addxiaoyi.starx.libs.bytes")
     relocate("at.favre.lib.hkdf", "io.github.addxiaoyi.starx.libs.hkdf")
@@ -55,9 +53,10 @@ tasks.withType<ShadowJar>().configureEach {
     // Jackson — Paper 服务端自带，无需打包
     exclude("com/fasterxml/jackson/**")
     
-    // SQLite: 只保留最常用的平台（Linux/Windows x86_64 + aarch64）
+    // SQLite: 只保留最常用平台 x86_64（Linux + Windows），去掉其他所有平台
     exclude("org/sqlite/native/Linux-Android/**")
     exclude("org/sqlite/native/Linux-Musl/**")
+    exclude("org/sqlite/native/Linux/aarch64/**")
     exclude("org/sqlite/native/Linux/arm/**")
     exclude("org/sqlite/native/Linux/armv6/**")
     exclude("org/sqlite/native/Linux/armv7/**")
@@ -66,6 +65,7 @@ tasks.withType<ShadowJar>().configureEach {
     exclude("org/sqlite/native/Linux/riscv64/**")
     exclude("org/sqlite/native/Mac/**")
     exclude("org/sqlite/native/FreeBSD/**")
+    exclude("org/sqlite/native/Windows/aarch64/**")
     exclude("org/sqlite/native/Windows/arm/**")
     exclude("org/sqlite/native/Windows/armv7/**")
     exclude("org/sqlite/native/Windows/x86/**")
@@ -74,10 +74,7 @@ tasks.withType<ShadowJar>().configureEach {
     minimize {
         // 这些库通过 SPI 加载，minimize 不会追踪 SPI 引用
         exclude(dependency("org.xerial:sqlite-jdbc"))
-        exclude(dependency("org.flywaydb:flyway-core"))
         exclude(dependency("com.zaxxer:HikariCP"))
-        exclude(dependency("org.jdbi:jdbi3-core"))
-        exclude(dependency("org.jdbi:jdbi3-sqlobject"))
     }
     
     // 排除不必要的 META-INF 文件

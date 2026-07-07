@@ -35,7 +35,7 @@ class UniAuthModuleTest {
   @Test
   void shouldReturnCorrectModuleName() {
     UniAuthModule module = new UniAuthModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("auth.uniauth");
+    assertThat(module.name()).isEqualTo("starx.auth.uniauth");
   }
 
   @Test

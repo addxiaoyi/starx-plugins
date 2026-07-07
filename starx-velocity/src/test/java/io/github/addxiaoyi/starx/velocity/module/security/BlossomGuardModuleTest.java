@@ -33,7 +33,7 @@ class BlossomGuardModuleTest {
   @Test
   void shouldReturnCorrectName() {
     BlossomGuardModule module = new BlossomGuardModule(plugin, bushClient);
-    assertThat(module.name()).isEqualTo("security.blossom");
+    assertThat(module.name()).isEqualTo("starx.security.blossom");
   }
 
   @Test

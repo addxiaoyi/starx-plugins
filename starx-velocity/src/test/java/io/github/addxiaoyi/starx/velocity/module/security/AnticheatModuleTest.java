@@ -77,7 +77,7 @@ class AnticheatModuleTest {
   void shouldReturnCorrectName() {
     AnticheatModule module = new AnticheatModule(plugin, eventBus, config);
 
-    assertThat(module.name()).isEqualTo("security.anticheat");
+    assertThat(module.name()).isEqualTo("starx.security.anticheat");
   }
 
   @Test

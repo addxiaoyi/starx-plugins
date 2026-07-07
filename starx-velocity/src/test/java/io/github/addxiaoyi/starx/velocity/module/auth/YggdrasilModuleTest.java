@@ -55,7 +55,7 @@ class YggdrasilModuleTest {
   @Test
   void shouldReturnCorrectModuleName() {
     YggdrasilModule module = new YggdrasilModule(plugin, eventBus, config);
-    assertThat(module.name()).isEqualTo("auth.yggdrasil");
+    assertThat(module.name()).isEqualTo("starx.auth.yggdrasil");
   }
 
   @Test

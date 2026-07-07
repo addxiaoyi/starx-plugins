@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.addxiaoyi.starx.api.event.StarxEvent;
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.database.DatabaseManager;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.event.LocalEventBus;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -22,7 +22,7 @@ class AuthServiceTest {
   private static final String VALID_PASS = "secret1";
 
   private DatabaseManager databaseManager;
-  private JdbiUserRepository userRepository;
+  private JdbcUserRepository userRepository;
   private LocalEventBus eventBus;
   private SessionManager sessionManager;
   private AuthService authService;
@@ -42,7 +42,7 @@ class AuthServiceTest {
             5,
             5_000L);
     databaseManager = new DatabaseManager(config);
-    userRepository = new JdbiUserRepository(databaseManager.getJdbi());
+    userRepository = new JdbcUserRepository(databaseManager.getDataSource());
     eventBus = new LocalEventBus();
     sessionManager = new SessionManager(Duration.ofMinutes(10), () -> Instant.now());
     authService = new AuthService(userRepository, eventBus, sessionManager);

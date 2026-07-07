@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.database.DatabaseManager;
-import io.github.addxiaoyi.starx.common.database.JdbiUserRepository;
+import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.model.StarxUser;
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 class UniAuthBridgeTest {
 
   private DatabaseManager databaseManager;
-  private JdbiUserRepository userRepository;
+  private JdbcUserRepository userRepository;
   private UniAuthClient uniAuthClient;
   private UniAuthConfig uniAuthConfig;
   private UniAuthBridge uniAuthBridge;
@@ -40,7 +40,7 @@ class UniAuthBridgeTest {
             5,
             5_000L);
     databaseManager = new DatabaseManager(config);
-    userRepository = new JdbiUserRepository(databaseManager.getJdbi());
+    userRepository = new JdbcUserRepository(databaseManager.getDataSource());
     uniAuthClient = mock(UniAuthClient.class);
     uniAuthConfig = new UniAuthConfig(true, "https://api.example.com/", "test-api-key", 5000, true);
     uniAuthBridge = new UniAuthBridge(uniAuthConfig, uniAuthClient, userRepository);

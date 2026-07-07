@@ -71,6 +71,7 @@ class ModuleManagerTest {
         new StarxConfig.WebhookConfig("", ""),
         DatabaseConfig.defaults(),
         io.github.addxiaoyi.starx.common.auth.uniauth.UniAuthConfig.defaults(),
+        StarxConfig.NapcatConfig.defaults(),
         moduleConfigs);
   }
 }

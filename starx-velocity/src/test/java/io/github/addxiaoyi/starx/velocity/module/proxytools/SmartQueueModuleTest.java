@@ -64,7 +64,7 @@ class SmartQueueModuleTest {
   void shouldReturnCorrectName() {
     SmartQueueModule module =
         new SmartQueueModule(plugin, SmartQueueModule.Config.defaultConfig(), queueService);
-    assertThat(module.name()).isEqualTo("proxytools.smart-queue");
+    assertThat(module.name()).isEqualTo("starx.proxytools.smart-queue");
   }
 
   @Test

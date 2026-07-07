@@ -27,7 +27,7 @@ public final class ForgeCompatModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "forge";
+    return "starx.forge";
   }
 
   @Override

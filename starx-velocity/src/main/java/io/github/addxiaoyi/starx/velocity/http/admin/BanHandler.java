@@ -3,12 +3,12 @@ package io.github.addxiaoyi.starx.velocity.http.admin;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.api.event.EventTypes;
 import io.github.addxiaoyi.starx.api.repository.UserRepository;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
+import io.github.addxiaoyi.starx.velocity.http.JsonHttpExchange;
+import io.github.addxiaoyi.starx.velocity.http.RouteRegistrar;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-/** GET /v1/ban POST /v1/admin/ban - 查询封禁和封禁玩家。 */
 public final class BanHandler implements AdminHandler {
 
   private final UserRepository users;
@@ -20,12 +20,12 @@ public final class BanHandler implements AdminHandler {
   }
 
   @Override
-  public void register(Javalin app) {
-    app.get("/v1/ban", this::handleQuery);
-    app.post("/v1/admin/ban", this::handleBan);
+  public void register(RouteRegistrar routes) {
+    routes.get("/v1/ban", this::handleQuery);
+    routes.post("/v1/admin/ban", this::handleBan);
   }
 
-  private void handleQuery(Context ctx) {
+  private void handleQuery(JsonHttpExchange ctx) throws IOException {
     String name = ctx.queryParam("name");
     if (name == null || name.isBlank()) {
       ctx.status(400).json(Map.of("error", "name is required"));
@@ -34,7 +34,7 @@ public final class BanHandler implements AdminHandler {
     ctx.status(200).json(Map.of("banned", false, "name", name));
   }
 
-  private void handleBan(Context ctx) {
+  private void handleBan(JsonHttpExchange ctx) throws IOException {
     BanRequest req = ctx.bodyAsClass(BanRequest.class);
     if (req.username == null || req.username.isBlank()) {
       ctx.status(400).json(Map.of("error", "username is required"));

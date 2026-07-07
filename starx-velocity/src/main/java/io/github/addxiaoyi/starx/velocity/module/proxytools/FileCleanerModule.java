@@ -41,7 +41,7 @@ public final class FileCleanerModule implements VelocityModule {
 
   @Override
   public String name() {
-    return "proxytools.filecleaner";
+    return "starx.proxytools.filecleaner";
   }
 
   @Override
