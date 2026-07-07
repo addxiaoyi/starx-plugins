@@ -61,19 +61,6 @@ tasks.withType<ShadowJar>().configureEach {
     // SQLite 不 relocate，因为它包含原生库
     // 如果 relocate，它会找不到自己的原生库文件
     
-    // Jackson: 虽然 Velocity 依赖 Jackson，但插件类加载器不可见
-    // 让 minimize() 自动裁剪未使用的 Jackson 类
-    
-    // 移除未使用的 shade 依赖类（自动裁剪 Kotlin stdlib 等）
-    minimize {
-        // 这些库通过 SPI 加载，minimize 不会追踪 SPI 引用
-        exclude(dependency("org.xerial:sqlite-jdbc"))
-        exclude(dependency("org.flywaydb:flyway-core"))
-        exclude(dependency("com.zaxxer:HikariCP"))
-        exclude(dependency("org.jdbi:jdbi3-core"))
-        exclude(dependency("org.jdbi:jdbi3-sqlobject"))
-    }
-    
     // SQLite: 只保留最常用的平台（Linux/Windows x86_64 + aarch64）
     exclude("org/sqlite/native/Linux-Android/**")
     exclude("org/sqlite/native/Linux-Musl/**")
