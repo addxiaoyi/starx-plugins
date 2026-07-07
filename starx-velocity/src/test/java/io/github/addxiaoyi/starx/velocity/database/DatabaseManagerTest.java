@@ -17,7 +17,8 @@ class DatabaseManagerTest {
   private DatabaseManager databaseManager;
 
   private static DatabaseConfig h2Config() {
-    return new DatabaseConfig("h2", "", 0, "test", "sa", "", "jdbc:h2:mem:test_velocity;DB_CLOSE_DELAY=-1", 5, 5_000L);
+    return new DatabaseConfig(
+        "h2", "", 0, "test", "sa", "", "jdbc:h2:mem:test_velocity;DB_CLOSE_DELAY=-1", 5, 5_000L);
   }
 
   @AfterEach
