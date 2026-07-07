@@ -52,17 +52,33 @@ tasks.withType<ShadowJar>().configureEach {
     // SQLite 不 relocate，因为它包含原生库
     // 如果 relocate，它会找不到自己的原生库文件
     
-    // 只保留常用平台（Linux/Windows x86_64 + aarch64），减小体积
+    // Jackson — Paper 服务端自带，无需打包
+    exclude("com/fasterxml/jackson/**")
+    
+    // SQLite: 只保留最常用的平台（Linux/Windows x86_64 + aarch64）
     exclude("org/sqlite/native/Linux-Android/**")
     exclude("org/sqlite/native/Linux-Musl/**")
     exclude("org/sqlite/native/Linux/arm/**")
+    exclude("org/sqlite/native/Linux/armv6/**")
     exclude("org/sqlite/native/Linux/armv7/**")
+    exclude("org/sqlite/native/Linux/x86/**")
+    exclude("org/sqlite/native/Linux/ppc64/**")
+    exclude("org/sqlite/native/Linux/riscv64/**")
     exclude("org/sqlite/native/Mac/**")
     exclude("org/sqlite/native/FreeBSD/**")
     exclude("org/sqlite/native/Windows/arm/**")
     exclude("org/sqlite/native/Windows/armv7/**")
     exclude("org/sqlite/native/Windows/x86/**")
-    // 保留 Linux x86_64 & aarch64, Windows x86_64 & aarch64
+    
+    // 移除未使用的 shade 依赖类
+    minimize {
+        // 这些库通过 SPI 加载，minimize 不会追踪 SPI 引用
+        exclude(dependency("org.xerial:sqlite-jdbc"))
+        exclude(dependency("org.flywaydb:flyway-core"))
+        exclude(dependency("com.zaxxer:HikariCP"))
+        exclude(dependency("org.jdbi:jdbi3-core"))
+        exclude(dependency("org.jdbi:jdbi3-sqlobject"))
+    }
     
     // 排除不必要的 META-INF 文件
     exclude("META-INF/maven/**")
@@ -70,4 +86,6 @@ tasks.withType<ShadowJar>().configureEach {
     exclude("META-INF/NOTICE*")
     exclude("META-INF/versions/**")
     exclude("META-INF/*.kotlin_module")
+    exclude("META-INF/*.version")
+    exclude("module-info.class")
 }
