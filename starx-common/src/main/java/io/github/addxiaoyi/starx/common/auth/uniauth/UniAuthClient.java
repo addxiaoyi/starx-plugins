@@ -7,13 +7,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** UniAuth 服务 HTTP 客户端，用于与 StarVC UniAuth 后端通信。 */
+/** UniAuth 服务 HTTP 客户端，使用 RSA 加密协议与 UniAuth 后端通信。 */
 public final class UniAuthClient {
 
   private static final Logger logger = Logger.getLogger(UniAuthClient.class.getName());
@@ -21,6 +24,7 @@ public final class UniAuthClient {
 
   private final UniAuthConfig config;
   private final HttpClient httpClient;
+  private String publicKey;
 
   public UniAuthClient(UniAuthConfig config) {
     this.config = Objects.requireNonNull(config, "config");
@@ -28,139 +32,196 @@ public final class UniAuthClient {
         HttpClient.newBuilder().connectTimeout(Duration.ofMillis(config.timeoutMs())).build();
   }
 
-  public record LoginRequest(String username, String password, String appId) {}
-
   public record LoginResponse(boolean success, String message, String userId, String email) {}
 
   public record StatusResponse(boolean exists, boolean imported, String status) {}
 
-  /**
-   * 验证用户密码。
-   *
-   * @param username 用户名
-   * @param password 密码
-   * @return 异步认证结果
-   */
-  public CompletableFuture<LoginResponse> login(String username, String password) {
-    CompletableFuture<LoginResponse> future = new CompletableFuture<>();
+  private String getPublicKey() {
+    if (publicKey == null) {
+      refreshPublicKey();
+    }
+    return publicKey;
+  }
 
+  private void refreshPublicKey() {
     try {
-      LoginRequest request = new LoginRequest(username, password, config.appId());
-
-      HttpRequest httpRequest =
+      HttpRequest request =
           HttpRequest.newBuilder()
-              .uri(URI.create(normalizeUrl(config.apiUrl()) + "login"))
+              .uri(URI.create(normalizeUrl(config.apiUrl()) + "publickey"))
               .timeout(Duration.ofMillis(config.timeoutMs()))
-              .header("Content-Type", "application/json")
-              .header("X-App-Id", config.appId())
-              .header("X-App-Secret", config.appSecret())
-              .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(request)))
+              .GET()
+              .build();
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() == 200) {
+        this.publicKey = response.body().trim();
+        logger.log(Level.INFO, "UniAuth public key fetched");
+      } else {
+        throw new RuntimeException("Failed to fetch public key: HTTP " + response.statusCode());
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to fetch UniAuth public key", e);
+    }
+  }
+
+  private JsonObject request(String endpoint, Map<String, String> data) {
+    try {
+      Map<String, Object> payload = new HashMap<>();
+      payload.put("data", data);
+      payload.put("apikey", config.apiKey());
+      payload.put("timestamp", System.currentTimeMillis());
+
+      String encrypted = RSAUtil.encryptByPublicKey(gson.toJson(payload), getPublicKey());
+
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(normalizeUrl(config.apiUrl()) + endpoint))
+              .timeout(Duration.ofMillis(config.timeoutMs()))
+              .POST(HttpRequest.BodyPublishers.ofString(encrypted))
               .build();
 
-      httpClient
-          .sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
-          .thenAccept(
-              response -> {
-                try {
-                  if (response.statusCode() == 200) {
-                    JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-                    boolean success = json.has("success") && json.get("success").getAsBoolean();
-                    String message = json.has("message") ? json.get("message").getAsString() : "";
-                    String userId = json.has("userId") ? json.get("userId").getAsString() : null;
-                    String email = json.has("email") ? json.get("email").getAsString() : null;
-                    future.complete(new LoginResponse(success, message, userId, email));
-                  } else {
-                    logger.log(
-                        Level.WARNING,
-                        "UniAuth login failed with status {0}: {1}",
-                        new Object[] {response.statusCode(), response.body()});
-                    future.complete(
-                        new LoginResponse(
-                            false,
-                            "Authentication failed with status " + response.statusCode(),
-                            null,
-                            null));
-                  }
-                } catch (Exception e) {
-                  logger.log(
-                      Level.WARNING, "Failed to parse UniAuth response: {0}", response.body());
-                  future.complete(new LoginResponse(false, "Invalid response format", null, null));
-                }
-              })
-          .exceptionally(
-              ex -> {
-                logger.log(Level.WARNING, "UniAuth request failed", ex);
-                future.complete(new LoginResponse(false, ex.getMessage(), null, null));
-                return null;
-              });
+      HttpResponse<String> response =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      String body = response.body();
+
+      String checksum = response.headers().firstValue("X-Checksum").orElse("");
+      String timestamp = response.headers().firstValue("X-Timestamp").orElse("");
+      if (!checksum.isEmpty() && !timestamp.isEmpty()) {
+        String hash = sha256(body) + "$" + timestamp;
+        String decrypted = RSAUtil.decryptByPublicKey(checksum, getPublicKey());
+        if (!hash.equals(decrypted)) {
+          throw new RuntimeException("Response checksum mismatch");
+        }
+      }
+
+      return JsonParser.parseString(body).getAsJsonObject();
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Failed to create UniAuth request", e);
+      if (e.getMessage() != null && e.getMessage().contains("checksum")) {
+        throw new RuntimeException(e);
+      }
+      try {
+        refreshPublicKey();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("data", data);
+        payload.put("apikey", config.apiKey());
+        payload.put("timestamp", System.currentTimeMillis());
+
+        String encrypted = RSAUtil.encryptByPublicKey(gson.toJson(payload), getPublicKey());
+
+        HttpRequest request =
+            HttpRequest.newBuilder()
+                .uri(URI.create(normalizeUrl(config.apiUrl()) + endpoint))
+                .timeout(Duration.ofMillis(config.timeoutMs()))
+                .POST(HttpRequest.BodyPublishers.ofString(encrypted))
+                .build();
+
+        HttpResponse<String> response =
+            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        String body = response.body();
+
+        String checksum = response.headers().firstValue("X-Checksum").orElse("");
+        String timestamp = response.headers().firstValue("X-Timestamp").orElse("");
+        if (!checksum.isEmpty() && !timestamp.isEmpty()) {
+          String hash = sha256(body) + "$" + timestamp;
+          String decrypted = RSAUtil.decryptByPublicKey(checksum, getPublicKey());
+          if (!hash.equals(decrypted)) {
+            throw new RuntimeException("Response checksum mismatch");
+          }
+        }
+
+        return JsonParser.parseString(body).getAsJsonObject();
+      } catch (Exception ex) {
+        throw new RuntimeException("UniAuth request failed: " + endpoint, ex);
+      }
+    }
+  }
+
+  public CompletableFuture<LoginResponse> login(String username, String password) {
+    CompletableFuture<LoginResponse> future = new CompletableFuture<>();
+    try {
+      Map<String, String> data = new HashMap<>();
+      data.put("username", username);
+      data.put("password", password);
+
+      JsonObject json = request("login", data);
+      int code = json.has("code") ? json.get("code").getAsInt() : 500;
+
+      switch (code) {
+        case 200:
+          future.complete(new LoginResponse(true, "登录成功", null, null));
+          break;
+        case 401:
+          future.complete(new LoginResponse(false, "密码错误", null, null));
+          break;
+        case 402:
+          future.complete(new LoginResponse(false, "用户未注册", null, null));
+          break;
+        case 403:
+          future.complete(new LoginResponse(false, "邮箱未验证", null, null));
+          break;
+        default:
+          future.complete(new LoginResponse(false, "认证失败: " + code, null, null));
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "UniAuth login failed", e);
       future.complete(new LoginResponse(false, e.getMessage(), null, null));
     }
-
     return future;
   }
 
-  /**
-   * 查询用户状态。
-   *
-   * @param username 用户名
-   * @return 异步状态查询结果
-   */
   public CompletableFuture<StatusResponse> fetchStatus(String username) {
     CompletableFuture<StatusResponse> future = new CompletableFuture<>();
-
     try {
-      HttpRequest httpRequest =
-          HttpRequest.newBuilder()
-              .uri(URI.create(normalizeUrl(config.apiUrl()) + "status/" + username))
-              .timeout(Duration.ofMillis(config.timeoutMs()))
-              .header("X-App-Id", config.appId())
-              .header("X-App-Secret", config.appSecret())
-              .GET()
-              .build();
+      Map<String, String> data = new HashMap<>();
+      data.put("username", username);
 
-      httpClient
-          .sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
-          .thenAccept(
-              response -> {
-                try {
-                  if (response.statusCode() == 200) {
-                    JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-                    boolean exists = json.has("exists") && json.get("exists").getAsBoolean();
-                    boolean imported = json.has("imported") && json.get("imported").getAsBoolean();
-                    String status =
-                        json.has("status") ? json.get("status").getAsString() : "UNKNOWN";
-                    future.complete(new StatusResponse(exists, imported, status));
-                  } else if (response.statusCode() == 404) {
-                    future.complete(new StatusResponse(false, false, "NOT_EXIST"));
-                  } else {
-                    future.complete(new StatusResponse(false, false, "ERROR"));
-                  }
-                } catch (Exception e) {
-                  logger.log(
-                      Level.WARNING,
-                      "Failed to parse UniAuth status response: {0}",
-                      response.body());
-                  future.complete(new StatusResponse(false, false, "ERROR"));
-                }
-              })
-          .exceptionally(
-              ex -> {
-                logger.log(Level.WARNING, "UniAuth status request failed", ex);
-                future.complete(new StatusResponse(false, false, "ERROR"));
-                return null;
-              });
+      JsonObject json = request("playerInfo", data);
+      int code = json.has("code") ? json.get("code").getAsInt() : 500;
+
+      if (code == 200) {
+        JsonObject profile =
+            json.has("data") ? json.get("data").getAsJsonObject() : new JsonObject();
+        boolean exists =
+            profile.has("profile.exists")
+                ? profile.get("profile.exists").getAsBoolean()
+                : profile.has("profile")
+                    ? profile.get("profile").getAsJsonObject().get("exists").getAsBoolean()
+                    : false;
+        boolean registered =
+            profile.has("profile.registered")
+                ? profile.get("profile.registered").getAsBoolean()
+                : profile.has("profile")
+                    ? profile.get("profile").getAsJsonObject().get("registered").getAsBoolean()
+                    : false;
+        future.complete(
+            new StatusResponse(
+                exists, registered, registered ? "REGISTERED" : exists ? "IMPORTED" : "NOT_EXIST"));
+      } else {
+        future.complete(new StatusResponse(false, false, "ERROR"));
+      }
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Failed to create UniAuth status request", e);
+      logger.log(Level.WARNING, "UniAuth status request failed", e);
       future.complete(new StatusResponse(false, false, "ERROR"));
     }
-
     return future;
   }
 
   private static String normalizeUrl(String url) {
     if (url == null) return "";
     return url.endsWith("/") ? url : url + "/";
+  }
+
+  private static String sha256(String data) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hash = digest.digest(data.getBytes("UTF-8"));
+      StringBuilder sb = new StringBuilder();
+      for (byte b : hash) {
+        sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+    } catch (Exception e) {
+      throw new RuntimeException("SHA-256 not available", e);
+    }
   }
 }

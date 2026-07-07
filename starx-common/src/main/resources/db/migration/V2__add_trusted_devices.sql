@@ -1,1 +1,1 @@
-ALTER TABLE starx_users ADD COLUMN IF NOT EXISTS trusted_devices TEXT;
+ALTER TABLE starx_users ADD COLUMN trusted_devices TEXT;

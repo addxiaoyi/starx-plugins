@@ -20,7 +20,7 @@ class ConfigLoaderTest {
     assertThat(config.httpApi().bind()).isEqualTo("0.0.0.0");
     assertThat(config.httpApi().port()).isEqualTo(8080);
     assertThat(config.httpApi().apiKey()).isEmpty();
-    assertThat(config.database().type()).isEqualTo("h2");
+    assertThat(config.database().type()).isEqualTo("sqlite");
     assertThat(config.database().poolMaxSize()).isEqualTo(10);
     assertThat(config.modules()).isEmpty();
   }
@@ -76,7 +76,7 @@ class ConfigLoaderTest {
 
     assertThat(config.httpApi().bind()).isEqualTo("0.0.0.0");
     assertThat(config.httpApi().port()).isEqualTo(8080);
-    assertThat(config.database().type()).isEqualTo("h2");
+    assertThat(config.database().type()).isEqualTo("sqlite");
     assertThat(config.modules()).isEmpty();
   }
 

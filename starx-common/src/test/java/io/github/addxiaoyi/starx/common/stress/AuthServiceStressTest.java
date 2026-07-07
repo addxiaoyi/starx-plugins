@@ -26,8 +26,17 @@ class AuthServiceStressTest {
 
   @Test
   void concurrentRegisterAndLogin() throws Exception {
-    DatabaseConfig config = new DatabaseConfig("h2", "", 0, "stress_auth", "sa", "",
-        "jdbc:h2:mem:stress_auth;DB_CLOSE_DELAY=-1", 10, 10_000L);
+    DatabaseConfig config =
+        new DatabaseConfig(
+            "h2",
+            "",
+            0,
+            "stress_auth",
+            "sa",
+            "",
+            "jdbc:h2:mem:stress_auth;DB_CLOSE_DELAY=-1",
+            10,
+            10_000L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
       JdbiUserRepository repo = new JdbiUserRepository(manager.getJdbi());
       LocalEventBus bus = new LocalEventBus();
@@ -44,25 +53,32 @@ class AuthServiceStressTest {
 
       for (int t = 0; t < threadCount; t++) {
         final int tid = t;
-        executor.submit(() -> {
-          try {
-            for (int u = 0; u < usersPerThread; u++) {
-              String user = "stress_user_" + tid + "_" + u;
-              UUID uuid = UUID.nameUUIDFromBytes(user.getBytes());
-              auth.register(uuid, user, "Str0ng!Pass", user + "@test.com");
-              registered.incrementAndGet();
+        executor.submit(
+            () -> {
+              try {
+                for (int u = 0; u < usersPerThread; u++) {
+                  String user = "stress_user_" + tid + "_" + u;
+                  UUID uuid = UUID.nameUUIDFromBytes(user.getBytes());
+                  auth.register(uuid, user, "Str0ng!Pass", user + "@test.com");
+                  registered.incrementAndGet();
 
-              var result = auth.login(uuid, user, "Str0ng!Pass", null,
-                  InetAddress.getLocalHost(), "device-" + tid);
-              if (result.state() == AuthSession.State.AUTHENTICATED) {
-                loggedIn.incrementAndGet();
+                  var result =
+                      auth.login(
+                          uuid,
+                          user,
+                          "Str0ng!Pass",
+                          null,
+                          InetAddress.getLocalHost(),
+                          "device-" + tid);
+                  if (result.state() == AuthSession.State.AUTHENTICATED) {
+                    loggedIn.incrementAndGet();
+                  }
+                }
+              } catch (Exception e) {
+                errors.incrementAndGet();
               }
-            }
-          } catch (Exception e) {
-            errors.incrementAndGet();
-          }
-          latch.countDown();
-        });
+              latch.countDown();
+            });
       }
 
       latch.await(120, TimeUnit.SECONDS);
@@ -75,8 +91,17 @@ class AuthServiceStressTest {
 
   @Test
   void bruteForceUnderConcurrentLoad() throws Exception {
-    DatabaseConfig config = new DatabaseConfig("h2", "", 0, "stress_brute", "sa", "",
-        "jdbc:h2:mem:stress_brute;DB_CLOSE_DELAY=-1", 5, 5_000L);
+    DatabaseConfig config =
+        new DatabaseConfig(
+            "h2",
+            "",
+            0,
+            "stress_brute",
+            "sa",
+            "",
+            "jdbc:h2:mem:stress_brute;DB_CLOSE_DELAY=-1",
+            5,
+            5_000L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
       JdbiUserRepository repo = new JdbiUserRepository(manager.getJdbi());
       LocalEventBus bus = new LocalEventBus();
@@ -91,14 +116,20 @@ class AuthServiceStressTest {
       CountDownLatch latch = new CountDownLatch(attempts);
 
       for (int i = 0; i < attempts; i++) {
-        executor.submit(() -> {
-          try {
-            auth.login(uuid, "brute_target", "WrongPass!", null,
-                InetAddress.getLocalHost(), "brute-device");
-          } catch (Exception ignored) {
-          }
-          latch.countDown();
-        });
+        executor.submit(
+            () -> {
+              try {
+                auth.login(
+                    uuid,
+                    "brute_target",
+                    "WrongPass!",
+                    null,
+                    InetAddress.getLocalHost(),
+                    "brute-device");
+              } catch (Exception ignored) {
+              }
+              latch.countDown();
+            });
       }
 
       latch.await(30, TimeUnit.SECONDS);

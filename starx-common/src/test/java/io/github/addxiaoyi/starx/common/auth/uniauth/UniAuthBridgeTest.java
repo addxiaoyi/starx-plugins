@@ -42,8 +42,7 @@ class UniAuthBridgeTest {
     databaseManager = new DatabaseManager(config);
     userRepository = new JdbiUserRepository(databaseManager.getJdbi());
     uniAuthClient = mock(UniAuthClient.class);
-    uniAuthConfig =
-        new UniAuthConfig(true, "https://api.example.com/", "test-app", "test-secret", 5000, true);
+    uniAuthConfig = new UniAuthConfig(true, "https://api.example.com/", "test-api-key", 5000, true);
     uniAuthBridge = new UniAuthBridge(uniAuthConfig, uniAuthClient, userRepository);
   }
 
@@ -73,7 +72,13 @@ class UniAuthBridgeTest {
             null,
             "starvc",
             "completed",
-            Instant.now());
+            Instant.now(),
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
     userRepository.saveUser(user);
 
     UniAuthBridge.BridgeResult result =
@@ -105,7 +110,13 @@ class UniAuthBridgeTest {
             null,
             "starvc",
             "completed",
-            Instant.now());
+            Instant.now(),
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
     userRepository.saveUser(user);
 
     UniAuthBridge.BridgeResult result =
@@ -134,7 +145,13 @@ class UniAuthBridgeTest {
             null,
             "starvc",
             "pending",
-            null);
+            null,
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
     userRepository.saveUser(user);
 
     when(uniAuthClient.login(anyString(), anyString()))
@@ -175,7 +192,13 @@ class UniAuthBridgeTest {
             null,
             "starvc",
             "pending",
-            null);
+            null,
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
     userRepository.saveUser(user);
 
     when(uniAuthClient.login(anyString(), anyString()))

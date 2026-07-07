@@ -60,7 +60,13 @@ class JdbiUserRepositoryTest {
             null,
             null,
             "completed",
-            null);
+            null,
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
 
     repository.saveUser(user);
 
@@ -109,7 +115,13 @@ class JdbiUserRepositoryTest {
             null,
             null,
             "completed",
-            null);
+            null,
+            null,
+            null,
+            null,
+            0L,
+            null,
+            false);
     repository.saveUser(full);
 
     UserDto update =
@@ -215,7 +227,13 @@ class JdbiUserRepositoryTest {
         null,
         null,
         "completed",
-        null);
+        null,
+        null,
+        null,
+        null,
+        0L,
+        null,
+        false);
   }
 
   private StarxUser sampleUserWithMigrationState(
@@ -234,7 +252,13 @@ class JdbiUserRepositoryTest {
         null,
         null,
         migrationState,
-        null);
+        null,
+        null,
+        null,
+        null,
+        0L,
+        null,
+        false);
   }
 
   private StarxUser sampleUserWithSourceSystem(String username, String email, String sourceSystem) {
@@ -252,6 +276,12 @@ class JdbiUserRepositoryTest {
         null,
         sourceSystem,
         "completed",
-        null);
+        null,
+        null,
+        null,
+        null,
+        0L,
+        null,
+        false);
   }
 }

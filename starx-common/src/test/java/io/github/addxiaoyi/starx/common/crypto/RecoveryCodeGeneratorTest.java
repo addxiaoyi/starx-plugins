@@ -23,8 +23,8 @@ class RecoveryCodeGeneratorTest {
   void codesOnlyContainValidChars() {
     String valid = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     List<String> codes = RecoveryCodeGenerator.generate();
-    assertThat(codes).allSatisfy(code ->
-        assertThat(code.chars().allMatch(c -> valid.indexOf(c) >= 0)).isTrue());
+    assertThat(codes)
+        .allSatisfy(code -> assertThat(code.chars().allMatch(c -> valid.indexOf(c) >= 0)).isTrue());
   }
 
   @Test

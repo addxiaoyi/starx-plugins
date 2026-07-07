@@ -34,11 +34,10 @@ public final class ConfigLoader {
     UniAuthConfig defaults = UniAuthConfig.defaults();
     boolean enabled = node.node("enabled").getBoolean(defaults.enabled());
     String apiUrl = node.node("api-url").getString(defaults.apiUrl());
-    String appId = node.node("app-id").getString(defaults.appId());
-    String appSecret = node.node("app-secret").getString(defaults.appSecret());
+    String apiKey = node.node("api-key").getString(defaults.apiKey());
     int timeoutMs = node.node("timeout-ms").getInt(defaults.timeoutMs());
     boolean bridgeMode = node.node("bridge-mode").getBoolean(defaults.bridgeMode());
-    return new UniAuthConfig(enabled, apiUrl, appId, appSecret, timeoutMs, bridgeMode);
+    return new UniAuthConfig(enabled, apiUrl, apiKey, timeoutMs, bridgeMode);
   }
 
   private static HttpApiConfig loadHttpApi(ConfigurationNode node) {

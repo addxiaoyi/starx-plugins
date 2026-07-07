@@ -23,8 +23,17 @@ class DatabaseConnectionPoolStressTest {
 
   @Test
   void concurrentReadWriteOnH2() throws Exception {
-    DatabaseConfig config = new DatabaseConfig("h2", "", 0, "stress_h2", "sa", "",
-        "jdbc:h2:mem:stress_h2;DB_CLOSE_DELAY=-1", 10, 10_000L);
+    DatabaseConfig config =
+        new DatabaseConfig(
+            "h2",
+            "",
+            0,
+            "stress_h2",
+            "sa",
+            "",
+            "jdbc:h2:mem:stress_h2;DB_CLOSE_DELAY=-1",
+            10,
+            10_000L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
       Jdbi jdbi = manager.getJdbi();
       prepareTable(jdbi);
@@ -36,8 +45,8 @@ class DatabaseConnectionPoolStressTest {
   void concurrentReadWriteOnSqlite() throws Exception {
     Path tempFile = Files.createTempFile("stress_sqlite", ".db");
     tempFile.toFile().deleteOnExit();
-    DatabaseConfig config = new DatabaseConfig("sqlite", "", 0, tempFile.toString(),
-        "", "", "", 10, 10_000L);
+    DatabaseConfig config =
+        new DatabaseConfig("sqlite", "", 0, tempFile.toString(), "", "", "", 10, 10_000L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
       Jdbi jdbi = manager.getJdbi();
       prepareTable(jdbi);
@@ -47,8 +56,17 @@ class DatabaseConnectionPoolStressTest {
 
   @Test
   void poolExhaustionRecovery() throws Exception {
-    DatabaseConfig config = new DatabaseConfig("h2", "", 0, "stress_pool", "sa", "",
-        "jdbc:h2:mem:stress_pool;DB_CLOSE_DELAY=-1", 2, 1_500L);
+    DatabaseConfig config =
+        new DatabaseConfig(
+            "h2",
+            "",
+            0,
+            "stress_pool",
+            "sa",
+            "",
+            "jdbc:h2:mem:stress_pool;DB_CLOSE_DELAY=-1",
+            2,
+            1_500L);
     try (DatabaseManager manager = new DatabaseManager(config)) {
       Jdbi jdbi = manager.getJdbi();
       prepareTable(jdbi);
@@ -59,18 +77,22 @@ class DatabaseConnectionPoolStressTest {
       AtomicInteger failed = new AtomicInteger(0);
       for (int i = 0; i < 6; i++) {
         final int idx = i;
-        pool.submit(() -> {
-          try {
-            jdbi.useTransaction(handle -> {
-              handle.execute("INSERT INTO stress_test (id, val, version) VALUES (?, ?, 1)",
-                  1000 + idx, "pool-test-" + idx);
-              Thread.sleep(1_200);
+        pool.submit(
+            () -> {
+              try {
+                jdbi.useTransaction(
+                    handle -> {
+                      handle.execute(
+                          "INSERT INTO stress_test (id, val, version) VALUES (?, ?, 1)",
+                          1000 + idx,
+                          "pool-test-" + idx);
+                      Thread.sleep(1_200);
+                    });
+              } catch (Exception e) {
+                failed.incrementAndGet();
+              }
+              latch.countDown();
             });
-          } catch (Exception e) {
-            failed.incrementAndGet();
-          }
-          latch.countDown();
-        });
       }
       latch.await(10, TimeUnit.SECONDS);
       pool.shutdown();
@@ -79,16 +101,18 @@ class DatabaseConnectionPoolStressTest {
   }
 
   private void prepareTable(Jdbi jdbi) {
-    jdbi.withHandle(handle -> {
-      handle.execute("CREATE TABLE IF NOT EXISTS stress_test ("
-          + "id INT PRIMARY KEY, val VARCHAR(255), version INT)");
-      handle.execute("DELETE FROM stress_test");
-      for (int i = 0; i < 100; i++) {
-        handle.execute("INSERT INTO stress_test (id, val, version) VALUES (?, ?, 1)",
-            i, "initial-" + i);
-      }
-      return null;
-    });
+    jdbi.withHandle(
+        handle -> {
+          handle.execute(
+              "CREATE TABLE IF NOT EXISTS stress_test ("
+                  + "id INT PRIMARY KEY, val VARCHAR(255), version INT)");
+          handle.execute("DELETE FROM stress_test");
+          for (int i = 0; i < 100; i++) {
+            handle.execute(
+                "INSERT INTO stress_test (id, val, version) VALUES (?, ?, 1)", i, "initial-" + i);
+          }
+          return null;
+        });
   }
 
   private void runConcurrentTest(Jdbi jdbi, int threadCount, int opsPerThread) throws Exception {
@@ -99,21 +123,25 @@ class DatabaseConnectionPoolStressTest {
 
     for (int t = 0; t < threadCount; t++) {
       final int threadId = t;
-      executor.submit(() -> {
-        try {
-          for (int op = 0; op < opsPerThread; op++) {
-            int fop = op;
-            int fid = (threadId * opsPerThread + fop) % 100;
-            jdbi.useHandle(handle ->
-                handle.execute("UPDATE stress_test SET val = ?, version = version + 1 WHERE id = ?",
-                    "written-by-" + threadId + "-" + fop, fid));
-            totalOps.incrementAndGet();
-          }
-        } catch (Throwable e) {
-          errors.add(e);
-        }
-        latch.countDown();
-      });
+      executor.submit(
+          () -> {
+            try {
+              for (int op = 0; op < opsPerThread; op++) {
+                int fop = op;
+                int fid = (threadId * opsPerThread + fop) % 100;
+                jdbi.useHandle(
+                    handle ->
+                        handle.execute(
+                            "UPDATE stress_test SET val = ?, version = version + 1 WHERE id = ?",
+                            "written-by-" + threadId + "-" + fop,
+                            fid));
+                totalOps.incrementAndGet();
+              }
+            } catch (Throwable e) {
+              errors.add(e);
+            }
+            latch.countDown();
+          });
     }
 
     latch.await(60, TimeUnit.SECONDS);

@@ -29,13 +29,7 @@ class UniAuthModuleTest {
     lenient().when(plugin.proxy()).thenReturn(proxy);
     lenient().when(proxy.getEventManager()).thenReturn(eventManager);
     config =
-        new UniAuthConfig(
-            true,
-            "https://api.example.com/uniauth/",
-            "test-app-id",
-            "test-app-secret",
-            5000,
-            false);
+        new UniAuthConfig(true, "https://api.example.com/uniauth/", "test-api-key", 5000, false);
   }
 
   @Test
@@ -48,7 +42,7 @@ class UniAuthModuleTest {
   void shouldHaveRequiredApiFields() {
     UniAuthModule module = new UniAuthModule(plugin, eventBus, config);
     assertThat(module.getConfig().apiUrl()).isEqualTo("https://api.example.com/uniauth/");
-    assertThat(module.getConfig().appId()).isEqualTo("test-app-id");
+    assertThat(module.getConfig().apiKey()).isEqualTo("test-api-key");
   }
 
   @Test

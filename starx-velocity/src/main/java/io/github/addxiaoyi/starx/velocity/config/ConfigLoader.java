@@ -41,8 +41,7 @@ public final class ConfigLoader {
       uniauth:
         enabled: false
         api-url: "https://api.example.com/uniauth/"
-        app-id: ""
-        app-secret: ""
+        api-key: ""
         timeout-ms: 5000
         bridge-mode: false
 
@@ -150,11 +149,10 @@ public final class ConfigLoader {
   private static UniAuthConfig parseUniAuthConfig(ConfigurationNode node) {
     boolean enabled = node.node("enabled").getBoolean(false);
     String apiUrl = node.node("api-url").getString("https://api.example.com/uniauth/");
-    String appId = node.node("app-id").getString("");
-    String appSecret = node.node("app-secret").getString("");
+    String apiKey = node.node("api-key").getString("");
     int timeoutMs = node.node("timeout-ms").getInt(5000);
     boolean bridgeMode = node.node("bridge-mode").getBoolean(false);
-    return new UniAuthConfig(enabled, apiUrl, appId, appSecret, timeoutMs, bridgeMode);
+    return new UniAuthConfig(enabled, apiUrl, apiKey, timeoutMs, bridgeMode);
   }
 
   private static DatabaseConfig parseDatabaseConfig(ConfigurationNode node) {

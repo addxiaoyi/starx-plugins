@@ -7,28 +7,21 @@ public final class UniAuthConfig {
 
   private final boolean enabled;
   private final String apiUrl;
-  private final String appId;
-  private final String appSecret;
+  private final String apiKey;
   private final int timeoutMs;
   private final boolean bridgeMode;
 
   public UniAuthConfig(
-      boolean enabled,
-      String apiUrl,
-      String appId,
-      String appSecret,
-      int timeoutMs,
-      boolean bridgeMode) {
+      boolean enabled, String apiUrl, String apiKey, int timeoutMs, boolean bridgeMode) {
     this.enabled = enabled;
     this.apiUrl = Objects.requireNonNull(apiUrl, "apiUrl");
-    this.appId = Objects.requireNonNull(appId, "appId");
-    this.appSecret = Objects.requireNonNull(appSecret, "appSecret");
+    this.apiKey = Objects.requireNonNull(apiKey, "apiKey");
     this.timeoutMs = timeoutMs <= 0 ? 5000 : timeoutMs;
     this.bridgeMode = bridgeMode;
   }
 
   public static UniAuthConfig defaults() {
-    return new UniAuthConfig(false, "https://api.example.com/uniauth/", "", "", 5000, false);
+    return new UniAuthConfig(false, "https://api.example.com/uniauth/", "", 5000, false);
   }
 
   public boolean enabled() {
@@ -39,12 +32,8 @@ public final class UniAuthConfig {
     return apiUrl;
   }
 
-  public String appId() {
-    return appId;
-  }
-
-  public String appSecret() {
-    return appSecret;
+  public String apiKey() {
+    return apiKey;
   }
 
   public int timeoutMs() {
@@ -62,15 +51,14 @@ public final class UniAuthConfig {
     var that = (UniAuthConfig) obj;
     return this.enabled == that.enabled
         && Objects.equals(this.apiUrl, that.apiUrl)
-        && Objects.equals(this.appId, that.appId)
-        && Objects.equals(this.appSecret, that.appSecret)
+        && Objects.equals(this.apiKey, that.apiKey)
         && this.timeoutMs == that.timeoutMs
         && this.bridgeMode == that.bridgeMode;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(enabled, apiUrl, appId, appSecret, timeoutMs, bridgeMode);
+    return Objects.hash(enabled, apiUrl, apiKey, timeoutMs, bridgeMode);
   }
 
   @Override
@@ -82,10 +70,7 @@ public final class UniAuthConfig {
         + "apiUrl="
         + apiUrl
         + ", "
-        + "appId="
-        + appId
-        + ", "
-        + "appSecret=***"
+        + "apiKey=***"
         + ", "
         + "timeoutMs="
         + timeoutMs
