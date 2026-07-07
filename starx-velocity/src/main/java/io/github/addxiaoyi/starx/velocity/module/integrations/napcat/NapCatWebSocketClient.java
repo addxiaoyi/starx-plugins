@@ -39,17 +39,21 @@ public final class NapCatWebSocketClient {
     this.httpUrl = httpUrl != null && !httpUrl.isBlank() ? httpUrl : httpUrlFromWs(wsUrl);
     this.messageHandler = Objects.requireNonNull(messageHandler, "messageHandler");
     this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-    this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-      Thread t = new Thread(r, "napcat-ws");
-      t.setDaemon(true);
-      return t;
-    });
+    this.scheduler =
+        Executors.newSingleThreadScheduledExecutor(
+            r -> {
+              Thread t = new Thread(r, "napcat-ws");
+              t.setDaemon(true);
+              return t;
+            });
     this.gson = new Gson();
     this.running = new AtomicBoolean(false);
   }
 
   private static String httpUrlFromWs(String wsUrl) {
-    return wsUrl.replace("ws://", "http://").replace("wss://", "https://")
+    return wsUrl
+        .replace("ws://", "http://")
+        .replace("wss://", "https://")
         .replaceAll(":\\d+$", ":3000");
   }
 
@@ -79,42 +83,51 @@ public final class NapCatWebSocketClient {
 
   private void sendApiCall(String action, Map<String, Object> params) {
     String json = gson.toJson(params);
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(httpUrl + "/" + action))
-        .header("Content-Type", "application/json")
-        .timeout(Duration.ofSeconds(5))
-        .POST(HttpRequest.BodyPublishers.ofString(json))
-        .build();
-    httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        .exceptionally(t -> {
-          log.warn("NapCat HTTP API call failed: {} - {}", action, t.getMessage());
-          return null;
-        });
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(httpUrl + "/" + action))
+            .header("Content-Type", "application/json")
+            .timeout(Duration.ofSeconds(5))
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+    httpClient
+        .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        .exceptionally(
+            t -> {
+              log.warn("NapCat HTTP API call failed: {} - {}", action, t.getMessage());
+              return null;
+            });
   }
 
   private void doConnect() {
     if (!running.get()) return;
     log.info("Connecting to NapCat at {} ...", wsUrl);
-    httpClient.newWebSocketBuilder()
+    httpClient
+        .newWebSocketBuilder()
         .buildAsync(URI.create(wsUrl), new OneBotListener())
-        .thenAccept(ws -> {
-          this.webSocket = ws;
-          reconnectAttempts = 0;
-          log.info("Connected to NapCat WebSocket: {}", wsUrl);
-        })
-        .exceptionally(t -> {
-          log.warn("Failed to connect to NapCat (attempt {}): {}",
-              reconnectAttempts + 1, t.getMessage());
-          scheduleReconnect();
-          return null;
-        });
+        .thenAccept(
+            ws -> {
+              this.webSocket = ws;
+              reconnectAttempts = 0;
+              log.info("Connected to NapCat WebSocket: {}", wsUrl);
+            })
+        .exceptionally(
+            t -> {
+              log.warn(
+                  "Failed to connect to NapCat (attempt {}): {}",
+                  reconnectAttempts + 1,
+                  t.getMessage());
+              scheduleReconnect();
+              return null;
+            });
   }
 
   private void scheduleReconnect() {
     if (!running.get()) return;
-    long delay = Math.min(
-        (long) (INITIAL_RECONNECT_DELAY_MS * Math.pow(2, Math.min(reconnectAttempts, 5))),
-        MAX_RECONNECT_DELAY_MS);
+    long delay =
+        Math.min(
+            (long) (INITIAL_RECONNECT_DELAY_MS * Math.pow(2, Math.min(reconnectAttempts, 5))),
+            MAX_RECONNECT_DELAY_MS);
     reconnectAttempts++;
     log.info("Reconnecting to NapCat in {}ms (attempt {})", delay, reconnectAttempts);
     scheduler.schedule(this::doConnect, delay, TimeUnit.MILLISECONDS);
@@ -192,6 +205,7 @@ public final class NapCatWebSocketClient {
 
   public interface MessageHandler {
     void onPrivateMessage(long userId, String message, String nickname);
+
     void onGroupMessage(long groupId, long userId, String message, String nickname);
   }
 }

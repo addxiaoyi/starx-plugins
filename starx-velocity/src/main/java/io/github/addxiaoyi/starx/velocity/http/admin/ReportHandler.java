@@ -43,9 +43,16 @@ public final class ReportHandler implements AdminHandler {
       ctx.status(400).json(Map.of("error", "reporter_uuid, target_uuid, category are required"));
       return;
     }
-    Report r = new Report(
-        UUID.randomUUID().toString(), req.reporterUuid, req.targetUuid,
-        req.category.toUpperCase(), req.details, "PENDING", null, null);
+    Report r =
+        new Report(
+            UUID.randomUUID().toString(),
+            req.reporterUuid,
+            req.targetUuid,
+            req.category.toUpperCase(),
+            req.details,
+            "PENDING",
+            null,
+            null);
     repo.create(r);
     ctx.status(201).json(Map.of("id", r.id(), "success", true));
   }

@@ -23,7 +23,8 @@ public class JdbcReportRepository {
   }
 
   public void create(Report report) {
-    execute("INSERT INTO starx_reports (id, reporter_uuid, target_uuid, category, details, status) VALUES (?, ?, ?, ?, ?, ?)",
+    execute(
+        "INSERT INTO starx_reports (id, reporter_uuid, target_uuid, category, details, status) VALUES (?, ?, ?, ?, ?, ?)",
         ps -> {
           ps.setString(1, report.id());
           ps.setObject(2, report.reporterUuid());
@@ -35,38 +36,56 @@ public class JdbcReportRepository {
   }
 
   public List<Report> findByStatus(String status) {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE status = ? ORDER BY id DESC",
-        ps -> ps.setString(1, status), this::map);
+    return queryList(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE status = ? ORDER BY id DESC",
+        ps -> ps.setString(1, status),
+        this::map);
   }
 
   public List<Report> findByTarget(UUID targetUuid) {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE target_uuid = ? ORDER BY id DESC",
-        ps -> ps.setObject(1, targetUuid), this::map);
+    return queryList(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE target_uuid = ? ORDER BY id DESC",
+        ps -> ps.setObject(1, targetUuid),
+        this::map);
   }
 
   public List<Report> findByReporter(UUID reporterUuid) {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE reporter_uuid = ? ORDER BY id DESC",
-        ps -> ps.setObject(1, reporterUuid), this::map);
+    return queryList(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE reporter_uuid = ? ORDER BY id DESC",
+        ps -> ps.setObject(1, reporterUuid),
+        this::map);
   }
 
   public Optional<Report> findById(String id) {
-    return queryOne("SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE id = ?",
-        ps -> ps.setString(1, id), this::map);
+    return queryOne(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_reports WHERE id = ?",
+        ps -> ps.setString(1, id),
+        this::map);
   }
 
   public List<Report> findAll() {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_reports ORDER BY id DESC",
-        ps -> {}, this::map);
+    return queryList(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_reports ORDER BY id DESC", ps -> {}, this::map);
   }
 
   public void resolve(String id, String resolvedBy) {
-    execute("UPDATE starx_reports SET status = 'RESOLVED', resolved_by = ?, resolved_at = ? WHERE id = ?",
-        ps -> { ps.setString(1, resolvedBy); ps.setLong(2, System.currentTimeMillis()); ps.setString(3, id); });
+    execute(
+        "UPDATE starx_reports SET status = 'RESOLVED', resolved_by = ?, resolved_at = ? WHERE id = ?",
+        ps -> {
+          ps.setString(1, resolvedBy);
+          ps.setLong(2, System.currentTimeMillis());
+          ps.setString(3, id);
+        });
   }
 
   public void dismiss(String id, String resolvedBy) {
-    execute("UPDATE starx_reports SET status = 'DISMISSED', resolved_by = ?, resolved_at = ? WHERE id = ?",
-        ps -> { ps.setString(1, resolvedBy); ps.setLong(2, System.currentTimeMillis()); ps.setString(3, id); });
+    execute(
+        "UPDATE starx_reports SET status = 'DISMISSED', resolved_by = ?, resolved_at = ? WHERE id = ?",
+        ps -> {
+          ps.setString(1, resolvedBy);
+          ps.setLong(2, System.currentTimeMillis());
+          ps.setString(3, id);
+        });
   }
 
   private Report map(ResultSet rs) throws SQLException {
@@ -119,8 +138,12 @@ public class JdbcReportRepository {
   }
 
   @FunctionalInterface
-  private interface ParamBinder { void bind(PreparedStatement ps) throws SQLException; }
+  private interface ParamBinder {
+    void bind(PreparedStatement ps) throws SQLException;
+  }
 
   @FunctionalInterface
-  private interface RowMapper<T> { T map(ResultSet rs) throws SQLException; }
+  private interface RowMapper<T> {
+    T map(ResultSet rs) throws SQLException;
+  }
 }

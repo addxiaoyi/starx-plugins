@@ -29,7 +29,8 @@ public final class PaperModuleManager {
   private final PaperMessageBridge messageBridge;
   private final List<PaperModule> modules = new ArrayList<>();
 
-  public PaperModuleManager(StarxPaperPlugin plugin, PaperConfigLoader configLoader, PaperMessageBridge messageBridge) {
+  public PaperModuleManager(
+      StarxPaperPlugin plugin, PaperConfigLoader configLoader, PaperMessageBridge messageBridge) {
     this.plugin = plugin;
     this.configLoader = configLoader;
     this.messageBridge = messageBridge;

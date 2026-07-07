@@ -179,19 +179,11 @@ class PlanIntegrationModuleTest {
         new PlanIntegrationModule(plugin, eventBus, messageBridge, enabledConfig);
 
     Map<String, Object> lobbyStats =
-        Map.of(
-            "server", "lobby",
-            "onlinePlayers", 10,
-            "tps", 19.5,
-            "usedMemory", 500000000L);
+        Map.of("server", "lobby", "onlinePlayers", 10, "tps", 19.5, "usedMemory", 500000000L);
     module.onBackendStats(new StarxEvent(EventTypes.PLAN_STATS_REPORT, lobbyStats));
 
     Map<String, Object> survivalStats =
-        Map.of(
-            "server", "survival",
-            "onlinePlayers", 25,
-            "tps", 18.0,
-            "usedMemory", 800000000L);
+        Map.of("server", "survival", "onlinePlayers", 25, "tps", 18.0, "usedMemory", 800000000L);
     module.onBackendStats(new StarxEvent(EventTypes.PLAN_STATS_REPORT, survivalStats));
 
     assertThat(module.getBackendStats()).hasSize(2);
@@ -205,11 +197,7 @@ class PlanIntegrationModuleTest {
         new PlanIntegrationModule(plugin, eventBus, messageBridge, enabledConfig);
     when(proxy.getPlayerCount()).thenReturn(10);
 
-    Map<String, Object> lobbyStats =
-        Map.of(
-            "server", "lobby",
-            "onlinePlayers", 10,
-            "tps", 19.5);
+    Map<String, Object> lobbyStats = Map.of("server", "lobby", "onlinePlayers", 10, "tps", 19.5);
     module.onBackendStats(new StarxEvent(EventTypes.PLAN_STATS_REPORT, lobbyStats));
     module.collectDataPoint();
 
@@ -228,17 +216,14 @@ class PlanIntegrationModuleTest {
         new PlanIntegrationModule(plugin, eventBus, messageBridge, enabledConfig);
     when(proxy.getPlayerCount()).thenReturn(10);
 
-    Map<String, Object> lobbyStats =
-        Map.of(
-            "server", "lobby",
-            "onlinePlayers", 10,
-            "tps", 19.5);
+    Map<String, Object> lobbyStats = Map.of("server", "lobby", "onlinePlayers", 10, "tps", 19.5);
     module.onBackendStats(new StarxEvent(EventTypes.PLAN_STATS_REPORT, lobbyStats));
     module.collectDataPoint();
 
     Map<String, Object> snapshot = module.getSnapshot();
 
-    assertThat(snapshot).containsKeys("online_players", "data_points", "collect_interval_sec", "backends");
+    assertThat(snapshot)
+        .containsKeys("online_players", "data_points", "collect_interval_sec", "backends");
     assertThat(snapshot.get("online_players")).isEqualTo(10);
     assertThat(snapshot.get("collect_interval_sec")).isEqualTo(60);
     assertThat(snapshot.get("backends")).isInstanceOf(Map.class);

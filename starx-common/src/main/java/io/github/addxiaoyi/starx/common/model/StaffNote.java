@@ -11,8 +11,8 @@ public final class StaffNote {
   private final UUID staffUuid;
   private final long createdAt;
 
-  public StaffNote(String id, UUID targetUuid, String note, String severity,
-      UUID staffUuid, long createdAt) {
+  public StaffNote(
+      String id, UUID targetUuid, String note, String severity, UUID staffUuid, long createdAt) {
     this.id = id;
     this.targetUuid = targetUuid;
     this.note = note;
@@ -21,10 +21,27 @@ public final class StaffNote {
     this.createdAt = createdAt;
   }
 
-  public String id() { return id; }
-  public UUID targetUuid() { return targetUuid; }
-  public String note() { return note; }
-  public String severity() { return severity; }
-  public UUID staffUuid() { return staffUuid; }
-  public long createdAt() { return createdAt; }
+  public String id() {
+    return id;
+  }
+
+  public UUID targetUuid() {
+    return targetUuid;
+  }
+
+  public String note() {
+    return note;
+  }
+
+  public String severity() {
+    return severity;
+  }
+
+  public UUID staffUuid() {
+    return staffUuid;
+  }
+
+  public long createdAt() {
+    return createdAt;
+  }
 }

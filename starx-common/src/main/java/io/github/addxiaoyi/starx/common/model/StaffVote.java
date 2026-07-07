@@ -20,10 +20,20 @@ public final class StaffVote {
   private final Long resolvedAt;
 
   public StaffVote(
-      String id, UUID targetUuid, String targetName, String reason, String voteType,
-      String status, UUID initiatorUuid, String initiatorName,
-      int yesVotes, int noVotes, int requiredYes,
-      long expiresAt, long createdAt, Long resolvedAt) {
+      String id,
+      UUID targetUuid,
+      String targetName,
+      String reason,
+      String voteType,
+      String status,
+      UUID initiatorUuid,
+      String initiatorName,
+      int yesVotes,
+      int noVotes,
+      int requiredYes,
+      long expiresAt,
+      long createdAt,
+      Long resolvedAt) {
     this.id = id;
     this.targetUuid = targetUuid;
     this.targetName = targetName;
@@ -40,20 +50,61 @@ public final class StaffVote {
     this.resolvedAt = resolvedAt;
   }
 
-  public String id() { return id; }
-  public UUID targetUuid() { return targetUuid; }
-  public String targetName() { return targetName; }
-  public String reason() { return reason; }
-  public String voteType() { return voteType; }
-  public String status() { return status; }
-  public UUID initiatorUuid() { return initiatorUuid; }
-  public String initiatorName() { return initiatorName; }
-  public int yesVotes() { return yesVotes; }
-  public int noVotes() { return noVotes; }
-  public int requiredYes() { return requiredYes; }
-  public long expiresAt() { return expiresAt; }
-  public long createdAt() { return createdAt; }
-  public Long resolvedAt() { return resolvedAt; }
+  public String id() {
+    return id;
+  }
+
+  public UUID targetUuid() {
+    return targetUuid;
+  }
+
+  public String targetName() {
+    return targetName;
+  }
+
+  public String reason() {
+    return reason;
+  }
+
+  public String voteType() {
+    return voteType;
+  }
+
+  public String status() {
+    return status;
+  }
+
+  public UUID initiatorUuid() {
+    return initiatorUuid;
+  }
+
+  public String initiatorName() {
+    return initiatorName;
+  }
+
+  public int yesVotes() {
+    return yesVotes;
+  }
+
+  public int noVotes() {
+    return noVotes;
+  }
+
+  public int requiredYes() {
+    return requiredYes;
+  }
+
+  public long expiresAt() {
+    return expiresAt;
+  }
+
+  public long createdAt() {
+    return createdAt;
+  }
+
+  public Long resolvedAt() {
+    return resolvedAt;
+  }
 
   public boolean isActive() {
     return "ACTIVE".equals(status) && System.currentTimeMillis() < expiresAt;

@@ -19,6 +19,7 @@ import io.github.addxiaoyi.starx.common.database.JdbcUserRepository;
 import io.github.addxiaoyi.starx.common.database.JdbcVoteRepository;
 import io.github.addxiaoyi.starx.velocity.config.ConfigLoader;
 import io.github.addxiaoyi.starx.velocity.config.StarxConfig;
+import io.github.addxiaoyi.starx.velocity.context.BindingContextCalculator;
 import io.github.addxiaoyi.starx.velocity.database.DatabaseManager;
 import io.github.addxiaoyi.starx.velocity.event.VelocityEventBus;
 import io.github.addxiaoyi.starx.velocity.http.HttpApiServer;
@@ -26,21 +27,19 @@ import io.github.addxiaoyi.starx.velocity.http.WebhookClient;
 import io.github.addxiaoyi.starx.velocity.http.WebhookEventPublisher;
 import io.github.addxiaoyi.starx.velocity.messaging.VelocityMessageBridge;
 import io.github.addxiaoyi.starx.velocity.module.ModuleManager;
+import io.github.addxiaoyi.starx.velocity.module.admin.AdminCommandsModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.AuthModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.FloodgateModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.MigrationCommands;
 import io.github.addxiaoyi.starx.velocity.module.auth.MigrationModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.TabIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.UniAuthModule;
-import io.github.addxiaoyi.starx.velocity.module.admin.AdminCommandsModule;
 import io.github.addxiaoyi.starx.velocity.module.auth.YggdrasilModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.MapModIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.PlanIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.QqIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.SocialIntegrationModule;
 import io.github.addxiaoyi.starx.velocity.module.integrations.napcat.NapCatModule;
-import io.github.addxiaoyi.starx.velocity.module.vote.VoteModule;
-import io.github.addxiaoyi.starx.velocity.context.BindingContextCalculator;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.ChatModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.EnhancedProxyModule;
 import io.github.addxiaoyi.starx.velocity.module.proxytools.FileCleanerModule;
@@ -65,6 +64,7 @@ import io.github.addxiaoyi.starx.velocity.module.security.RiskModule;
 import io.github.addxiaoyi.starx.velocity.module.security.SmartAlertModule;
 import io.github.addxiaoyi.starx.velocity.module.security.SmartRateLimitModule;
 import io.github.addxiaoyi.starx.velocity.module.skin.SkinBridgeModule;
+import io.github.addxiaoyi.starx.velocity.module.vote.VoteModule;
 import io.github.addxiaoyi.starx.velocity.module.welcome.WelcomeModule;
 import io.github.addxiaoyi.starx.velocity.security.HmacWebhookSigner;
 import java.nio.file.Path;
@@ -238,8 +238,15 @@ public class StarxVelocityPlugin {
             voteRepo);
 
     moduleManager.register(
-        new AdminCommandsModule(this, userRepository, punishmentRepo, staffNoteRepo,
-            reportRepo, announcementRepo, bindingRepo, bindingVerification));
+        new AdminCommandsModule(
+            this,
+            userRepository,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification));
     webhookClient =
         new WebhookClient(config.webhook(), new HmacWebhookSigner(config.webhook().secret()));
     new WebhookEventPublisher(eventBus, webhookClient).register();

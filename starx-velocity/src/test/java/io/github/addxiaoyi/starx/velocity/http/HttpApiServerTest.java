@@ -6,8 +6,8 @@ import static org.mockito.Mockito.when;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
 import io.github.addxiaoyi.starx.common.auth.AuthService;
-import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.auth.BindingVerificationService;
+import io.github.addxiaoyi.starx.common.config.DatabaseConfig;
 import io.github.addxiaoyi.starx.common.crypto.HmacSigner;
 import io.github.addxiaoyi.starx.common.database.JdbcAnnouncementRepository;
 import io.github.addxiaoyi.starx.common.database.JdbcBindingRepository;
@@ -88,8 +88,19 @@ class HttpApiServerTest {
   void shouldReturn503WhenApiKeyNotConfigured() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(null), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            configWithApiKey(null),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", null);
@@ -102,8 +113,19 @@ class HttpApiServerTest {
   void shouldReturn401WhenApiKeyIsWrong() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", "wrong");
@@ -118,8 +140,16 @@ class HttpApiServerTest {
             configWithApiKey(API_KEY),
             eventBus,
             proxy,
-            jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/health", API_KEY);
@@ -132,8 +162,19 @@ class HttpApiServerTest {
   void shouldAuthenticateWithValidHmacSignature() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     String timestamp = String.valueOf(System.currentTimeMillis());
@@ -149,8 +190,19 @@ class HttpApiServerTest {
   void shouldReturn401ForInvalidHmacSignature() throws Exception {
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     HttpResponse<String> response = getHmac("/v1/health", "123", "invalid-signature");
@@ -164,8 +216,19 @@ class HttpApiServerTest {
 
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     HttpResponse<String> response = get("/v1/user/exists?name=test", API_KEY);
@@ -203,8 +266,19 @@ class HttpApiServerTest {
 
     server =
         new HttpApiServer(
-            configWithApiKey(API_KEY), eventBus, proxy, jdbiUserRepository, authService, skinBridge,
-            punishmentRepo, staffNoteRepo, reportRepo, announcementRepo, bindingRepo, bindingVerification, voteRepo);
+            configWithApiKey(API_KEY),
+            eventBus,
+            proxy,
+            jdbiUserRepository,
+            authService,
+            skinBridge,
+            punishmentRepo,
+            staffNoteRepo,
+            reportRepo,
+            announcementRepo,
+            bindingRepo,
+            bindingVerification,
+            voteRepo);
     server.start();
 
     HttpResponse<String> response =

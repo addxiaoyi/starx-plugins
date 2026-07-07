@@ -132,14 +132,13 @@ public final class ConfigLoader {
     String apiKey = str(root, "api-key", "");
 
     Map<String, Object> httpNode = child(root, "http");
-    StarxConfig.HttpConfig http = new StarxConfig.HttpConfig(
-        str(httpNode, "bind", "127.0.0.1"),
-        integer(httpNode, "port", 8788));
+    StarxConfig.HttpConfig http =
+        new StarxConfig.HttpConfig(
+            str(httpNode, "bind", "127.0.0.1"), integer(httpNode, "port", 8788));
 
     Map<String, Object> webhookNode = child(root, "webhook");
-    StarxConfig.WebhookConfig webhook = new StarxConfig.WebhookConfig(
-        str(webhookNode, "url", ""),
-        str(webhookNode, "secret", ""));
+    StarxConfig.WebhookConfig webhook =
+        new StarxConfig.WebhookConfig(str(webhookNode, "url", ""), str(webhookNode, "secret", ""));
 
     Map<String, StarxConfig.ModuleConfig> modules = new HashMap<>();
     Map<String, Object> modulesNode = child(root, "modules");
@@ -172,14 +171,22 @@ public final class ConfigLoader {
   private static int integer(Map<String, Object> map, String key, int def) {
     Object v = map.get(key);
     if (v instanceof Number n) return n.intValue();
-    if (v != null) try { return Integer.parseInt(v.toString()); } catch (NumberFormatException e) {}
+    if (v != null)
+      try {
+        return Integer.parseInt(v.toString());
+      } catch (NumberFormatException e) {
+      }
     return def;
   }
 
   private static long longVal(Map<String, Object> map, String key, long def) {
     Object v = map.get(key);
     if (v instanceof Number n) return n.longValue();
-    if (v != null) try { return Long.parseLong(v.toString()); } catch (NumberFormatException e) {}
+    if (v != null)
+      try {
+        return Long.parseLong(v.toString());
+      } catch (NumberFormatException e) {
+      }
     return def;
   }
 

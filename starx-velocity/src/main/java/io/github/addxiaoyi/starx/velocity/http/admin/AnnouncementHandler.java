@@ -31,10 +31,14 @@ public final class AnnouncementHandler implements AdminHandler {
       ctx.status(400).json(Map.of("error", "title and content are required"));
       return;
     }
-    Announcement a = new Announcement(
-        UUID.randomUUID().toString(), req.title, req.content,
-        req.createdBy != null ? req.createdBy : "console",
-        System.currentTimeMillis(), req.expiresAt);
+    Announcement a =
+        new Announcement(
+            UUID.randomUUID().toString(),
+            req.title,
+            req.content,
+            req.createdBy != null ? req.createdBy : "console",
+            System.currentTimeMillis(),
+            req.expiresAt);
     repo.create(a);
     ctx.status(201).json(Map.of("id", a.id(), "success", true));
   }

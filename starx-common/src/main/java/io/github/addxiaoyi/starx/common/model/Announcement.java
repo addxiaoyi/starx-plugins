@@ -9,8 +9,8 @@ public final class Announcement {
   private final long createdAt;
   private final Long expiresAt;
 
-  public Announcement(String id, String title, String content, String createdBy,
-      long createdAt, Long expiresAt) {
+  public Announcement(
+      String id, String title, String content, String createdBy, long createdAt, Long expiresAt) {
     this.id = id;
     this.title = title;
     this.content = content;
@@ -19,10 +19,27 @@ public final class Announcement {
     this.expiresAt = expiresAt;
   }
 
-  public String id() { return id; }
-  public String title() { return title; }
-  public String content() { return content; }
-  public String createdBy() { return createdBy; }
-  public long createdAt() { return createdAt; }
-  public Long expiresAt() { return expiresAt; }
+  public String id() {
+    return id;
+  }
+
+  public String title() {
+    return title;
+  }
+
+  public String content() {
+    return content;
+  }
+
+  public String createdBy() {
+    return createdBy;
+  }
+
+  public long createdAt() {
+    return createdAt;
+  }
+
+  public Long expiresAt() {
+    return expiresAt;
+  }
 }

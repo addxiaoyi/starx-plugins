@@ -60,8 +60,7 @@ class PasswordResetHandlerTest {
     verify(authService).resetPassword("alice", "secret123");
   }
 
-  private HttpResponse<String> post(String path, String body)
-      throws Exception {
+  private HttpResponse<String> post(String path, String body) throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + PORT + path))
             .header("Content-Type", "application/json")

@@ -5,7 +5,6 @@ import io.github.addxiaoyi.starx.common.model.Punishment;
 import io.github.addxiaoyi.starx.velocity.http.JsonHttpExchange;
 import io.github.addxiaoyi.starx.velocity.http.RouteRegistrar;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,10 +41,18 @@ public final class PunishmentHandler implements AdminHandler {
       ctx.status(400).json(Map.of("error", "target_uuid, type, staff_uuid are required"));
       return;
     }
-    Punishment p = new Punishment(
-        UUID.randomUUID().toString(), req.targetUuid, req.targetName, req.type,
-        req.reason, req.staffUuid, req.staffName, System.currentTimeMillis(),
-        req.expiresAt, true);
+    Punishment p =
+        new Punishment(
+            UUID.randomUUID().toString(),
+            req.targetUuid,
+            req.targetName,
+            req.type,
+            req.reason,
+            req.staffUuid,
+            req.staffName,
+            System.currentTimeMillis(),
+            req.expiresAt,
+            true);
     repo.record(p);
     ctx.status(201).json(Map.of("id", p.id(), "success", true));
   }

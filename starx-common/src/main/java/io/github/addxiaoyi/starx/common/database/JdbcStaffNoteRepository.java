@@ -13,7 +13,8 @@ import javax.sql.DataSource;
 
 public class JdbcStaffNoteRepository {
 
-  private static final String SELECT_COLUMNS = "id, target_uuid, note, severity, staff_uuid, created_at";
+  private static final String SELECT_COLUMNS =
+      "id, target_uuid, note, severity, staff_uuid, created_at";
 
   private final DataSource dataSource;
 
@@ -22,7 +23,8 @@ public class JdbcStaffNoteRepository {
   }
 
   public void addNote(StaffNote note) {
-    execute("INSERT INTO starx_staff_notes (id, target_uuid, note, severity, staff_uuid, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    execute(
+        "INSERT INTO starx_staff_notes (id, target_uuid, note, severity, staff_uuid, created_at) VALUES (?, ?, ?, ?, ?, ?)",
         ps -> {
           ps.setString(1, note.id());
           ps.setObject(2, note.targetUuid());
@@ -34,18 +36,26 @@ public class JdbcStaffNoteRepository {
   }
 
   public List<StaffNote> findByPlayer(UUID targetUuid) {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_staff_notes WHERE target_uuid = ? ORDER BY created_at DESC",
-        ps -> ps.setObject(1, targetUuid), this::map);
+    return queryList(
+        "SELECT "
+            + SELECT_COLUMNS
+            + " FROM starx_staff_notes WHERE target_uuid = ? ORDER BY created_at DESC",
+        ps -> ps.setObject(1, targetUuid),
+        this::map);
   }
 
   public List<StaffNote> findAll() {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_staff_notes ORDER BY created_at DESC",
-        ps -> {}, this::map);
+    return queryList(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_staff_notes ORDER BY created_at DESC",
+        ps -> {},
+        this::map);
   }
 
   public Optional<StaffNote> findById(String id) {
-    return queryOne("SELECT " + SELECT_COLUMNS + " FROM starx_staff_notes WHERE id = ?",
-        ps -> ps.setString(1, id), this::map);
+    return queryOne(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_staff_notes WHERE id = ?",
+        ps -> ps.setString(1, id),
+        this::map);
   }
 
   private StaffNote map(ResultSet rs) throws SQLException {
@@ -95,8 +105,12 @@ public class JdbcStaffNoteRepository {
   }
 
   @FunctionalInterface
-  private interface ParamBinder { void bind(PreparedStatement ps) throws SQLException; }
+  private interface ParamBinder {
+    void bind(PreparedStatement ps) throws SQLException;
+  }
 
   @FunctionalInterface
-  private interface RowMapper<T> { T map(ResultSet rs) throws SQLException; }
+  private interface RowMapper<T> {
+    T map(ResultSet rs) throws SQLException;
+  }
 }

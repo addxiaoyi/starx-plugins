@@ -63,53 +63,52 @@ public final class DatabaseManager implements AutoCloseable {
               + "welcome_message_shown BOOLEAN DEFAULT FALSE)");
       stmt.execute(
           "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_username ON starx_users(username)");
-      stmt.execute(
-          "CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_email ON starx_users(email)");
+      stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_starx_users_email ON starx_users(email)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_punishments ("
-          + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
-          + "target_name VARCHAR(16) NOT NULL, type VARCHAR(16) NOT NULL, "
-          + "reason VARCHAR(512), staff_uuid VARCHAR(36) NOT NULL, "
-          + "staff_name VARCHAR(16) NOT NULL, created_at BIGINT NOT NULL, "
-          + "expires_at BIGINT, active BOOLEAN NOT NULL DEFAULT TRUE)");
+              + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
+              + "target_name VARCHAR(16) NOT NULL, type VARCHAR(16) NOT NULL, "
+              + "reason VARCHAR(512), staff_uuid VARCHAR(36) NOT NULL, "
+              + "staff_name VARCHAR(16) NOT NULL, created_at BIGINT NOT NULL, "
+              + "expires_at BIGINT, active BOOLEAN NOT NULL DEFAULT TRUE)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_staff_notes ("
-          + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
-          + "note VARCHAR(1024) NOT NULL, severity VARCHAR(16) NOT NULL, "
-          + "staff_uuid VARCHAR(36) NOT NULL, created_at BIGINT NOT NULL)");
+              + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
+              + "note VARCHAR(1024) NOT NULL, severity VARCHAR(16) NOT NULL, "
+              + "staff_uuid VARCHAR(36) NOT NULL, created_at BIGINT NOT NULL)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_reports ("
-          + "id VARCHAR(36) PRIMARY KEY, reporter_uuid VARCHAR(36) NOT NULL, "
-          + "target_uuid VARCHAR(36) NOT NULL, category VARCHAR(32) NOT NULL, "
-          + "details VARCHAR(512), status VARCHAR(16) NOT NULL DEFAULT 'PENDING', "
-          + "resolved_by VARCHAR(36), resolved_at BIGINT)");
+              + "id VARCHAR(36) PRIMARY KEY, reporter_uuid VARCHAR(36) NOT NULL, "
+              + "target_uuid VARCHAR(36) NOT NULL, category VARCHAR(32) NOT NULL, "
+              + "details VARCHAR(512), status VARCHAR(16) NOT NULL DEFAULT 'PENDING', "
+              + "resolved_by VARCHAR(36), resolved_at BIGINT)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_announcements ("
-          + "id VARCHAR(36) PRIMARY KEY, title VARCHAR(128) NOT NULL, "
-          + "content VARCHAR(2048) NOT NULL, created_by VARCHAR(36) NOT NULL, "
-          + "created_at BIGINT NOT NULL, expires_at BIGINT)");
+              + "id VARCHAR(36) PRIMARY KEY, title VARCHAR(128) NOT NULL, "
+              + "content VARCHAR(2048) NOT NULL, created_by VARCHAR(36) NOT NULL, "
+              + "created_at BIGINT NOT NULL, expires_at BIGINT)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_announcement_reads ("
-          + "announcement_id VARCHAR(36) NOT NULL, player_uuid VARCHAR(36) NOT NULL, "
-          + "read_at BIGINT NOT NULL, "
-          + "PRIMARY KEY (announcement_id, player_uuid))");
+              + "announcement_id VARCHAR(36) NOT NULL, player_uuid VARCHAR(36) NOT NULL, "
+              + "read_at BIGINT NOT NULL, "
+              + "PRIMARY KEY (announcement_id, player_uuid))");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_player_bindings ("
-          + "player_uuid VARCHAR(36) PRIMARY KEY, qq_id VARCHAR(64), "
-          + "discord_id VARCHAR(64), created_at BIGINT NOT NULL)");
+              + "player_uuid VARCHAR(36) PRIMARY KEY, qq_id VARCHAR(64), "
+              + "discord_id VARCHAR(64), created_at BIGINT NOT NULL)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_staff_votes ("
-          + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
-          + "target_name VARCHAR(16) NOT NULL, reason VARCHAR(512), "
-          + "vote_type VARCHAR(32) NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE', "
-          + "initiator_uuid VARCHAR(36) NOT NULL, initiator_name VARCHAR(16) NOT NULL, "
-          + "yes_votes INT DEFAULT 0, no_votes INT DEFAULT 0, required_yes INT DEFAULT 3, "
-          + "expires_at BIGINT NOT NULL, created_at BIGINT NOT NULL, resolved_at BIGINT)");
+              + "id VARCHAR(36) PRIMARY KEY, target_uuid VARCHAR(36) NOT NULL, "
+              + "target_name VARCHAR(16) NOT NULL, reason VARCHAR(512), "
+              + "vote_type VARCHAR(32) NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE', "
+              + "initiator_uuid VARCHAR(36) NOT NULL, initiator_name VARCHAR(16) NOT NULL, "
+              + "yes_votes INT DEFAULT 0, no_votes INT DEFAULT 0, required_yes INT DEFAULT 3, "
+              + "expires_at BIGINT NOT NULL, created_at BIGINT NOT NULL, resolved_at BIGINT)");
       stmt.execute(
           "CREATE TABLE IF NOT EXISTS starx_staff_vote_records ("
-          + "vote_id VARCHAR(36) NOT NULL, voter_uuid VARCHAR(36) NOT NULL, "
-          + "vote VARCHAR(4) NOT NULL, voted_at BIGINT NOT NULL, "
-          + "PRIMARY KEY (vote_id, voter_uuid))");
+              + "vote_id VARCHAR(36) NOT NULL, voter_uuid VARCHAR(36) NOT NULL, "
+              + "vote VARCHAR(4) NOT NULL, voted_at BIGINT NOT NULL, "
+              + "PRIMARY KEY (vote_id, voter_uuid))");
 
       LOG.info("Database tables verified/created");
     } catch (Exception e) {
@@ -119,11 +118,8 @@ public final class DatabaseManager implements AutoCloseable {
   }
 
   private static void loadJdbcDrivers() {
-    for (String driver : new String[]{
-        "org.sqlite.JDBC",
-        "com.mysql.cj.jdbc.Driver",
-        "org.postgresql.Driver"
-    }) {
+    for (String driver :
+        new String[] {"org.sqlite.JDBC", "com.mysql.cj.jdbc.Driver", "org.postgresql.Driver"}) {
       try {
         Class.forName(driver);
       } catch (ClassNotFoundException ignored) {

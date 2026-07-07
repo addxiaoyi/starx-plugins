@@ -18,7 +18,9 @@ public final class BindingHandler implements AdminHandler {
   private final JdbcUserRepository userRepo;
   private final BindingVerificationService verificationService;
 
-  public BindingHandler(JdbcBindingRepository repo, JdbcUserRepository userRepo,
+  public BindingHandler(
+      JdbcBindingRepository repo,
+      JdbcUserRepository userRepo,
       BindingVerificationService verificationService) {
     this.repo = Objects.requireNonNull(repo, "repo");
     this.userRepo = Objects.requireNonNull(userRepo, "userRepo");
@@ -63,8 +65,8 @@ public final class BindingHandler implements AdminHandler {
       ctx.status(400).json(Map.of("error", "player_uuid is required"));
       return;
     }
-    PlayerBinding binding = new PlayerBinding(
-        req.playerUuid, req.qqId, req.discordId, System.currentTimeMillis());
+    PlayerBinding binding =
+        new PlayerBinding(req.playerUuid, req.qqId, req.discordId, System.currentTimeMillis());
     repo.save(binding);
     ctx.status(200).json(Map.of("success", true));
   }
@@ -97,8 +99,8 @@ public final class BindingHandler implements AdminHandler {
       return;
     }
 
-    PlayerBinding binding = new PlayerBinding(
-        playerUuid, req.qqId, null, System.currentTimeMillis());
+    PlayerBinding binding =
+        new PlayerBinding(playerUuid, req.qqId, null, System.currentTimeMillis());
     repo.save(binding);
 
     ctx.status(200).json(Map.of("success", true, "player_uuid", playerUuid.toString()));

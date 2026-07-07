@@ -1,7 +1,6 @@
 package io.github.addxiaoyi.starx.velocity.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github.addxiaoyi.starx.api.event.EventBus;
@@ -82,8 +81,7 @@ public final class HttpApiServer implements RouteRegistrar {
 
   public void start() throws IOException {
     server =
-        HttpServer.create(
-            new InetSocketAddress(config.http().bind(), config.http().port()), 0);
+        HttpServer.create(new InetSocketAddress(config.http().bind(), config.http().port()), 0);
     server.setExecutor(Executors.newCachedThreadPool());
 
     get("/v1/health", this::health);
@@ -137,7 +135,10 @@ public final class HttpApiServer implements RouteRegistrar {
     Map<String, RouteHandler> methods = routes.get(path);
     RouteHandler handler = methods != null ? methods.get(method) : null;
     if (handler == null) {
-      try { exchange.sendResponseHeaders(405, -1); } catch (IOException ignored) {}
+      try {
+        exchange.sendResponseHeaders(405, -1);
+      } catch (IOException ignored) {
+      }
       return;
     }
     JsonHttpExchange ctx = new JsonHttpExchange(exchange);
@@ -146,7 +147,10 @@ public final class HttpApiServer implements RouteRegistrar {
       handler.handle(ctx);
     } catch (Exception e) {
       log.error("Error handling {} {}", method, path, e);
-      try { ctx.status(500).sendError(500, "Internal Server Error"); } catch (IOException ignored) {}
+      try {
+        ctx.status(500).sendError(500, "Internal Server Error");
+      } catch (IOException ignored) {
+      }
     }
   }
 
@@ -177,5 +181,4 @@ public final class HttpApiServer implements RouteRegistrar {
   private void health(JsonHttpExchange ctx) throws IOException {
     ctx.status(200).result("OK");
   }
-
 }

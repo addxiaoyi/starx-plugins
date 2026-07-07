@@ -94,16 +94,27 @@ public final class AdminCommandsModule implements VelocityModule {
       }
       String[] args = inv.arguments();
       if (args.length < 2) {
-        inv.source().sendMessage(Component.text("Usage: /report <player> <category> [" + String.join("/", REPORT_CATEGORIES) + "]", NamedTextColor.YELLOW));
+        inv.source()
+            .sendMessage(
+                Component.text(
+                    "Usage: /report <player> <category> ["
+                        + String.join("/", REPORT_CATEGORIES)
+                        + "]",
+                    NamedTextColor.YELLOW));
         return;
       }
       String targetName = args[0];
       String category = args[1].toUpperCase();
       if (!REPORT_CATEGORIES.contains(category)) {
-        inv.source().sendMessage(Component.text("Invalid category. Valid: " + String.join(", ", REPORT_CATEGORIES), NamedTextColor.RED));
+        inv.source()
+            .sendMessage(
+                Component.text(
+                    "Invalid category. Valid: " + String.join(", ", REPORT_CATEGORIES),
+                    NamedTextColor.RED));
         return;
       }
-      String details = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "";
+      String details =
+          args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "";
 
       Optional<Player> target = plugin.proxy().getPlayer(targetName);
       if (target.isEmpty()) {
@@ -111,8 +122,16 @@ public final class AdminCommandsModule implements VelocityModule {
         return;
       }
 
-      Report r = new Report(UUID.randomUUID().toString(), reporter.getUniqueId(),
-          target.get().getUniqueId(), category, details, "PENDING", null, null);
+      Report r =
+          new Report(
+              UUID.randomUUID().toString(),
+              reporter.getUniqueId(),
+              target.get().getUniqueId(),
+              category,
+              details,
+              "PENDING",
+              null,
+              null);
       reportRepo.create(r);
       inv.source().sendMessage(Component.text("Report submitted.", NamedTextColor.GREEN));
     }
@@ -159,29 +178,42 @@ public final class AdminCommandsModule implements VelocityModule {
       }
       UUID uuid = target.get().getUniqueId();
 
-      inv.source().sendMessage(Component.text("==== History: " + targetName + " ====", NamedTextColor.GOLD));
+      inv.source()
+          .sendMessage(
+              Component.text("==== History: " + targetName + " ====", NamedTextColor.GOLD));
 
       List<Punishment> punishments = punishmentRepo.findByPlayer(uuid);
-      inv.source().sendMessage(Component.text("Punishments (" + punishments.size() + "):", NamedTextColor.AQUA));
+      inv.source()
+          .sendMessage(
+              Component.text("Punishments (" + punishments.size() + "):", NamedTextColor.AQUA));
       for (Punishment p : punishments) {
-        inv.source().sendMessage(Component.text("  [" + p.type() + "] " + p.reason()
-            + " - by " + p.staffName(), NamedTextColor.GRAY));
+        inv.source()
+            .sendMessage(
+                Component.text(
+                    "  [" + p.type() + "] " + p.reason() + " - by " + p.staffName(),
+                    NamedTextColor.GRAY));
       }
 
       List<StaffNote> notes = staffNoteRepo.findByPlayer(uuid);
       if (!notes.isEmpty()) {
         inv.source().sendMessage(Component.text("Staff Notes:", NamedTextColor.AQUA));
         for (StaffNote n : notes) {
-          inv.source().sendMessage(Component.text("  [" + n.severity() + "] " + n.note(), NamedTextColor.GRAY));
+          inv.source()
+              .sendMessage(
+                  Component.text("  [" + n.severity() + "] " + n.note(), NamedTextColor.GRAY));
         }
       }
 
       List<Report> reports = reportRepo.findByTarget(uuid);
       if (!reports.isEmpty()) {
-        inv.source().sendMessage(Component.text("Reports (" + reports.size() + "):", NamedTextColor.AQUA));
+        inv.source()
+            .sendMessage(Component.text("Reports (" + reports.size() + "):", NamedTextColor.AQUA));
         for (Report r : reports) {
-          inv.source().sendMessage(Component.text("  [" + r.status() + "] " + r.category()
-              + " - " + r.details(), NamedTextColor.GRAY));
+          inv.source()
+              .sendMessage(
+                  Component.text(
+                      "  [" + r.status() + "] " + r.category() + " - " + r.details(),
+                      NamedTextColor.GRAY));
         }
       }
     }
@@ -214,7 +246,11 @@ public final class AdminCommandsModule implements VelocityModule {
       }
       String[] args = inv.arguments();
       if (args.length < 2) {
-        inv.source().sendMessage(Component.text("Usage: /note <player> <content> [-s INFO|WARNING|CRITICAL]", NamedTextColor.YELLOW));
+        inv.source()
+            .sendMessage(
+                Component.text(
+                    "Usage: /note <player> <content> [-s INFO|WARNING|CRITICAL]",
+                    NamedTextColor.YELLOW));
         return;
       }
       String targetName = args[0];
@@ -224,7 +260,8 @@ public final class AdminCommandsModule implements VelocityModule {
       if (args.length >= 4 && "-s".equalsIgnoreCase(args[args.length - 2])) {
         severity = args[args.length - 1].toUpperCase();
         if (!NOTE_SEVERITIES.contains(severity)) {
-          inv.source().sendMessage(Component.text("Invalid severity: " + severity, NamedTextColor.RED));
+          inv.source()
+              .sendMessage(Component.text("Invalid severity: " + severity, NamedTextColor.RED));
           return;
         }
         contentEnd = args.length - 2;
@@ -237,8 +274,14 @@ public final class AdminCommandsModule implements VelocityModule {
         return;
       }
 
-      StaffNote note = new StaffNote(UUID.randomUUID().toString(), target.get().getUniqueId(),
-          content, severity, staff.getUniqueId(), System.currentTimeMillis());
+      StaffNote note =
+          new StaffNote(
+              UUID.randomUUID().toString(),
+              target.get().getUniqueId(),
+              content,
+              severity,
+              staff.getUniqueId(),
+              System.currentTimeMillis());
       staffNoteRepo.addNote(note);
       inv.source().sendMessage(Component.text("Note added.", NamedTextColor.GREEN));
     }
@@ -282,12 +325,16 @@ public final class AdminCommandsModule implements VelocityModule {
       }
       List<StaffNote> notes = staffNoteRepo.findByPlayer(target.get().getUniqueId());
       if (notes.isEmpty()) {
-        inv.source().sendMessage(Component.text("No notes for " + targetName + ".", NamedTextColor.GRAY));
+        inv.source()
+            .sendMessage(Component.text("No notes for " + targetName + ".", NamedTextColor.GRAY));
         return;
       }
-      inv.source().sendMessage(Component.text("Notes for " + targetName + ":", NamedTextColor.GOLD));
+      inv.source()
+          .sendMessage(Component.text("Notes for " + targetName + ":", NamedTextColor.GOLD));
       for (StaffNote n : notes) {
-        inv.source().sendMessage(Component.text("  [" + n.severity() + "] " + n.note(), NamedTextColor.GRAY));
+        inv.source()
+            .sendMessage(
+                Component.text("  [" + n.severity() + "] " + n.note(), NamedTextColor.GRAY));
       }
     }
 
@@ -312,19 +359,27 @@ public final class AdminCommandsModule implements VelocityModule {
       }
       String[] args = inv.arguments();
       if (args.length < 2) {
-        inv.source().sendMessage(Component.text("Usage: /announce <title> <content>", NamedTextColor.YELLOW));
+        inv.source()
+            .sendMessage(
+                Component.text("Usage: /announce <title> <content>", NamedTextColor.YELLOW));
         return;
       }
       String title = args[0];
       String content = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
-      Announcement a = new Announcement(UUID.randomUUID().toString(), title, content,
-          inv.source() instanceof Player p ? p.getUniqueId().toString() : "console",
-          System.currentTimeMillis(), null);
+      Announcement a =
+          new Announcement(
+              UUID.randomUUID().toString(),
+              title,
+              content,
+              inv.source() instanceof Player p ? p.getUniqueId().toString() : "console",
+              System.currentTimeMillis(),
+              null);
       announcementRepo.create(a);
 
-      Component msg = Component.text("[" + title + "] ", NamedTextColor.GOLD)
-          .append(Component.text(content, NamedTextColor.WHITE));
+      Component msg =
+          Component.text("[" + title + "] ", NamedTextColor.GOLD)
+              .append(Component.text(content, NamedTextColor.WHITE));
       for (Player player : plugin.proxy().getAllPlayers()) {
         player.sendMessage(msg);
       }
@@ -350,28 +405,47 @@ public final class AdminCommandsModule implements VelocityModule {
       UUID uuid = player.getUniqueId();
       Optional<PlayerBinding> existing = bindingRepo.findByPlayer(uuid);
       if (existing.isPresent() && existing.get().qqId() != null) {
-        inv.source().sendMessage(Component.text("Your account is already bound to a QQ account.", NamedTextColor.RED));
+        inv.source()
+            .sendMessage(
+                Component.text(
+                    "Your account is already bound to a QQ account.", NamedTextColor.RED));
         return;
       }
 
       String code = bindingVerification.generateCode(uuid);
 
-      inv.source().sendMessage(Component.text("")
-          .append(Component.text("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", NamedTextColor.DARK_GRAY))
-          .append(Component.text("\n\u2605 Your verification code: ", NamedTextColor.GREEN))
-          .append(Component.text(code, NamedTextColor.AQUA))
-          .append(Component.text(" \u2605", NamedTextColor.GREEN))
-          .append(Component.text("\nSend this code to the QQ bot via private message", NamedTextColor.GRAY))
-          .append(Component.text("\nto bind your QQ account to " + player.getUsername() + ".", NamedTextColor.GRAY))
-          .append(Component.text("\nCode expires in 5 minutes.", NamedTextColor.RED))
-          .append(Component.text("\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", NamedTextColor.DARK_GRAY)));
+      inv.source()
+          .sendMessage(
+              Component.text("")
+                  .append(
+                      Component.text(
+                          "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+                          NamedTextColor.DARK_GRAY))
+                  .append(Component.text("\n\u2605 Your verification code: ", NamedTextColor.GREEN))
+                  .append(Component.text(code, NamedTextColor.AQUA))
+                  .append(Component.text(" \u2605", NamedTextColor.GREEN))
+                  .append(
+                      Component.text(
+                          "\nSend this code to the QQ bot via private message",
+                          NamedTextColor.GRAY))
+                  .append(
+                      Component.text(
+                          "\nto bind your QQ account to " + player.getUsername() + ".",
+                          NamedTextColor.GRAY))
+                  .append(Component.text("\nCode expires in 5 minutes.", NamedTextColor.RED))
+                  .append(
+                      Component.text(
+                          "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+                          NamedTextColor.DARK_GRAY)));
     }
 
     @Override
     public List<String> suggest(Invocation inv) {
       if (inv.arguments().length <= 1) {
         String prefix = inv.arguments().length == 0 ? "" : inv.arguments()[0].toLowerCase();
-        return List.of("qq").stream().filter(s -> s.startsWith(prefix)).collect(Collectors.toList());
+        return List.of("qq").stream()
+            .filter(s -> s.startsWith(prefix))
+            .collect(Collectors.toList());
       }
       return List.of();
     }

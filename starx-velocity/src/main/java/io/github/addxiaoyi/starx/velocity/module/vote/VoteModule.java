@@ -57,13 +57,17 @@ public final class VoteModule implements VelocityModule {
       }
       String[] args = inv.arguments();
       if (args.length < 2) {
-        inv.source().sendMessage(Component.text("Usage: /votestart <player> <reason>", NamedTextColor.YELLOW));
+        inv.source()
+            .sendMessage(
+                Component.text("Usage: /votestart <player> <reason>", NamedTextColor.YELLOW));
         return;
       }
 
       Optional<StaffVote> active = voteRepo.findActive();
       if (active.isPresent()) {
-        inv.source().sendMessage(Component.text("An active vote is already in progress.", NamedTextColor.RED));
+        inv.source()
+            .sendMessage(
+                Component.text("An active vote is already in progress.", NamedTextColor.RED));
         return;
       }
 
@@ -76,30 +80,46 @@ public final class VoteModule implements VelocityModule {
         return;
       }
 
-      StaffVote vote = new StaffVote(
-          UUID.randomUUID().toString(),
-          target.get().getUniqueId(), targetName, reason, "STAFF_VOTE",
-          "ACTIVE", staff.getUniqueId(), staff.getUsername(),
-          0, 0, 3,
-          System.currentTimeMillis() + VOTE_DURATION_MS,
-          System.currentTimeMillis(), null);
+      StaffVote vote =
+          new StaffVote(
+              UUID.randomUUID().toString(),
+              target.get().getUniqueId(),
+              targetName,
+              reason,
+              "STAFF_VOTE",
+              "ACTIVE",
+              staff.getUniqueId(),
+              staff.getUsername(),
+              0,
+              0,
+              3,
+              System.currentTimeMillis() + VOTE_DURATION_MS,
+              System.currentTimeMillis(),
+              null);
       voteRepo.create(vote);
 
-      Component msg = Component.text()
-          .append(Component.text("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", NamedTextColor.DARK_GRAY))
-          .append(Component.text("\n[VOTE] ", NamedTextColor.GOLD))
-          .append(Component.text(staff.getUsername(), NamedTextColor.YELLOW))
-          .append(Component.text(" started a vote on ", NamedTextColor.WHITE))
-          .append(Component.text(targetName, NamedTextColor.RED))
-          .append(Component.text(": ", NamedTextColor.WHITE))
-          .append(Component.text(reason, NamedTextColor.GRAY))
-          .append(Component.text("\nType ", NamedTextColor.WHITE))
-          .append(Component.text("/vote yes", NamedTextColor.GREEN))
-          .append(Component.text(" or ", NamedTextColor.WHITE))
-          .append(Component.text("/vote no", NamedTextColor.RED))
-          .append(Component.text(" to cast your vote.", NamedTextColor.WHITE))
-          .append(Component.text("\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500", NamedTextColor.DARK_GRAY))
-          .build();
+      Component msg =
+          Component.text()
+              .append(
+                  Component.text(
+                      "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+                      NamedTextColor.DARK_GRAY))
+              .append(Component.text("\n[VOTE] ", NamedTextColor.GOLD))
+              .append(Component.text(staff.getUsername(), NamedTextColor.YELLOW))
+              .append(Component.text(" started a vote on ", NamedTextColor.WHITE))
+              .append(Component.text(targetName, NamedTextColor.RED))
+              .append(Component.text(": ", NamedTextColor.WHITE))
+              .append(Component.text(reason, NamedTextColor.GRAY))
+              .append(Component.text("\nType ", NamedTextColor.WHITE))
+              .append(Component.text("/vote yes", NamedTextColor.GREEN))
+              .append(Component.text(" or ", NamedTextColor.WHITE))
+              .append(Component.text("/vote no", NamedTextColor.RED))
+              .append(Component.text(" to cast your vote.", NamedTextColor.WHITE))
+              .append(
+                  Component.text(
+                      "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+                      NamedTextColor.DARK_GRAY))
+              .build();
 
       for (Player p : plugin.proxy().getAllPlayers()) {
         if (p.hasPermission("starx.vote.cast")) {
@@ -158,7 +178,8 @@ public final class VoteModule implements VelocityModule {
 
       boolean yes = "yes".equals(choice);
       voteRepo.castVote(vote.id(), voter.getUniqueId(), yes);
-      inv.source().sendMessage(Component.text("Vote cast: " + choice.toUpperCase(), NamedTextColor.GREEN));
+      inv.source()
+          .sendMessage(Component.text("Vote cast: " + choice.toUpperCase(), NamedTextColor.GREEN));
 
       int yesCount = voteRepo.countYes(vote.id());
       // Vote is a copy at this point; re-read from DB to get accurate counts
@@ -167,13 +188,14 @@ public final class VoteModule implements VelocityModule {
         StaffVote current = updated.get();
         if (yesCount >= current.requiredYes()) {
           voteRepo.updateStatus(current.id(), "PASSED", System.currentTimeMillis());
-          Component result = Component.text()
-              .append(Component.text("[VOTE] ", NamedTextColor.GOLD))
-              .append(Component.text("Vote PASSED on ", NamedTextColor.GREEN))
-              .append(Component.text(current.targetName(), NamedTextColor.RED))
-              .append(Component.text(". Reason: ", NamedTextColor.WHITE))
-              .append(Component.text(current.reason(), NamedTextColor.GRAY))
-              .build();
+          Component result =
+              Component.text()
+                  .append(Component.text("[VOTE] ", NamedTextColor.GOLD))
+                  .append(Component.text("Vote PASSED on ", NamedTextColor.GREEN))
+                  .append(Component.text(current.targetName(), NamedTextColor.RED))
+                  .append(Component.text(". Reason: ", NamedTextColor.WHITE))
+                  .append(Component.text(current.reason(), NamedTextColor.GRAY))
+                  .build();
           for (Player p : plugin.proxy().getAllPlayers()) {
             if (p.hasPermission("starx.vote.cast")) {
               p.sendMessage(result);
@@ -212,12 +234,17 @@ public final class VoteModule implements VelocityModule {
       StaffVote vote = active.get();
       long remaining = Math.max(0, vote.expiresAt() - System.currentTimeMillis()) / 1000;
       inv.source().sendMessage(Component.text("==== Active Vote ====", NamedTextColor.GOLD));
-      inv.source().sendMessage(Component.text("Target: " + vote.targetName(), NamedTextColor.WHITE));
+      inv.source()
+          .sendMessage(Component.text("Target: " + vote.targetName(), NamedTextColor.WHITE));
       inv.source().sendMessage(Component.text("Reason: " + vote.reason(), NamedTextColor.GRAY));
-      inv.source().sendMessage(Component.text("Yes: " + vote.yesVotes(), NamedTextColor.GREEN)
-          .append(Component.text(" | No: " + vote.noVotes(), NamedTextColor.RED)));
-      inv.source().sendMessage(Component.text("Required: " + vote.requiredYes(), NamedTextColor.YELLOW));
-      inv.source().sendMessage(Component.text("Time left: " + remaining + "s", NamedTextColor.AQUA));
+      inv.source()
+          .sendMessage(
+              Component.text("Yes: " + vote.yesVotes(), NamedTextColor.GREEN)
+                  .append(Component.text(" | No: " + vote.noVotes(), NamedTextColor.RED)));
+      inv.source()
+          .sendMessage(Component.text("Required: " + vote.requiredYes(), NamedTextColor.YELLOW));
+      inv.source()
+          .sendMessage(Component.text("Time left: " + remaining + "s", NamedTextColor.AQUA));
     }
   }
 }

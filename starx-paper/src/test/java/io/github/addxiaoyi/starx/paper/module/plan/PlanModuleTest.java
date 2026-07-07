@@ -72,7 +72,7 @@ class PlanModuleTest {
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getOnlinePlayers).thenReturn((Collection) Collections.emptyList());
       bukkit.when(Bukkit::getMaxPlayers).thenReturn(20);
-      bukkit.when(Bukkit::getTPS).thenReturn(new double[]{19.5, 18.0, 17.0});
+      bukkit.when(Bukkit::getTPS).thenReturn(new double[] {19.5, 18.0, 17.0});
       bukkit.when(Bukkit::getWorlds).thenReturn(Collections.emptyList());
 
       module.collectStats();
@@ -80,7 +80,15 @@ class PlanModuleTest {
 
     assertThat(module.getLastStats()).isNotNull();
     assertThat(module.getLastStats())
-        .containsKeys("onlinePlayers", "maxPlayers", "tps", "usedMemory", "maxMemory", "loadedChunks", "entities", "timestamp");
+        .containsKeys(
+            "onlinePlayers",
+            "maxPlayers",
+            "tps",
+            "usedMemory",
+            "maxMemory",
+            "loadedChunks",
+            "entities",
+            "timestamp");
     assertThat(module.getLastStats().get("onlinePlayers")).isEqualTo(0);
     assertThat(module.getLastStats().get("maxPlayers")).isEqualTo(20);
     assertThat(module.getLastStats().get("tps")).isEqualTo(19.5);
@@ -94,7 +102,7 @@ class PlanModuleTest {
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getOnlinePlayers).thenReturn((Collection) List.of(onlinePlayer));
       bukkit.when(Bukkit::getMaxPlayers).thenReturn(20);
-      bukkit.when(Bukkit::getTPS).thenReturn(new double[]{20.0});
+      bukkit.when(Bukkit::getTPS).thenReturn(new double[] {20.0});
       bukkit.when(Bukkit::getWorlds).thenReturn(Collections.emptyList());
 
       module.collectAndSend();
@@ -118,12 +126,13 @@ class PlanModuleTest {
   void shouldHandlePlanStatsCommand() {
     module.onEnable();
     Player onlinePlayer = mock(Player.class);
-    PluginMessage request = new PluginMessage(PluginMessageChannels.CMD_PLAN_STATS, Collections.emptyMap());
+    PluginMessage request =
+        new PluginMessage(PluginMessageChannels.CMD_PLAN_STATS, Collections.emptyMap());
 
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getOnlinePlayers).thenReturn((Collection) List.of(onlinePlayer));
       bukkit.when(Bukkit::getMaxPlayers).thenReturn(20);
-      bukkit.when(Bukkit::getTPS).thenReturn(new double[]{20.0});
+      bukkit.when(Bukkit::getTPS).thenReturn(new double[] {20.0});
       bukkit.when(Bukkit::getWorlds).thenReturn(Collections.emptyList());
 
       module.onPluginMessage(request);
@@ -144,12 +153,15 @@ class PlanModuleTest {
   void shouldIncludeChunkAndEntityCounts() {
     World world = mock(World.class);
     lenient().when(world.getLoadedChunks()).thenReturn(new org.bukkit.Chunk[150]);
-    lenient().when(world.getEntities()).thenReturn(List.of(mock(org.bukkit.entity.Entity.class), mock(org.bukkit.entity.Entity.class)));
+    lenient()
+        .when(world.getEntities())
+        .thenReturn(
+            List.of(mock(org.bukkit.entity.Entity.class), mock(org.bukkit.entity.Entity.class)));
 
     try (var bukkit = mockStatic(Bukkit.class)) {
       bukkit.when(Bukkit::getOnlinePlayers).thenReturn((Collection) Collections.emptyList());
       bukkit.when(Bukkit::getMaxPlayers).thenReturn(20);
-      bukkit.when(Bukkit::getTPS).thenReturn(new double[]{20.0});
+      bukkit.when(Bukkit::getTPS).thenReturn(new double[] {20.0});
       bukkit.when(Bukkit::getWorlds).thenReturn(List.of(world));
 
       module.collectStats();

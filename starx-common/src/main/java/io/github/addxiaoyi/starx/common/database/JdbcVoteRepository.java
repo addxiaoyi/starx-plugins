@@ -20,9 +20,10 @@ public class JdbcVoteRepository {
   }
 
   public void create(StaffVote vote) {
-    execute("INSERT INTO starx_staff_votes (id, target_uuid, target_name, reason, vote_type, "
-        + "status, initiator_uuid, initiator_name, yes_votes, no_votes, required_yes, "
-        + "expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    execute(
+        "INSERT INTO starx_staff_votes (id, target_uuid, target_name, reason, vote_type, "
+            + "status, initiator_uuid, initiator_name, yes_votes, no_votes, required_yes, "
+            + "expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         ps -> {
           ps.setString(1, vote.id());
           ps.setObject(2, vote.targetUuid());
@@ -41,58 +42,87 @@ public class JdbcVoteRepository {
   }
 
   public Optional<StaffVote> findById(String id) {
-    return queryOne("SELECT * FROM starx_staff_votes WHERE id = ?", ps -> ps.setString(1, id), this::map);
+    return queryOne(
+        "SELECT * FROM starx_staff_votes WHERE id = ?", ps -> ps.setString(1, id), this::map);
   }
 
   public Optional<StaffVote> findActive() {
     long now = System.currentTimeMillis();
-    return queryOne("SELECT * FROM starx_staff_votes WHERE status = 'ACTIVE' AND expires_at > ? "
-        + "ORDER BY created_at DESC LIMIT 1", ps -> ps.setLong(1, now), this::map);
+    return queryOne(
+        "SELECT * FROM starx_staff_votes WHERE status = 'ACTIVE' AND expires_at > ? "
+            + "ORDER BY created_at DESC LIMIT 1",
+        ps -> ps.setLong(1, now),
+        this::map);
   }
 
   public List<StaffVote> findByInitiator(UUID initiatorUuid) {
-    return queryMany("SELECT * FROM starx_staff_votes WHERE initiator_uuid = ? ORDER BY created_at DESC",
-        ps -> ps.setObject(1, initiatorUuid), this::map);
+    return queryMany(
+        "SELECT * FROM starx_staff_votes WHERE initiator_uuid = ? ORDER BY created_at DESC",
+        ps -> ps.setObject(1, initiatorUuid),
+        this::map);
   }
 
   public List<StaffVote> findAllActive() {
     long now = System.currentTimeMillis();
-    return queryMany("SELECT * FROM starx_staff_votes WHERE status = 'ACTIVE' AND expires_at > ? "
-        + "ORDER BY created_at DESC", ps -> ps.setLong(1, now), this::map);
+    return queryMany(
+        "SELECT * FROM starx_staff_votes WHERE status = 'ACTIVE' AND expires_at > ? "
+            + "ORDER BY created_at DESC",
+        ps -> ps.setLong(1, now),
+        this::map);
   }
 
   public void updateStatus(String id, String status, Long resolvedAt) {
     if (resolvedAt != null) {
-      execute("UPDATE starx_staff_votes SET status = ?, resolved_at = ? WHERE id = ?",
-          ps -> { ps.setString(1, status); ps.setLong(2, resolvedAt); ps.setString(3, id); });
+      execute(
+          "UPDATE starx_staff_votes SET status = ?, resolved_at = ? WHERE id = ?",
+          ps -> {
+            ps.setString(1, status);
+            ps.setLong(2, resolvedAt);
+            ps.setString(3, id);
+          });
     } else {
-      execute("UPDATE starx_staff_votes SET status = ? WHERE id = ?",
-          ps -> { ps.setString(1, status); ps.setString(2, id); });
+      execute(
+          "UPDATE starx_staff_votes SET status = ? WHERE id = ?",
+          ps -> {
+            ps.setString(1, status);
+            ps.setString(2, id);
+          });
     }
   }
 
   public void castVote(String voteId, UUID voterUuid, boolean yes) {
-    execute("INSERT INTO starx_staff_vote_records (vote_id, voter_uuid, vote, voted_at) VALUES (?, ?, ?, ?)",
+    execute(
+        "INSERT INTO starx_staff_vote_records (vote_id, voter_uuid, vote, voted_at) VALUES (?, ?, ?, ?)",
         ps -> {
           ps.setString(1, voteId);
           ps.setObject(2, voterUuid);
           ps.setString(3, yes ? "YES" : "NO");
           ps.setLong(4, System.currentTimeMillis());
         });
-    execute("UPDATE starx_staff_votes SET "
-        + (yes ? "yes_votes = yes_votes + 1" : "no_votes = no_votes + 1")
-        + " WHERE id = ?", ps -> ps.setString(1, voteId));
+    execute(
+        "UPDATE starx_staff_votes SET "
+            + (yes ? "yes_votes = yes_votes + 1" : "no_votes = no_votes + 1")
+            + " WHERE id = ?",
+        ps -> ps.setString(1, voteId));
   }
 
   public boolean hasVoted(String voteId, UUID voterUuid) {
-    return queryOne("SELECT 1 FROM starx_staff_vote_records WHERE vote_id = ? AND voter_uuid = ?",
-        ps -> { ps.setString(1, voteId); ps.setObject(2, voterUuid); },
-        rs -> true).isPresent();
+    return queryOne(
+            "SELECT 1 FROM starx_staff_vote_records WHERE vote_id = ? AND voter_uuid = ?",
+            ps -> {
+              ps.setString(1, voteId);
+              ps.setObject(2, voterUuid);
+            },
+            rs -> true)
+        .isPresent();
   }
 
   public int countYes(String voteId) {
-    return queryOne("SELECT COUNT(*) FROM starx_staff_vote_records WHERE vote_id = ? AND vote = 'YES'",
-        ps -> ps.setString(1, voteId), rs -> rs.getInt(1)).orElse(0);
+    return queryOne(
+            "SELECT COUNT(*) FROM starx_staff_vote_records WHERE vote_id = ? AND vote = 'YES'",
+            ps -> ps.setString(1, voteId),
+            rs -> rs.getInt(1))
+        .orElse(0);
   }
 
   private StaffVote map(ResultSet rs) throws SQLException {
@@ -117,7 +147,7 @@ public class JdbcVoteRepository {
 
   private <T> Optional<T> queryOne(String sql, ParamBinder binder, RowMapper<T> mapper) {
     try (Connection conn = dataSource.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       binder.bind(ps);
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() ? Optional.of(mapper.map(rs)) : Optional.empty();
@@ -130,7 +160,7 @@ public class JdbcVoteRepository {
   private <T> List<T> queryMany(String sql, ParamBinder binder, RowMapper<T> mapper) {
     List<T> results = new ArrayList<>();
     try (Connection conn = dataSource.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       binder.bind(ps);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) results.add(mapper.map(rs));
@@ -143,7 +173,7 @@ public class JdbcVoteRepository {
 
   private void execute(String sql, ParamBinder binder) {
     try (Connection conn = dataSource.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       binder.bind(ps);
       ps.executeUpdate();
     } catch (SQLException e) {
@@ -152,8 +182,12 @@ public class JdbcVoteRepository {
   }
 
   @FunctionalInterface
-  private interface ParamBinder { void bind(PreparedStatement ps) throws SQLException; }
+  private interface ParamBinder {
+    void bind(PreparedStatement ps) throws SQLException;
+  }
 
   @FunctionalInterface
-  private interface RowMapper<T> { T map(ResultSet rs) throws SQLException; }
+  private interface RowMapper<T> {
+    T map(ResultSet rs) throws SQLException;
+  }
 }

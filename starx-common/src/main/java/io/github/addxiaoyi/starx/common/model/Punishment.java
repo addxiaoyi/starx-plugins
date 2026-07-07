@@ -15,8 +15,17 @@ public final class Punishment {
   private final Long expiresAt;
   private final boolean active;
 
-  public Punishment(String id, UUID targetUuid, String targetName, String type, String reason,
-      UUID staffUuid, String staffName, long createdAt, Long expiresAt, boolean active) {
+  public Punishment(
+      String id,
+      UUID targetUuid,
+      String targetName,
+      String type,
+      String reason,
+      UUID staffUuid,
+      String staffName,
+      long createdAt,
+      Long expiresAt,
+      boolean active) {
     this.id = id;
     this.targetUuid = targetUuid;
     this.targetName = targetName;
@@ -29,14 +38,43 @@ public final class Punishment {
     this.active = active;
   }
 
-  public String id() { return id; }
-  public UUID targetUuid() { return targetUuid; }
-  public String targetName() { return targetName; }
-  public String type() { return type; }
-  public String reason() { return reason; }
-  public UUID staffUuid() { return staffUuid; }
-  public String staffName() { return staffName; }
-  public long createdAt() { return createdAt; }
-  public Long expiresAt() { return expiresAt; }
-  public boolean active() { return active; }
+  public String id() {
+    return id;
+  }
+
+  public UUID targetUuid() {
+    return targetUuid;
+  }
+
+  public String targetName() {
+    return targetName;
+  }
+
+  public String type() {
+    return type;
+  }
+
+  public String reason() {
+    return reason;
+  }
+
+  public UUID staffUuid() {
+    return staffUuid;
+  }
+
+  public String staffName() {
+    return staffName;
+  }
+
+  public long createdAt() {
+    return createdAt;
+  }
+
+  public Long expiresAt() {
+    return expiresAt;
+  }
+
+  public boolean active() {
+    return active;
+  }
 }

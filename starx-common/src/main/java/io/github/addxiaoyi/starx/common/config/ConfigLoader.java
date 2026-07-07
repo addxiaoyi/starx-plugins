@@ -48,14 +48,22 @@ public final class ConfigLoader {
   private static int integer(Map<String, Object> map, String key, int def) {
     Object v = map.get(key);
     if (v instanceof Number n) return n.intValue();
-    if (v != null) try { return Integer.parseInt(v.toString()); } catch (NumberFormatException e) { }
+    if (v != null)
+      try {
+        return Integer.parseInt(v.toString());
+      } catch (NumberFormatException e) {
+      }
     return def;
   }
 
   private static long longVal(Map<String, Object> map, String key, long def) {
     Object v = map.get(key);
     if (v instanceof Number n) return n.longValue();
-    if (v != null) try { return Long.parseLong(v.toString()); } catch (NumberFormatException e) { }
+    if (v != null)
+      try {
+        return Long.parseLong(v.toString());
+      } catch (NumberFormatException e) {
+      }
     return def;
   }
 

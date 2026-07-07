@@ -23,8 +23,9 @@ public class JdbcPunishmentRepository {
   }
 
   public void record(Punishment punishment) {
-    execute("INSERT INTO starx_punishments (id, target_uuid, target_name, type, reason, "
-        + "staff_uuid, staff_name, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    execute(
+        "INSERT INTO starx_punishments (id, target_uuid, target_name, type, reason, "
+            + "staff_uuid, staff_name, created_at, expires_at, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         ps -> {
           ps.setString(1, punishment.id());
           ps.setObject(2, punishment.targetUuid());
@@ -44,23 +45,37 @@ public class JdbcPunishmentRepository {
   }
 
   public List<Punishment> findByPlayer(UUID targetUuid) {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_punishments WHERE target_uuid = ? ORDER BY created_at DESC",
-        ps -> ps.setObject(1, targetUuid), this::map);
+    return queryList(
+        "SELECT "
+            + SELECT_COLUMNS
+            + " FROM starx_punishments WHERE target_uuid = ? ORDER BY created_at DESC",
+        ps -> ps.setObject(1, targetUuid),
+        this::map);
   }
 
   public List<Punishment> findByType(String type) {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_punishments WHERE type = ? ORDER BY created_at DESC",
-        ps -> ps.setString(1, type), this::map);
+    return queryList(
+        "SELECT "
+            + SELECT_COLUMNS
+            + " FROM starx_punishments WHERE type = ? ORDER BY created_at DESC",
+        ps -> ps.setString(1, type),
+        this::map);
   }
 
   public List<Punishment> findActive() {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_punishments WHERE active = TRUE ORDER BY created_at DESC",
-        ps -> {}, this::map);
+    return queryList(
+        "SELECT "
+            + SELECT_COLUMNS
+            + " FROM starx_punishments WHERE active = TRUE ORDER BY created_at DESC",
+        ps -> {},
+        this::map);
   }
 
   public Optional<Punishment> findById(String id) {
-    return queryOne("SELECT " + SELECT_COLUMNS + " FROM starx_punishments WHERE id = ?",
-        ps -> ps.setString(1, id), this::map);
+    return queryOne(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_punishments WHERE id = ?",
+        ps -> ps.setString(1, id),
+        this::map);
   }
 
   public void deactivate(String id) {
@@ -68,8 +83,10 @@ public class JdbcPunishmentRepository {
   }
 
   public List<Punishment> findAll() {
-    return queryList("SELECT " + SELECT_COLUMNS + " FROM starx_punishments ORDER BY created_at DESC",
-        ps -> {}, this::map);
+    return queryList(
+        "SELECT " + SELECT_COLUMNS + " FROM starx_punishments ORDER BY created_at DESC",
+        ps -> {},
+        this::map);
   }
 
   private Punishment map(ResultSet rs) throws SQLException {
@@ -124,8 +141,12 @@ public class JdbcPunishmentRepository {
   }
 
   @FunctionalInterface
-  private interface ParamBinder { void bind(PreparedStatement ps) throws SQLException; }
+  private interface ParamBinder {
+    void bind(PreparedStatement ps) throws SQLException;
+  }
 
   @FunctionalInterface
-  private interface RowMapper<T> { T map(ResultSet rs) throws SQLException; }
+  private interface RowMapper<T> {
+    T map(ResultSet rs) throws SQLException;
+  }
 }

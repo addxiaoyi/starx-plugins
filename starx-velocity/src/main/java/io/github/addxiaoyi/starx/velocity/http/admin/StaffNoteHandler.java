@@ -46,10 +46,16 @@ public final class StaffNoteHandler implements AdminHandler {
       ctx.status(400).json(Map.of("error", "severity must be INFO, WARNING, or CRITICAL"));
       return;
     }
-    StaffNote note = new StaffNote(
-        UUID.randomUUID().toString(), req.targetUuid, req.note, severity,
-        req.staffUuid != null ? req.staffUuid : UUID.fromString("00000000-0000-0000-0000-000000000000"),
-        System.currentTimeMillis());
+    StaffNote note =
+        new StaffNote(
+            UUID.randomUUID().toString(),
+            req.targetUuid,
+            req.note,
+            severity,
+            req.staffUuid != null
+                ? req.staffUuid
+                : UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            System.currentTimeMillis());
     repo.addNote(note);
     ctx.status(201).json(Map.of("id", note.id(), "success", true));
   }

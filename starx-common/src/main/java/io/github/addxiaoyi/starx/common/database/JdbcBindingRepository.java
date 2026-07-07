@@ -18,47 +18,56 @@ public class JdbcBindingRepository {
   }
 
   public Optional<PlayerBinding> findByPlayer(UUID playerUuid) {
-    return queryOne("SELECT player_uuid, qq_id, discord_id, created_at FROM starx_player_bindings WHERE player_uuid = ?",
-        ps -> ps.setObject(1, playerUuid), this::map);
+    return queryOne(
+        "SELECT player_uuid, qq_id, discord_id, created_at FROM starx_player_bindings WHERE player_uuid = ?",
+        ps -> ps.setObject(1, playerUuid),
+        this::map);
   }
 
   public Optional<PlayerBinding> findByQq(String qqId) {
-    return queryOne("SELECT player_uuid, qq_id, discord_id, created_at FROM starx_player_bindings WHERE qq_id = ?",
-        ps -> ps.setString(1, qqId), this::map);
+    return queryOne(
+        "SELECT player_uuid, qq_id, discord_id, created_at FROM starx_player_bindings WHERE qq_id = ?",
+        ps -> ps.setString(1, qqId),
+        this::map);
   }
 
   public Optional<PlayerBinding> findByDiscord(String discordId) {
-    return queryOne("SELECT player_uuid, qq_id, discord_id, created_at FROM starx_player_bindings WHERE discord_id = ?",
-        ps -> ps.setString(1, discordId), this::map);
+    return queryOne(
+        "SELECT player_uuid, qq_id, discord_id, created_at FROM starx_player_bindings WHERE discord_id = ?",
+        ps -> ps.setString(1, discordId),
+        this::map);
   }
 
   public void save(PlayerBinding binding) {
-    withTransaction(conn -> {
-      try (PreparedStatement ps = conn.prepareStatement(
-          "SELECT 1 FROM starx_player_bindings WHERE player_uuid = ?")) {
-        ps.setObject(1, binding.playerUuid());
-        try (ResultSet rs = ps.executeQuery()) {
-          if (rs.next()) {
-            try (PreparedStatement update = conn.prepareStatement(
-                "UPDATE starx_player_bindings SET qq_id = ?, discord_id = ? WHERE player_uuid = ?")) {
-              update.setString(1, binding.qqId());
-              update.setString(2, binding.discordId());
-              update.setObject(3, binding.playerUuid());
-              update.executeUpdate();
-            }
-          } else {
-            try (PreparedStatement insert = conn.prepareStatement(
-                "INSERT INTO starx_player_bindings (player_uuid, qq_id, discord_id, created_at) VALUES (?, ?, ?, ?)")) {
-              insert.setObject(1, binding.playerUuid());
-              insert.setString(2, binding.qqId());
-              insert.setString(3, binding.discordId());
-              insert.setLong(4, binding.createdAt());
-              insert.executeUpdate();
+    withTransaction(
+        conn -> {
+          try (PreparedStatement ps =
+              conn.prepareStatement("SELECT 1 FROM starx_player_bindings WHERE player_uuid = ?")) {
+            ps.setObject(1, binding.playerUuid());
+            try (ResultSet rs = ps.executeQuery()) {
+              if (rs.next()) {
+                try (PreparedStatement update =
+                    conn.prepareStatement(
+                        "UPDATE starx_player_bindings SET qq_id = ?, discord_id = ? WHERE player_uuid = ?")) {
+                  update.setString(1, binding.qqId());
+                  update.setString(2, binding.discordId());
+                  update.setObject(3, binding.playerUuid());
+                  update.executeUpdate();
+                }
+              } else {
+                try (PreparedStatement insert =
+                    conn.prepareStatement(
+                        "INSERT INTO starx_player_bindings (player_uuid, qq_id, discord_id, created_at) VALUES (?, ?, ?, ?)")) {
+                  insert.setObject(1, binding.playerUuid());
+                  insert.setString(2, binding.qqId());
+                  insert.setString(3, binding.discordId());
+                  insert.setLong(4, binding.createdAt());
+                  insert.executeUpdate();
+                }
+              }
             }
           }
-        }
-      }
-    });
+        });
   }
 
   private void withTransaction(TransactionBody body) {
@@ -107,11 +116,17 @@ public class JdbcBindingRepository {
   }
 
   @FunctionalInterface
-  private interface ParamBinder { void bind(PreparedStatement ps) throws SQLException; }
+  private interface ParamBinder {
+    void bind(PreparedStatement ps) throws SQLException;
+  }
 
   @FunctionalInterface
-  private interface RowMapper<T> { T map(ResultSet rs) throws SQLException; }
+  private interface RowMapper<T> {
+    T map(ResultSet rs) throws SQLException;
+  }
 
   @FunctionalInterface
-  private interface TransactionBody { void execute(Connection conn) throws Exception; }
+  private interface TransactionBody {
+    void execute(Connection conn) throws Exception;
+  }
 }

@@ -8,7 +8,6 @@ import io.github.addxiaoyi.starx.paper.messaging.PaperMessageBridge;
 import io.github.addxiaoyi.starx.paper.module.PaperModule;
 import io.github.addxiaoyi.starx.paper.scheduler.SchedulerAdapter;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,9 +29,7 @@ public final class PlanModule implements PaperModule, Listener {
   private Map<String, Object> lastStats;
 
   public PlanModule(
-      StarxPaperPlugin plugin,
-      PaperConfigLoader configLoader,
-      PaperMessageBridge messageBridge) {
+      StarxPaperPlugin plugin, PaperConfigLoader configLoader, PaperMessageBridge messageBridge) {
     this.plugin = Objects.requireNonNull(plugin, "plugin");
     this.configLoader = Objects.requireNonNull(configLoader, "configLoader");
     this.messageBridge = Objects.requireNonNull(messageBridge, "messageBridge");
@@ -125,8 +122,7 @@ public final class PlanModule implements PaperModule, Listener {
       return;
     }
     messageBridge.send(
-        anyOnline,
-        new PluginMessage(PluginMessageChannels.CMD_PLAN_STATS, lastStats));
+        anyOnline, new PluginMessage(PluginMessageChannels.CMD_PLAN_STATS, lastStats));
   }
 
   private void scheduleStatsCollection() {

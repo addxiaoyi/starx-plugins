@@ -3,6 +3,7 @@ package io.github.addxiaoyi.starx.velocity.http;
 public interface RouteRegistrar {
 
   void get(String path, RouteHandler handler);
+
   void post(String path, RouteHandler handler);
 
   @FunctionalInterface

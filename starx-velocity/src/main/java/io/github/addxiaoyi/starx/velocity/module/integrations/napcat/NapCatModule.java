@@ -48,8 +48,7 @@ public final class NapCatModule implements VelocityModule, MessageHandler {
   public void onEnable() {
     if (!config.enabled()) return;
 
-    wsClient = new NapCatWebSocketClient(
-        config.wsUrl(), config.httpUrl(), this);
+    wsClient = new NapCatWebSocketClient(config.wsUrl(), config.httpUrl(), this);
     wsClient.start();
 
     plugin.proxy().getEventManager().register(plugin, new ChatListener());
@@ -86,8 +85,7 @@ public final class NapCatModule implements VelocityModule, MessageHandler {
       return;
     }
 
-    PlayerBinding binding = new PlayerBinding(
-        playerUuid, qqId, null, System.currentTimeMillis());
+    PlayerBinding binding = new PlayerBinding(playerUuid, qqId, null, System.currentTimeMillis());
     bindingRepo.save(binding);
     sendPrivateMessage(userId, "QQ binding successful! You can now play on the server.");
     log.info("QQ binding: player={} qq={}", playerUuid, qqId);
@@ -105,9 +103,11 @@ public final class NapCatModule implements VelocityModule, MessageHandler {
     if (wsClient == null) return;
 
     Player player = event.getPlayer();
-    String formatted = config.forwardFormat()
-        .replace("{player}", player.getUsername())
-        .replace("{message}", event.getMessage());
+    String formatted =
+        config
+            .forwardFormat()
+            .replace("{player}", player.getUsername())
+            .replace("{message}", event.getMessage());
 
     wsClient.sendGroupMessage(config.qqGroupId(), formatted);
   }
@@ -115,12 +115,13 @@ public final class NapCatModule implements VelocityModule, MessageHandler {
   private void broadcastQqMessage(String qqSender, String message) {
     if (qqSender == null || qqSender.isBlank() || message == null || message.isBlank()) return;
 
-    Component component = Component.text()
-        .append(Component.text("[QQ] ", NamedTextColor.AQUA))
-        .append(Component.text(qqSender, NamedTextColor.YELLOW))
-        .append(Component.text(": ", NamedTextColor.WHITE))
-        .append(Component.text(message, NamedTextColor.WHITE))
-        .build();
+    Component component =
+        Component.text()
+            .append(Component.text("[QQ] ", NamedTextColor.AQUA))
+            .append(Component.text(qqSender, NamedTextColor.YELLOW))
+            .append(Component.text(": ", NamedTextColor.WHITE))
+            .append(Component.text(message, NamedTextColor.WHITE))
+            .build();
 
     for (Player player : plugin.proxy().getAllPlayers()) {
       player.sendMessage(component);

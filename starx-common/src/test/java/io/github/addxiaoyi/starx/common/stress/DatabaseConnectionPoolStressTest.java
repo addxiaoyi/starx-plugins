@@ -111,8 +111,7 @@ class DatabaseConnectionPoolStressTest {
       stmt.execute("DELETE FROM stress_test");
       for (int i = 0; i < 100; i++) {
         try (PreparedStatement ps =
-                conn.prepareStatement(
-                    "INSERT INTO stress_test (id, val, version) VALUES (?, ?, 1)")) {
+            conn.prepareStatement("INSERT INTO stress_test (id, val, version) VALUES (?, ?, 1)")) {
           ps.setInt(1, i);
           ps.setString(2, "initial-" + i);
           ps.executeUpdate();

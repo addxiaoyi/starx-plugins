@@ -113,19 +113,37 @@ public final class StarxConfig {
     private final long qqGroupId;
     private final String forwardFormat;
 
-    public NapcatConfig(boolean enabled, String wsUrl, String httpUrl, long qqGroupId, String forwardFormat) {
+    public NapcatConfig(
+        boolean enabled, String wsUrl, String httpUrl, long qqGroupId, String forwardFormat) {
       this.enabled = enabled;
       this.wsUrl = wsUrl == null || wsUrl.isBlank() ? "ws://127.0.0.1:6700" : wsUrl;
       this.httpUrl = httpUrl;
       this.qqGroupId = qqGroupId;
-      this.forwardFormat = forwardFormat == null || forwardFormat.isBlank() ? "[MC] {player}: {message}" : forwardFormat;
+      this.forwardFormat =
+          forwardFormat == null || forwardFormat.isBlank()
+              ? "[MC] {player}: {message}"
+              : forwardFormat;
     }
 
-    public boolean enabled() { return enabled; }
-    public String wsUrl() { return wsUrl; }
-    public String httpUrl() { return httpUrl; }
-    public long qqGroupId() { return qqGroupId; }
-    public String forwardFormat() { return forwardFormat; }
+    public boolean enabled() {
+      return enabled;
+    }
+
+    public String wsUrl() {
+      return wsUrl;
+    }
+
+    public String httpUrl() {
+      return httpUrl;
+    }
+
+    public long qqGroupId() {
+      return qqGroupId;
+    }
+
+    public String forwardFormat() {
+      return forwardFormat;
+    }
 
     public static NapcatConfig defaults() {
       return new NapcatConfig(false, "ws://127.0.0.1:6700", "", 0, "[MC] {player}: {message}");

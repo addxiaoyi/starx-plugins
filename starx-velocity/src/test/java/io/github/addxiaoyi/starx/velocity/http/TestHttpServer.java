@@ -36,8 +36,7 @@ public final class TestHttpServer implements RouteRegistrar {
     server.stop(0);
   }
 
-  private static void handleMethod(
-      HttpExchange exchange, String method, RouteHandler handler)
+  private static void handleMethod(HttpExchange exchange, String method, RouteHandler handler)
       throws IOException {
     if (!exchange.getRequestMethod().equalsIgnoreCase(method)) {
       exchange.sendResponseHeaders(405, -1);

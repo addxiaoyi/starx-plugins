@@ -16,8 +16,19 @@ public final class PlayerBinding {
     this.createdAt = createdAt;
   }
 
-  public UUID playerUuid() { return playerUuid; }
-  public String qqId() { return qqId; }
-  public String discordId() { return discordId; }
-  public long createdAt() { return createdAt; }
+  public UUID playerUuid() {
+    return playerUuid;
+  }
+
+  public String qqId() {
+    return qqId;
+  }
+
+  public String discordId() {
+    return discordId;
+  }
+
+  public long createdAt() {
+    return createdAt;
+  }
 }

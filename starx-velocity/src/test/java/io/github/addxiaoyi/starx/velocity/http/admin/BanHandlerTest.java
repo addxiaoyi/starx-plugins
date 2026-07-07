@@ -63,8 +63,7 @@ class BanHandlerTest {
     assertThat(captured.get().<String>get("reason")).isEqualTo("cheating");
   }
 
-  private HttpResponse<String> post(String path, String body)
-      throws Exception {
+  private HttpResponse<String> post(String path, String body) throws Exception {
     HttpRequest request =
         HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + server.port() + path))
             .header("Content-Type", "application/json")

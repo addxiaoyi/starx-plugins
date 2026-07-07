@@ -13,8 +13,15 @@ public final class Report {
   private final String resolvedBy;
   private final Long resolvedAt;
 
-  public Report(String id, UUID reporterUuid, UUID targetUuid, String category,
-      String details, String status, String resolvedBy, Long resolvedAt) {
+  public Report(
+      String id,
+      UUID reporterUuid,
+      UUID targetUuid,
+      String category,
+      String details,
+      String status,
+      String resolvedBy,
+      Long resolvedAt) {
     this.id = id;
     this.reporterUuid = reporterUuid;
     this.targetUuid = targetUuid;
@@ -25,12 +32,35 @@ public final class Report {
     this.resolvedAt = resolvedAt;
   }
 
-  public String id() { return id; }
-  public UUID reporterUuid() { return reporterUuid; }
-  public UUID targetUuid() { return targetUuid; }
-  public String category() { return category; }
-  public String details() { return details; }
-  public String status() { return status; }
-  public String resolvedBy() { return resolvedBy; }
-  public Long resolvedAt() { return resolvedAt; }
+  public String id() {
+    return id;
+  }
+
+  public UUID reporterUuid() {
+    return reporterUuid;
+  }
+
+  public UUID targetUuid() {
+    return targetUuid;
+  }
+
+  public String category() {
+    return category;
+  }
+
+  public String details() {
+    return details;
+  }
+
+  public String status() {
+    return status;
+  }
+
+  public String resolvedBy() {
+    return resolvedBy;
+  }
+
+  public Long resolvedAt() {
+    return resolvedAt;
+  }
 }
