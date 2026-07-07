@@ -63,11 +63,14 @@ jobs:
           name: starx-paper
           path: starx-paper/build/libs/starx-paper-${{ steps.version.outputs.VERSION }}.jar
 
+      - name: Build patched LimboAPI JAR
+        run: ./gradlew :limboapi-plugins:buildPatchedLimboAPI --no-daemon
+
       - name: Upload Patched LimboAPI JAR
         uses: actions/upload-artifact@v7
         with:
           name: limboapi-patched
-          path: limboapi-plugins/limboapi-1.1.27-SNAPSHOT-velocity-3.5-patched.jar
+          path: limboapi-plugins/build/libs/limboapi-1.1.27-SNAPSHOT-velocity-3.5-patched.jar
 
       - name: Test Summary
         if: always()
