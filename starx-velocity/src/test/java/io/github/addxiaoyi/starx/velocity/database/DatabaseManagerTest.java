@@ -16,6 +16,10 @@ class DatabaseManagerTest {
 
   private DatabaseManager databaseManager;
 
+  private static DatabaseConfig h2Config() {
+    return new DatabaseConfig("h2", "", 0, "test", "sa", "", "jdbc:h2:mem:test_velocity;DB_CLOSE_DELAY=-1", 5, 5_000L);
+  }
+
   @AfterEach
   void tearDown() {
     if (databaseManager != null) {
@@ -26,7 +30,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should create DatabaseManager with H2 in-memory database")
   void shouldCreateWithH2() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
 
     assertThat(databaseManager).isNotNull();
@@ -36,7 +40,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should provide JdbiUserRepository")
   void shouldProvideJdbiUserRepository() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
 
     JdbiUserRepository repo = databaseManager.getUserRepository();
@@ -47,7 +51,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should save and find user by UUID")
   void shouldSaveAndFindByUuid() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
     JdbiUserRepository repo = databaseManager.getUserRepository();
 
@@ -70,7 +74,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should find user by username")
   void shouldFindByUsername() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
     JdbiUserRepository repo = databaseManager.getUserRepository();
 
@@ -93,7 +97,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should find user by email")
   void shouldFindByEmail() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
     JdbiUserRepository repo = databaseManager.getUserRepository();
 
@@ -116,7 +120,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should check existence by username")
   void shouldCheckExistenceByUsername() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
     JdbiUserRepository repo = databaseManager.getUserRepository();
 
@@ -139,7 +143,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should delete user")
   void shouldDeleteUser() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
     JdbiUserRepository repo = databaseManager.getUserRepository();
 
@@ -164,7 +168,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should close database connection")
   void shouldCloseDatabase() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
 
     assertThat(databaseManager.isOpen()).isTrue();
@@ -177,7 +181,7 @@ class DatabaseManagerTest {
   @Test
   @DisplayName("should throw when using closed database")
   void shouldThrowWhenClosed() {
-    DatabaseConfig config = DatabaseConfig.defaults();
+    DatabaseConfig config = h2Config();
     databaseManager = new DatabaseManager(config);
     JdbiUserRepository repo = databaseManager.getUserRepository();
 
