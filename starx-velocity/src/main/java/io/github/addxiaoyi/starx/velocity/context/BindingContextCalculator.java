@@ -2,6 +2,8 @@ package io.github.addxiaoyi.starx.velocity.context;
 
 import com.velocitypowered.api.proxy.Player;
 import io.github.addxiaoyi.starx.common.database.JdbcBindingRepository;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
@@ -65,10 +67,14 @@ public final class BindingContextCalculator {
               boolean qqBound = binding.isPresent() && binding.get().qqId() != null;
               boolean discordBound = binding.isPresent() && binding.get().discordId() != null;
 
+              // 使用 MethodHandle 绕过 JDK 17+ 隐藏类反射限制
+              Class<?> contextConsumerClass =
+                  Class.forName("net.luckperms.api.context.ContextConsumer");
               Method acceptMethod =
-                  consumer.getClass().getMethod("accept", String.class, String.class);
-              acceptMethod.invoke(consumer, "qq-bound", String.valueOf(qqBound));
-              acceptMethod.invoke(consumer, "discord-bound", String.valueOf(discordBound));
+                  contextConsumerClass.getMethod("accept", String.class, String.class);
+              MethodHandle acceptHandle = MethodHandles.lookup().unreflect(acceptMethod);
+              acceptHandle.invoke(consumer, "qq-bound", String.valueOf(qqBound));
+              acceptHandle.invoke(consumer, "discord-bound", String.valueOf(discordBound));
             }
             return null;
           }

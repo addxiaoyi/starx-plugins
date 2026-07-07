@@ -1,66 +1,84 @@
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
+
 plugins {
     base
+    java
+}
+
+dependencies {
+    implementation("org.ow2.asm:asm:9.7.1")
+    implementation("org.ow2.asm:asm-tree:9.7.1")
+    implementation("org.ow2.asm:asm-commons:9.7.1")
 }
 
 val snapshotJarName = "limboapi-1.1.27-SNAPSHOT.jar"
 val officialJarName = "limboapi-1.1.26-official.jar"
-val patchedJarName = "limboapi-1.1.27-SNAPSHOT-velocity-3.5-patched.jar"
+val patchedJarName = "limboapi-1.1.28-beta-patched.jar"
+val mergedJarName = "limboapi-1.1.27-SNAPSHOT-merged.jar"
 
 val snapshotJar = file(snapshotJarName)
 val officialJar = file(officialJarName)
 val localMappingDir = file("mapping")
+val velocityCompatJar = file("../../velocity-test/velocity-3.4.0-566.jar")
 
+val mergedJar = layout.buildDirectory.file("libs/$mergedJarName").map { it.asFile }
 val patchedJar = layout.buildDirectory.file("libs/$patchedJarName").map { it.asFile }
 
-tasks.register("buildPatchedLimboAPI") {
+val mergeTask = tasks.register("mergeLimboAPIJars") {
     group = "limboapi"
-    description = "构建修复后的 LimboAPI JAR（合并 1.1.26 的完整 mapping 资源 + 1.1.27 的新 class）"
+    description = "合并 1.1.26 的完整 mapping 和 1.1.27 的新 class"
 
     inputs.file(snapshotJar)
     inputs.file(officialJar)
     inputs.dir(localMappingDir)
-    outputs.file(patchedJar)
+    outputs.file(mergedJar)
 
     doLast {
-        val output = patchedJar.get()
+        val output = mergedJar.get()
         output.parentFile.mkdirs()
 
-        // 先用 1.1.27-SNAPSHOT 的内容（新 class），跳过它原有的不完整 mapping
-        val snapshotZip = java.util.zip.ZipFile(snapshotJar)
-        val officialZip = java.util.zip.ZipFile(officialJar)
+        val snapshotZip = ZipFile(snapshotJar)
+        val officialZip = ZipFile(officialJar)
 
-        val fos = java.io.FileOutputStream(output)
-        val zos = java.util.zip.ZipOutputStream(fos)
+        val fos = FileOutputStream(output)
+        val zos = ZipOutputStream(fos)
 
-        // 已写入的条目追踪（避免重复）
         val written = mutableSetOf<String>()
 
-        // 写入 1.1.27-SNAPSHOT 的非 mapping 条目（class 文件等）
-        snapshotZip.entries().asSequence().forEach { entry ->
-            if (entry.name.startsWith("META-INF/")) return@forEach
-            if (entry.name.startsWith("mapping/")) return@forEach
-            zos.putNextEntry(java.util.zip.ZipEntry(entry.name))
+        // Write 1.1.27-SNAPSHOT non-mapping entries (class files etc.)
+        val snapshotEnum = snapshotZip.entries()
+        while (snapshotEnum.hasMoreElements()) {
+            val entry = snapshotEnum.nextElement()
+            if (entry.name.startsWith("META-INF/")) continue
+            if (entry.name.startsWith("mapping/")) continue
+            zos.putNextEntry(ZipEntry(entry.name))
             snapshotZip.getInputStream(entry).transferTo(zos)
             zos.closeEntry()
             written.add(entry.name)
         }
 
-        // 从 1.1.26-official 写入所有 mapping 文件
-        officialZip.entries().asSequence().forEach { entry ->
-            if (!entry.name.startsWith("mapping/")) return@forEach
-            if (entry.name in written) return@forEach
-            zos.putNextEntry(java.util.zip.ZipEntry(entry.name))
+        // Write all mapping files from 1.1.26-official
+        val officialEnum = officialZip.entries()
+        while (officialEnum.hasMoreElements()) {
+            val entry = officialEnum.nextElement()
+            if (!entry.name.startsWith("mapping/")) continue
+            if (entry.name in written) continue
+            zos.putNextEntry(ZipEntry(entry.name))
             officialZip.getInputStream(entry).transferTo(zos)
             zos.closeEntry()
             written.add(entry.name)
         }
 
-        // 写入本地 mapping 覆盖（data_component_types.json 等）
-        if (localMappingDir.isDirectory) {
-            localMappingDir.listFiles()?.forEach { file ->
+        // Write local mapping overrides (data_component_types.json etc.)
+        val mappingFiles = localMappingDir.listFiles()
+        if (mappingFiles != null) {
+            for (file in mappingFiles) {
                 val entryName = "mapping/${file.name}"
-                if (entryName in written) return@forEach
-                zos.putNextEntry(java.util.zip.ZipEntry(entryName))
+                if (entryName in written) continue
+                zos.putNextEntry(ZipEntry(entryName))
                 file.inputStream().transferTo(zos)
                 zos.closeEntry()
                 written.add(entryName)
@@ -72,12 +90,37 @@ tasks.register("buildPatchedLimboAPI") {
         zos.close()
         fos.close()
 
-        logger.lifecycle("Patched JAR built: ${output.absolutePath}")
+        logger.lifecycle("Merged JAR: ${output.absolutePath}")
     }
+}
+
+tasks.register("patchBlockEntityVersion", JavaExec::class) {
+    dependsOn(mergeTask, "classes")
+    group = "limboapi"
+    description = "智能修补 BlockEntityVersion 字节码以兼容 Velocity 3.4.x"
+
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "io.github.addxiaoyi.starx.limboapi.patcher.BlockEntityVersionPatcher"
+
+    doFirst {
+        val compatJarPath = if (velocityCompatJar.exists()) {
+            velocityCompatJar.canonicalPath
+        } else {
+            logger.warn("Velocity compat jar not found at ${velocityCompatJar.canonicalPath}, using fallback mode")
+            "none"
+        }
+        args(compatJarPath, mergedJar.get().canonicalPath, patchedJar.get().canonicalPath)
+    }
+}
+
+tasks.register("buildPatchedLimboAPI") {
+    group = "limboapi"
+    description = "构建智能修补后的 LimboAPI JAR (v1.1.28-beta)"
+    dependsOn("patchBlockEntityVersion")
 }
 
 tasks.register<Delete>("cleanPatchedJar") {
     group = "limboapi"
     description = "删除构建的 patched JAR"
-    delete(patchedJar)
+    delete(patchedJar, mergedJar)
 }
