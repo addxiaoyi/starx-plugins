@@ -1,1 +1,0 @@
-{"id":"limboapi","name":"LimboAPI","version":"1.1.27-SNAPSHOT (git-ee22a05)","description":"Velocity plugin for making virtual servers.","url":"https://elytrium.net/","authors":["Elytrium (https://elytrium.net/)"],"dependencies":[],"main":"net.elytrium.limboapi.LimboAPI"}
