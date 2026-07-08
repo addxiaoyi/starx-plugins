@@ -164,11 +164,19 @@ public final class AuthModule implements VelocityModule {
 
   private void sendToTargetServer(Player player) {
     String targetServer = "lobby";
-    plugin.logger().log(Level.INFO, "玩家 {0} 认证完成，准备发送至 {1}", new Object[] {player.getUsername(), targetServer});
+    plugin
+        .logger()
+        .log(
+            Level.INFO, "玩家 {0} 认证完成，准备发送至 {1}", new Object[] {player.getUsername(), targetServer});
 
     var optServer = plugin.proxy().getServer(targetServer);
     if (optServer.isEmpty()) {
-      plugin.logger().log(Level.SEVERE, "目标服务器 {0} 不存在，断开玩家 {1}", new Object[] {targetServer, player.getUsername()});
+      plugin
+          .logger()
+          .log(
+              Level.SEVERE,
+              "目标服务器 {0} 不存在，断开玩家 {1}",
+              new Object[] {targetServer, player.getUsername()});
       player.disconnect(NOT_FOUND);
       return;
     }
@@ -176,7 +184,12 @@ public final class AuthModule implements VelocityModule {
     if (limboFactory != null) {
       try {
         limboFactory.passLoginLimbo(player);
-        plugin.logger().log(Level.INFO, "玩家 {0} 已通过 passLoginLimbo 切入 {1}", new Object[] {player.getUsername(), targetServer});
+        plugin
+            .logger()
+            .log(
+                Level.INFO,
+                "玩家 {0} 已通过 passLoginLimbo 切入 {1}",
+                new Object[] {player.getUsername(), targetServer});
       } catch (Exception e) {
         plugin.logger().log(Level.WARNING, "passLoginLimbo 失败，回退到直接连接: {0}", e.getMessage());
         fallbackConnect(player, optServer.get(), targetServer);
@@ -188,7 +201,9 @@ public final class AuthModule implements VelocityModule {
 
   private void fallbackConnect(Player player, RegisteredServer server, String serverName) {
     player.createConnectionRequest(server).fireAndForget();
-    plugin.logger().log(Level.INFO, "玩家 {0} 已发送连接请求到 {1}", new Object[] {player.getUsername(), serverName});
+    plugin
+        .logger()
+        .log(Level.INFO, "玩家 {0} 已发送连接请求到 {1}", new Object[] {player.getUsername(), serverName});
   }
 
   private void handleAuthResult(Player player, AuthResult result) {

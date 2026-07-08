@@ -81,3 +81,6 @@ obsidian-vault/
 limboapi-plugins/
 !limboapi-plugins/
 !limboapi-plugins/*.jar
+
+# Temp patcher artifacts
+limboapi-plugins/__temp/

@@ -9,8 +9,7 @@ import org.objectweb.asm.tree.*;
 
 public class UpdateCheckerPatcher {
 
-  private static final String TARGET_CLASS =
-      "net/elytrium/commons/utils/updates/UpdatesChecker";
+  private static final String TARGET_CLASS = "net/elytrium/commons/utils/updates/UpdatesChecker";
 
   public static void main(String[] args) throws Exception {
     if (args.length < 2) {
@@ -65,7 +64,8 @@ public class UpdateCheckerPatcher {
 
     int patchedMethods = 0;
     for (MethodNode mn : cn.methods) {
-      if (mn.name.equals("checkVersionByURL") && mn.desc.equals("(Ljava/lang/String;Ljava/lang/String;)Z")) {
+      if (mn.name.equals("checkVersionByURL")
+          && mn.desc.equals("(Ljava/lang/String;Ljava/lang/String;)Z")) {
         System.out.println("  Found method: " + mn.name + mn.desc);
 
         // Clear all instructions and exception handlers
