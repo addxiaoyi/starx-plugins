@@ -1,7 +1,9 @@
 package io.github.addxiaoyi.starx.velocity.module.auth;
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
+import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.Player;
 import io.github.addxiaoyi.starx.api.event.EventBus;
@@ -134,14 +136,18 @@ public final class AuthModule implements VelocityModule {
   }
 
   private void initLimbo() {
-    Optional<?> optional =
-        plugin
-            .proxy()
-            .getPluginManager()
-            .getPlugin("limboapi")
-            .flatMap(PluginContainer::getInstance);
-    if (optional.isEmpty() || !(optional.get() instanceof LimboFactory factory)) {
-      plugin.logger().log(Level.INFO, "LimboAPI 未找到，将使用无 Limbo 模式");
+    Optional<PluginContainer> container = plugin.proxy().getPluginManager().getPlugin("limboapi");
+    if (container.isEmpty()) {
+      plugin.logger().log(Level.WARNING, "LimboAPI 未安装，将使用无 Limbo 模式");
+      return;
+    }
+    Optional<?> instance = container.get().getInstance();
+    if (instance.isEmpty()) {
+      plugin.logger().log(Level.SEVERE, "LimboAPI 已安装但加载失败（请检查控制台错误日志），将使用无 Limbo 模式");
+      return;
+    }
+    if (!(instance.get() instanceof LimboFactory factory)) {
+      plugin.logger().log(Level.SEVERE, "LimboAPI 实例类型异常，将使用无 Limbo 模式");
       return;
     }
     this.limboFactory = factory;
@@ -197,8 +203,12 @@ public final class AuthModule implements VelocityModule {
   private void handleLogin(Player player) {
     UUID uuid = player.getUniqueId();
     String username = player.getUsername();
+    String addr = deviceId(player);
+
+    plugin.logger().log(Level.INFO, "玩家尝试登录: {0} ({1}) @ {2}", new Object[] {username, uuid, addr});
 
     if (premiumResolver.isPremium(uuid, player.isOnlineMode())) {
+      plugin.logger().log(Level.INFO, "正版玩家自动认证通过: {0}", username);
       authService.autoLogin(uuid, username, playerAddress(player));
       sendToTargetServer(player);
       return;
@@ -215,10 +225,11 @@ public final class AuthModule implements VelocityModule {
               commandHandler,
               AuthModule.this::handleAuthResult,
               deviceId(player)));
+      plugin.logger().log(Level.INFO, "离线玩家 {0} 已切入 Limbo 等待认证", username);
     } else {
+      plugin.logger().log(Level.WARNING, "LimboAPI 未加载；离线玩家 {0} 被拒绝连接", username);
       if (authService.isUserRegistered(uuid)) {
-        AuthResult result = authService.autoLogin(uuid, username, playerAddress(player));
-        handleAuthResult(player, result);
+        player.disconnect(Component.text("LimboAPI 未正确加载，无法完成认证。请联系管理员。"));
       } else {
         player.disconnect(Component.text("请先在网站注册账号，或安装 LimboAPI 以支持游戏内注册"));
       }
@@ -237,6 +248,30 @@ public final class AuthModule implements VelocityModule {
       if (authLimbo == null) {
         handleLogin(event.getPlayer());
       }
+    }
+
+    @Subscribe
+    public void onDisconnect(DisconnectEvent event) {
+      Player player = event.getPlayer();
+      plugin
+          .logger()
+          .log(
+              Level.INFO,
+              "玩家断开连接: {0} ({1})",
+              new Object[] {player.getUsername(), player.getUniqueId()});
+    }
+
+    @Subscribe
+    public void onKicked(KickedFromServerEvent event) {
+      Player player = event.getPlayer();
+      String reason = event.getServerKickReason().map(Object::toString).orElse("无");
+      String originalResult = event.getResult().toString();
+      plugin
+          .logger()
+          .log(
+              Level.WARNING,
+              "玩家 {0} 从服务器被踢 (原因: {1}) → {2}",
+              new Object[] {player.getUsername(), reason, originalResult});
     }
   }
 }
