@@ -18,6 +18,7 @@ val snapshotJarName = "limboapi-1.1.27-SNAPSHOT.jar"
 val officialJarName = "limboapi-1.1.26-official.jar"
 val patchedJarName = "limboapi-1.1.28-beta-patched.jar"
 val mergedJarName = "limboapi-1.1.27-SNAPSHOT-merged.jar"
+val noUpdateJarName = "limboapi-1.1.27-SNAPSHOT-noupdate.jar"
 
 val snapshotJar = file(snapshotJarName)
 val officialJar = file(officialJarName)
@@ -25,6 +26,7 @@ val localMappingDir = file("mapping")
 val velocityCompatJar = file("../../velocity-test/velocity-3.4.0-566.jar")
 
 val mergedJar = layout.buildDirectory.file("libs/$mergedJarName").map { it.asFile }
+val noUpdateJar = layout.buildDirectory.file("libs/$noUpdateJarName").map { it.asFile }
 val patchedJar = layout.buildDirectory.file("libs/$patchedJarName").map { it.asFile }
 
 val mergeTask = tasks.register("mergeLimboAPIJars") {
@@ -94,8 +96,21 @@ val mergeTask = tasks.register("mergeLimboAPIJars") {
     }
 }
 
-tasks.register("patchBlockEntityVersion", JavaExec::class) {
+tasks.register("patchUpdateChecker", JavaExec::class) {
     dependsOn(mergeTask, "classes")
+    group = "limboapi"
+    description = "修补 UpdatesChecker 字节码，移除联网更新检查（避免启动超时）"
+
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "io.github.addxiaoyi.starx.limboapi.patcher.UpdateCheckerPatcher"
+
+    doFirst {
+        args(mergedJar.get().canonicalPath, noUpdateJar.get().canonicalPath)
+    }
+}
+
+tasks.register("patchBlockEntityVersion", JavaExec::class) {
+    dependsOn("patchUpdateChecker")
     group = "limboapi"
     description = "智能修补 BlockEntityVersion 字节码以兼容 Velocity 3.4.x"
 
@@ -109,7 +124,7 @@ tasks.register("patchBlockEntityVersion", JavaExec::class) {
             logger.warn("Velocity compat jar not found at ${velocityCompatJar.canonicalPath}, using fallback mode")
             "none"
         }
-        args(compatJarPath, mergedJar.get().canonicalPath, patchedJar.get().canonicalPath)
+        args(compatJarPath, noUpdateJar.get().canonicalPath, patchedJar.get().canonicalPath)
     }
 }
 
@@ -122,5 +137,5 @@ tasks.register("buildPatchedLimboAPI") {
 tasks.register<Delete>("cleanPatchedJar") {
     group = "limboapi"
     description = "删除构建的 patched JAR"
-    delete(patchedJar, mergedJar)
+    delete(patchedJar, mergedJar, noUpdateJar)
 }
